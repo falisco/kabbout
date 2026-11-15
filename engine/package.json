@@ -1,0 +1,10 @@
+{
+  "name": "@kabbout/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Belote contrée rules, scoring and robots as a pure state machine (no DOM, no timers).",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

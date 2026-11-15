@@ -1,0 +1,1137 @@
+[
+ {
+  "seed": 1000,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 6,
+  "scores": [
+   1100,
+   550
+  ],
+  "winner": 0,
+  "rounds": [
+   "80H x1 @3 made +50/190",
+   "120H x1 @3 down +280/0",
+   "140C x1 @2 made +280/40",
+   "100H x1 @2 made +210/50",
+   "120H x1 @1 made +30/270",
+   "90H x1 @3 down +250/0"
+  ],
+  "cards": [
+   "0:AD 1:7D 2:TS 3:QD >0 | 0:8D 1:9D 2:7H 3:KD >2 | 2:AS 3:9H 0:JS 1:QS >3 | 3:JH 0:8H 1:QH 2:TH >3 | 3:AC 0:TC 1:QC 2:7C >3 | 3:KC 0:KH 1:8C 2:JC >0 | 0:JD 1:AH 2:7S 3:TD >1 | 1:9S 2:8S 3:9C 0:KS >0",
+   "1:JH 2:7S 3:8H 0:QH >1 | 1:AD 2:JD 3:9D 0:7D >1 | 1:AS 2:9S 3:TS 0:9H >0 | 0:7C 1:8C 2:JC 3:AC >3 | 3:8D 0:QD 1:7H 2:TD >1 | 1:AH 2:QS 3:TH 0:9C >1 | 1:KC 2:TC 3:8S 0:QC >2 | 2:KS 3:JS 0:KD 1:KH >1",
+   "2:AS 3:JS 0:TD 1:8S >2 | 2:7D 3:8D 0:AD 1:9D >0 | 0:JC 1:AC 2:KH 3:TC >0 | 0:TH 1:9H 2:7H 3:AH >3 | 3:8H 0:7C 1:JH 2:KD >0 | 0:8C 1:QD 2:7S 3:9C >3 | 3:KS 0:QC 1:TS 2:QS >0 | 0:KC 1:QH 2:9S 3:JD >0",
+   "3:8S 0:JS 1:TS 2:AS >2 | 2:8H 3:KH 0:JH 1:7S >0 | 0:AD 1:7D 2:JD 3:9D >0 | 0:8D 1:TD 2:TH 3:9H >3 | 3:KS 0:QS 1:TC 2:9S >3 | 3:9C 0:QH 1:8C 2:AC >0 | 0:AH 1:QD 2:JC 3:7H >0 | 0:KD 1:KC 2:7C 3:QC >0",
+   "0:AD 1:7D 2:9D 3:QD >0 | 0:7C 1:JC 2:KC 3:AC >3 | 3:JH 0:QH 1:8H 2:8C >3 | 3:9H 0:KH 1:TH 2:9C >3 | 3:8S 0:QS 1:AS 2:9S >1 | 1:TD 2:KS 3:QC 0:8D >1 | 1:7S 2:TS 3:7H 0:JD >3 | 3:AH 0:KD 1:JS 2:TC >3",
+   "1:JH 2:8H 3:QH 0:8C >1 | 1:9H 2:KH 3:TH 0:JC >1 | 1:8D 2:AD 3:KD 0:JD >2 | 2:AC 3:7C 0:TC 1:KC >2 | 2:7D 3:9S 0:JS 1:TD >1 | 1:8S 2:7S 3:TS 0:QS >3 | 3:AS 0:KS 1:7H 2:AH >2 | 2:QD 3:9C 0:QC 1:9D >2"
+  ],
+  "firstHands": [
+   "JD 8H KS AD TC 8D JS KH",
+   "8C AH QH QC QS 7D 9D 9S",
+   "AS 7C 8S TS JC 7H TH 7S",
+   "JH KD KC TD 9H AC QD 9C"
+  ]
+ },
+ {
+  "seed": 1037,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 6,
+  "scores": [
+   1140,
+   280
+  ],
+  "winner": 0,
+  "rounds": [
+   "130D x1 @1 down +310/0",
+   "80H x1 @1 down +240/0",
+   "100D x1 @3 made +40/220",
+   "130C x1 @0 made +270/40",
+   "120S x1 @0 made +280/20"
+  ],
+  "cards": [
+   "3:JD 0:TD 1:TH 2:7S >3 | 3:AS 0:8S 1:TS 2:8H >3 | 3:8C 0:QC 1:7C 2:AC >2 | 2:TC 3:JC 0:KC 1:7H >2 | 2:JH 3:7D 0:AD 1:9H >0 | 0:KS 1:JS 2:KH 3:8D >3 | 3:QD 0:9D 1:QS 2:QH >0 | 0:9S 1:AH 2:9C 3:KD >3",
+   "0:AS 1:JH 2:QS 3:JS >1 | 1:8H 2:7H 3:QH 0:AH >0 | 0:7S 1:KH 2:KS 3:8S >1 | 1:AC 2:8C 3:9C 0:JC >1 | 1:7C 2:TC 3:TH 0:9H >0 | 0:9S 1:8D 2:TS 3:7D >2 | 2:AD 3:9D 0:KD 1:TD >2 | 2:QC 3:QD 0:JD 1:KC >1",
+   "1:JD 2:KD 3:TH 0:7D >1 | 1:9D 2:TD 3:TS 0:QD >1 | 1:AS 2:JS 3:QS 0:7S >1 | 1:7H 2:KH 3:AH 0:AD >0 | 0:7C 1:QC 2:AC 3:9C >2 | 2:KS 3:8S 0:9S 1:8D >1 | 1:QH 2:8C 3:JH 0:JC >1 | 1:8H 2:KC 3:9H 0:TC >3",
+   "2:7S 3:9S 0:9C 1:JS >0 | 0:JC 1:QD 2:AC 3:8C >0 | 0:7D 1:KD 2:TD 3:AD >3 | 3:JD 0:7C 1:KH 2:9D >0 | 0:7H 1:AH 2:9H 3:JH >1 | 1:TH 2:QH 3:8H 0:QC >0 | 0:KC 1:TS 2:8S 3:QS >0 | 0:TC 1:AS 2:8D 3:KS >0",
+   "0:7S 1:TS 2:JS 3:7H >2 | 2:AD 3:QD 0:TD 1:7D >2 | 2:KD 3:8H 0:9D 1:8D >2 | 2:8C 3:JC 0:TC 1:AC >1 | 1:KC 2:QS 3:QC 0:9C >2 | 2:KH 3:9H 0:AH 1:QH >0 | 0:9S 1:AS 2:KS 3:JH >0 | 0:8S 1:7C 2:JD 3:TH >0"
+  ],
+  "firstHands": [
+   "KC QC TD 9D KS 9S 8S AD",
+   "AH QS 7C 7H TS TH JS 9H",
+   "7S KH TC 8H QH 9C AC JH",
+   "JC AS JD 8C 7D KD QD 8D"
+  ]
+ },
+ {
+  "seed": 1074,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 7,
+  "scores": [
+   1110,
+   100
+  ],
+  "winner": 0,
+  "rounds": [
+   "100S x1 @2 made +230/40",
+   "100S x1 @2 made +230/30",
+   "120H x1 @0 made +280/30",
+   "120D x1 @0 made +370/0"
+  ],
+  "cards": [
+   "0:7C 1:9C 2:8C 3:AC >3 | 3:8H 0:TH 1:7H 2:AH >2 | 2:JS 3:7S 0:8S 1:AS >2 | 2:9S 3:TS 0:QS 1:JC >2 | 2:AD 3:9D 0:JD 1:KD >2 | 2:7D 3:TD 0:8D 1:KC >3 | 3:QH 0:QC 1:KH 2:9H >1 | 1:JH 2:KS 3:QD 0:TC >2",
+   "1:AD 2:9S 3:8D 0:KD >2 | 2:JS 3:7S 0:AS 1:TS >2 | 2:8S 3:KS 0:JD 1:AH >3 | 3:TH 0:QH 1:JH 2:9H >3 | 3:7H 0:KH 1:8H 2:AC >0 | 0:TC 1:7C 2:KC 3:JC >0 | 0:QC 1:8C 2:9C 3:9D >0 | 0:QD 1:7D 2:QS 3:TD >2",
+   "3:7C 0:AC 1:9C 2:JC >0 | 0:TH 1:7H 2:JH 3:8D >2 | 2:AD 3:KD 0:JD 1:9D >2 | 2:7D 3:TD 0:AH 1:7S >0 | 0:9H 1:8H 2:QH 3:JS >0 | 0:8S 1:AS 2:KH 3:QS >2 | 2:QD 3:TC 0:KS 1:9S >2 | 2:8C 3:TS 0:QC 1:KC >1",
+   "1:AS 2:AD 3:7S 0:QS >2 | 2:JD 3:TD 0:8D 1:QD >2 | 2:9D 3:8H 0:KD 1:7C >2 | 2:AC 3:9C 0:TC 1:KC >2 | 2:QC 3:JC 0:8C 1:7H >2 | 2:QH 3:KH 0:AH 1:JH >0 | 0:8S 1:JS 2:7D 3:9S >2 | 2:TH 3:TS 0:9H 1:KS >2"
+  ],
+  "firstHands": [
+   "KC JD JC 8C QD 8H TH JH",
+   "QS 9C AD KH JS 9D 8D 7H",
+   "KD 8S TD TC QH AC 7C KS",
+   "AH 9H AS 7D QC TS 9S 7S"
+  ]
+ },
+ {
+  "seed": 1111,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 6,
+  "scores": [
+   420,
+   1190
+  ],
+  "winner": 1,
+  "rounds": [
+   "110D x1 @3 made +40/230",
+   "100H x1 @3 made +30/250",
+   "110S x1 @0 down +0/270",
+   "90S x1 @1 made +70/190",
+   "100H x1 @0 made +230/40",
+   "90D x1 @3 made +50/210"
+  ],
+  "cards": [
+   "0:7H 1:AH 2:8H 3:TH >1 | 1:JD 2:KD 3:9D 0:8C >1 | 1:JH 2:TD 3:KH 0:9H >2 | 2:AC 3:JC 0:KC 1:7D >1 | 1:JS 2:7S 3:TS 0:8S >3 | 3:AS 0:9S 1:QH 2:AD >2 | 2:7C 3:TC 0:QS 1:8D >1 | 1:QD 2:9C 3:QC 0:KS >1",
+   "1:JH 2:7D 3:8H 0:QH >1 | 1:9D 2:8D 3:JD 0:AD >0 | 0:7C 1:7H 2:9C 3:JC >1 | 1:TD 2:7S 3:JS 0:KD >1 | 1:KS 2:TS 3:AS 0:QS >3 | 3:9H 0:KH 1:TH 2:KC >3 | 3:8S 0:8C 1:QD 2:TC >3 | 3:9S 0:QC 1:AH 2:AC >1",
+   "2:JS 3:QS 0:TC 1:8S >2 | 2:AH 3:KH 0:TH 1:7H >2 | 2:8H 3:TS 0:9H 1:KD >3 | 3:AC 0:7C 1:QC 2:KC >3 | 3:JC 0:8D 1:9C 2:7S >2 | 2:TD 3:7D 0:AD 1:9D >0 | 0:JH 1:9S 2:KS 3:QD >1 | 1:JD 2:AS 3:8C 0:QH >2",
+   "3:JS 0:7S 1:KS 2:8D >3 | 3:9S 0:8S 1:TS 2:9C >3 | 3:7C 0:AC 1:8C 2:KC >0 | 0:AD 1:7D 2:TD 3:9D >0 | 0:7H 1:AH 2:QH 3:TH >1 | 1:8H 2:KH 3:QS 0:9H >3 | 3:TC 0:QC 1:JD 2:JC >3 | 3:KD 0:AS 1:JH 2:QD >0",
+   "0:AS 1:JS 2:TS 3:8S >0 | 0:7S 1:TH 2:9H 3:QS >2 | 2:JH 3:8H 0:KH 1:AH >2 | 2:7C 3:AC 0:8C 1:TC >3 | 3:AD 0:QD 1:7D 2:JD >3 | 3:KC 0:JC 1:QC 2:7H >2 | 2:TD 3:9C 0:KD 1:8D >2 | 2:QH 3:KS 0:9S 1:9D >2",
+   "1:JD 2:7C 3:8D 0:7D >1 | 1:9D 2:8C 3:TD 0:KD >1 | 1:7S 2:AS 3:9S 0:KS >2 | 2:8S 3:QS 0:9H 1:TS >1 | 1:7H 2:QH 3:TH 0:AH >0 | 0:AC 1:QD 2:KC 3:QC >1 | 1:8H 2:JS 3:JC 0:KH >0 | 0:9C 1:JH 2:TC 3:AD >3"
+  ],
+  "firstHands": [
+   "9S 9H 7H 8C QS 8S KS KC",
+   "JH JS AH 8D JD QD 7D QH",
+   "9C 7C 7S 8H KD AC TD AD",
+   "JC TH TS KH TC 9D AS QC"
+  ]
+ },
+ {
+  "seed": 1148,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 7,
+  "scores": [
+   970,
+   1020
+  ],
+  "winner": 1,
+  "rounds": [
+   "110C x1 @1 made +10/260",
+   "120S x1 @2 made +260/40",
+   "100D x1 @0 made +210/70",
+   "110H x1 @1 made +50/240",
+   "110D x1 @0 made +240/40",
+   "130D x1 @1 made +20/300",
+   "90C x1 @2 made +180/70"
+  ],
+  "cards": [
+   "2:AS 3:JS 0:QS 1:QC >1 | 1:AD 2:7D 3:TD 0:8D >1 | 1:KD 2:8C 3:AC 0:9D >3 | 3:JC 0:7C 1:TC 2:7S >3 | 3:9C 0:KC 1:QD 2:7H >3 | 3:AH 0:QH 1:JH 2:TH >3 | 3:9H 0:KH 1:8H 2:TS >0 | 0:9S 1:JD 2:8S 3:KS >3",
+   "3:AH 0:TH 1:KH 2:QH >3 | 3:AC 0:8C 1:7C 2:9C >3 | 3:TC 0:JC 1:JH 2:QS >2 | 2:KS 3:AS 0:9S 1:8D >0 | 0:JS 1:JD 2:TS 3:8S >0 | 0:AD 1:7H 2:KD 3:7D >0 | 0:TD 1:8H 2:9D 3:QC >0 | 0:7S 1:9H 2:QD 3:KC >0",
+   "0:TD 1:AD 2:JD 3:7S >2 | 2:7H 3:9H 0:AH 1:KH >0 | 0:9D 1:7D 2:QD 3:8S >0 | 0:7C 1:9C 2:JC 3:AC >3 | 3:TC 0:KC 1:QC 2:8C >3 | 3:9S 0:TS 1:AS 2:JS >1 | 1:TH 2:JH 3:KS 0:8H >1 | 1:8D 2:KD 3:QS 0:QH >2",
+   "1:JH 2:TH 3:8H 0:7H >1 | 1:9H 2:7D 3:AH 0:7S >1 | 1:JD 2:AD 3:KD 0:QD >2 | 2:AC 3:9C 0:8C 1:KC >2 | 2:AS 3:JC 0:KS 1:JS >2 | 2:7C 3:TC 0:8D 1:TS >3 | 3:TD 0:8S 1:QH 2:9D >1 | 1:KH 2:9S 3:QC 0:QS >1",
+   "2:JD 3:7S 0:QD 1:8D >2 | 2:7C 3:QC 0:9C 1:AC >1 | 1:8C 2:7D 3:KC 0:JC >2 | 2:7H 3:AH 0:TH 1:JH >3 | 3:KH 0:9D 1:9H 2:QH >0 | 0:AS 1:8S 2:9S 3:KS >0 | 0:QS 1:JS 2:KD 3:8H >2 | 2:AD 3:TC 0:TD 1:TS >2",
+   "3:JD 0:8C 1:7D 2:AD >3 | 3:9D 0:9C 1:QD 2:7H >3 | 3:AS 0:KS 1:QS 2:7S >3 | 3:9H 0:JH 1:KH 2:AH >2 | 2:AC 3:8D 0:JC 1:7C >3 | 3:TH 0:KC 1:JS 2:8H >3 | 3:QH 0:TS 1:8S 2:QC >3 | 3:TD 0:TC 1:KD 2:9S >3",
+   "0:JC 1:KC 2:KD 3:QC >0 | 0:AS 1:7S 2:KS 3:TS >0 | 0:AD 1:8D 2:QD 3:7D >0 | 0:9D 1:TD 2:JD 3:KH >1 | 1:7H 2:AH 3:9H 0:TH >2 | 2:QS 3:AC 0:JS 1:JH >3 | 3:QH 0:7C 1:8H 2:8S >0 | 0:8C 1:TC 2:9S 3:9C >3"
+  ],
+  "firstHands": [
+   "KC 7C QS 9D QH 9S 8D KH",
+   "QD TC JH KD 8H QC JD AD",
+   "TS TH AS 8C 8S 7S 7H 7D",
+   "AH 9C JC 9H JS TD KS AC"
+  ]
+ },
+ {
+  "seed": 1185,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 6,
+  "scores": [
+   1040,
+   680
+  ],
+  "winner": 0,
+  "rounds": [
+   "130D x1 @1 made +0/380",
+   "120D x1 @2 made +260/20",
+   "110C x1 @1 down +290/0",
+   "90S x1 @0 made +210/40",
+   "100H x1 @1 made +40/220",
+   "100H x1 @2 made +240/20"
+  ],
+  "cards": [
+   "0:9C 1:AC 2:8C 3:AS >1 | 1:TC 2:JC 3:QH 0:KC >1 | 1:QS 2:7S 3:8D 0:JS >3 | 3:JD 0:7D 1:KD 2:7H >3 | 3:9D 0:QD 1:KH 2:8H >3 | 3:AD 0:TD 1:KS 2:8S >3 | 3:AH 0:TH 1:QC 2:JH >3 | 3:9H 0:TS 1:7C 2:9S >3",
+   "1:AS 2:7S 3:TS 0:JS >1 | 1:7C 2:AC 3:KC 0:TC >2 | 2:JD 3:7D 0:KD 1:8C >2 | 2:9D 3:QD 0:KS 1:8H >2 | 2:AD 3:TD 0:KH 1:9C >2 | 2:AH 3:9H 0:QH 1:TH >2 | 2:QC 3:8S 0:JH 1:JC >2 | 2:8D 3:9S 0:7H 1:QS >2",
+   "2:AD 3:7D 0:9D 1:JD >2 | 2:AH 3:8H 0:KH 1:QC >1 | 1:JC 2:7C 3:8C 0:TC >1 | 1:KC 2:7H 3:8D 0:9C >0 | 0:AS 1:7S 2:TS 3:KS >0 | 0:9S 1:JS 2:QS 3:KD >2 | 2:TD 3:QH 0:JH 1:QD >2 | 2:8S 3:TH 0:9H 1:AC >1",
+   "3:AD 0:7D 1:TD 2:KS >2 | 2:JS 3:AS 0:7S 1:QS >2 | 2:9S 3:7H 0:8S 1:TS >2 | 2:7C 3:QC 0:AC 1:9C >0 | 0:KD 1:JD 2:QH 3:9D >0 | 0:8D 1:QD 2:8C 3:AH >1 | 1:TC 2:JC 3:TH 0:KC >1 | 1:8H 2:JH 3:9H 0:KH >0",
+   "0:AS 1:TS 2:JS 3:9S >0 | 0:8C 1:QC 2:7C 3:AC >3 | 3:JH 0:KH 1:7H 2:8H >3 | 3:9H 0:QD 1:TH 2:7D >3 | 3:9C 0:7S 1:KC 2:JC >1 | 1:TC 2:JD 3:KD 0:8S >1 | 1:8D 2:AD 3:9D 0:KS >2 | 2:TD 3:QH 0:QS 1:AH >1",
+   "1:8S 2:AS 3:9S 0:7S >2 | 2:7H 3:KH 0:9H 1:QH >0 | 0:JH 1:8C 2:8H 3:TH >0 | 0:AC 1:9C 2:TC 3:JC >0 | 0:7C 1:9D 2:QC 3:KC >3 | 3:AD 0:8D 1:QD 2:7D >3 | 3:QS 0:JD 1:JS 2:AH >2 | 2:KD 3:KS 0:TD 1:TS >0"
+  ],
+  "firstHands": [
+   "TH TS TD KC 9C 7D JS QD",
+   "QS KS QC KD TC AC 7C KH",
+   "7S 9S 8H JH 7H 8C 8S JC",
+   "AH JD 9H 8D AS 9D AD QH"
+  ]
+ },
+ {
+  "seed": 1222,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 9,
+  "scores": [
+   1210,
+   820
+  ],
+  "winner": 0,
+  "rounds": [
+   "100D x1 @1 made +40/220",
+   "110H x1 @1 made +10/260",
+   "110D x1 @0 made +360/0",
+   "110H x1 @3 made +40/230",
+   "130C x1 @0 made +280/30",
+   "110H x1 @0 made +230/40",
+   "120C x1 @0 made +250/40"
+  ],
+  "cards": [
+   "2:AH 3:KH 0:JH 1:TH >2 | 2:QH 3:9D 0:9H 1:AC >3 | 3:JD 0:AD 1:8D 2:TD >3 | 3:TC 0:JC 1:KC 2:8C >3 | 3:7S 0:AS 1:QS 2:JS >0 | 0:8S 1:TS 2:7H 3:9C >1 | 1:KD 2:8H 3:7D 0:9S >1 | 1:7C 2:QC 3:QD 0:KS >3",
+   "3:8S 0:7S 1:AS 2:KS >1 | 1:JH 2:TH 3:7H 0:8H >1 | 1:9H 2:7D 3:KH 0:QH >1 | 1:AC 2:7C 3:TC 0:QC >1 | 1:8D 2:JD 3:9D 0:AD >0 | 0:TS 1:AH 2:8C 3:QS >1 | 1:TD 2:QD 3:JC 0:JS >1 | 1:KD 2:9C 3:9S 0:KC >1",
+   "0:8D 1:QD 2:9D 3:7S >2 | 2:JD 3:7H 0:KD 1:TD >2 | 2:AS 3:TS 0:KS 1:8C >2 | 2:AH 3:JH 0:8H 1:9H >2 | 2:JS 3:7C 0:QS 1:QC >0 | 0:9S 1:KC 2:QH 3:9C >0 | 0:8S 1:KH 2:JC 3:TC >0 | 0:AD 1:TH 2:7D 3:AC >0",
+   "1:JH 2:7H 3:KH 0:8H >1 | 1:9H 2:7C 3:AH 0:8D >1 | 1:AD 2:7D 3:KD 0:QD >1 | 1:7S 2:QS 3:AS 0:8S >3 | 3:9D 0:8C 1:QC 2:TD >2 | 2:AC 3:9S 0:TC 1:KC >2 | 2:TS 3:JS 0:JC 1:QH >1 | 1:TH 2:JD 3:KS 0:9C >1",
+   "3:7S 0:AS 1:8S 2:TH >0 | 0:AH 1:7H 2:8H 3:7C >3 | 3:9S 0:QS 1:TS 2:8C >2 | 2:JC 3:9C 0:AC 1:7D >2 | 2:9D 3:QD 0:KD 1:AD >1 | 1:KH 2:QC 3:JS 0:QH >2 | 2:KC 3:KS 0:JD 1:9H >2 | 2:TC 3:TD 0:8D 1:JH >2",
+   "1:7C 2:9C 3:QC 0:AC >0 | 0:AD 1:7D 2:KD 3:QH >3 | 3:7S 0:AS 1:9S 2:KC >0 | 0:TS 1:QS 2:8D 3:8S >0 | 0:TC 1:7H 2:JH 3:8C >2 | 2:KH 3:9H 0:JD 1:8H >3 | 3:JS 0:JC 1:9D 2:TH >2 | 2:AH 3:KS 0:TD 1:QD >2",
+   "2:JC 3:QC 0:8C 1:7C >2 | 2:9C 3:7D 0:KC 1:TC >2 | 2:AH 3:KH 0:QH 1:7H >2 | 2:8S 3:7S 0:9S 1:JS >1 | 1:8H 2:AC 3:TH 0:9H >2 | 2:JD 3:QD 0:AD 1:9D >0 | 0:AS 1:JH 2:KS 3:QS >0 | 0:8D 1:TD 2:KD 3:TS >1"
+  ],
+  "firstHands": [
+   "9H AD 8S JC 9S JH KS AS",
+   "KD 8D 7C KC AC TH QS TS",
+   "8H QC 8C QH TD 7H JS AH",
+   "JD QD 7D 9C 9D 7S TC KH"
+  ]
+ },
+ {
+  "seed": 1259,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 8,
+  "scores": [
+   1030,
+   890
+  ],
+  "winner": 0,
+  "rounds": [
+   "110S x1 @3 made +40/230",
+   "110H x1 @3 made +30/250",
+   "110H x1 @0 made +230/40",
+   "130C x1 @3 made +10/300",
+   "100C x1 @2 made +210/50",
+   "110C x1 @1 down +270/0",
+   "100C x1 @2 made +240/20"
+  ],
+  "cards": [
+   "3:AH 0:JH 1:7H 2:8H >3 | 3:7D 0:JD 1:QD 2:AD >2 | 2:AC 3:8C 0:TC 1:KC >2 | 2:QC 3:9C 0:TD 1:7S >1 | 1:JS 2:8D 3:AS 0:QS >1 | 1:9S 2:9D 3:KH 0:TS >1 | 1:8S 2:7C 3:QH 0:KD >1 | 1:KS 2:JC 3:9H 0:TH >1",
+   "0:AC 1:JH 2:8C 3:9C >1 | 1:AS 2:8S 3:TS 0:KS >1 | 1:8D 2:AD 3:9H 0:7D >3 | 3:7S 0:QH 1:KH 2:JC >1 | 1:AH 2:7H 3:8H 0:7C >1 | 1:JD 2:QD 3:9S 0:9D >2 | 2:TD 3:JS 0:KC 1:KD >2 | 2:TC 3:QS 0:QC 1:TH >1",
+   "1:AD 2:8D 3:KD 0:7D >1 | 1:TD 2:QD 3:TC 0:9D >1 | 1:JC 2:AC 3:7C 0:AS >2 | 2:JH 3:AH 0:7H 1:8H >2 | 2:9C 3:8C 0:7S 1:KC >1 | 1:JS 2:QH 3:8S 0:KS >2 | 2:QC 3:9S 0:KH 1:QS >0 | 0:9H 1:JD 2:TH 3:TS >0",
+   "2:AS 3:7S 0:TS 1:8C >1 | 1:JC 2:7H 3:7C 0:8S >1 | 1:8H 2:9H 3:AC 0:QH >3 | 3:7D 0:AD 1:JD 2:8D >0 | 0:TD 1:QC 2:9D 3:KD >1 | 1:JH 2:KH 3:9C 0:TH >3 | 3:QD 0:QS 1:KC 2:9S >1 | 1:TC 2:KS 3:JS 0:AH >1",
+   "0:JC 1:9C 2:8C 3:QC >0 | 0:AD 1:7D 2:KD 3:9D >0 | 0:8S 1:9S 2:JS 3:AS >3 | 3:TS 0:7C 1:QS 2:KS >0 | 0:8D 1:TD 2:8H 3:JD >1 | 1:7H 2:AH 3:KH 0:9H >2 | 2:JH 3:AC 0:KC 1:TH >3 | 3:7S 0:TC 1:QD 2:QH >0",
+   "1:AS 2:7C 3:TS 0:JS >2 | 2:AH 3:JH 0:QH 1:9H >2 | 2:7H 3:TH 0:KC 1:KH >0 | 0:7S 1:9S 2:8C 3:AC >3 | 3:JC 0:TC 1:KS 2:QC >3 | 3:AD 0:JD 1:QD 2:8D >3 | 3:9D 0:KD 1:7D 2:TD >2 | 2:8H 3:9C 0:8S 1:QS >3",
+   "2:7C 3:7D 0:KC 1:TC >1 | 1:AS 2:AC 3:8S 0:KS >2 | 2:AH 3:7H 0:JD 1:9H >2 | 2:AD 3:8D 0:9D 1:QD >2 | 2:TH 3:8H 0:9S 1:KH >2 | 2:QH 3:JH 0:7S 1:8C >1 | 1:JS 2:KD 3:QS 0:9C >0 | 0:JC 1:QC 2:TD 3:TS >0"
+  ],
+  "firstHands": [
+   "TC JD TH KD TD QS JH TS",
+   "8S JS 7H QD KS KC 7S 9S",
+   "9D 7C AC JC AD 8H QC 8D",
+   "QH KH 7D AS AH 9H 9C 8C"
+  ]
+ },
+ {
+  "seed": 1296,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 8,
+  "scores": [
+   780,
+   1080
+  ],
+  "winner": 1,
+  "rounds": [
+   "90H x1 @1 made +70/200",
+   "100H x1 @0 made +230/40",
+   "110H x1 @0 made +230/40",
+   "110S x1 @0 down +0/270",
+   "110S x1 @3 made +10/260",
+   "90C x1 @0 made +190/60",
+   "100S x1 @1 made +50/210"
+  ],
+  "cards": [
+   "3:JH 0:8H 1:AH 2:7H >3 | 3:7S 0:AS 1:8S 2:TS >0 | 0:AD 1:9D 2:7D 3:KD >0 | 0:9S 1:9H 2:KS 3:JS >1 | 1:9C 2:AC 3:8C 0:KC >2 | 2:TC 3:QH 0:JC 1:QC >3 | 3:TD 0:TH 1:JD 2:8D >0 | 0:QS 1:QD 2:7C 3:KH >3",
+   "0:8H 1:AH 2:JH 3:7S >2 | 2:8D 3:9D 0:7D 1:AD >1 | 1:7C 2:JC 3:QC 0:AC >0 | 0:AS 1:9S 2:QS 3:8S >0 | 0:TC 1:KC 2:JD 3:8C >0 | 0:KS 1:TS 2:7H 3:JS >2 | 2:QH 3:QD 0:KH 1:9H >1 | 1:KD 2:TH 3:TD 0:9C >2",
+   "1:8S 2:AS 3:JS 0:TS >2 | 2:JH 3:7H 0:TC 1:KH >2 | 2:KS 3:TH 0:7S 1:QS >3 | 3:AC 0:7C 1:QC 2:8H >2 | 2:QD 3:8D 0:7D 1:9D >2 | 2:TD 3:KD 0:AD 1:JD >0 | 0:9C 1:9H 2:QH 3:KC >1 | 1:9S 2:AH 3:8C 0:JC >2",
+   "2:7D 3:JD 0:8D 1:AD >1 | 1:7H 2:QH 3:9H 0:AH >0 | 0:JS 1:KS 2:TC 3:JC >0 | 0:7S 1:TS 2:7C 3:AC >1 | 1:8H 2:TH 3:JH 0:8C >2 | 2:9D 3:TD 0:8S 1:QD >0 | 0:QS 1:9S 2:9C 3:KC >1 | 1:QC 2:KH 3:KD 0:AS >0",
+   "3:8S 0:7H 1:QS 2:TS >2 | 2:AD 3:QD 0:JD 1:7S >1 | 1:JS 2:9S 3:KS 0:7D >1 | 1:AC 2:8C 3:7C 0:KC >1 | 1:9H 2:8D 3:TH 0:8H >3 | 3:AH 0:JH 1:KH 2:9C >3 | 3:TD 0:9D 1:QC 2:JC >3 | 3:KD 0:QH 1:AS 2:TC >1",
+   "1:AH 2:KH 3:QH 0:TH >1 | 1:JH 2:JC 3:7H 0:TD >2 | 2:AD 3:JD 0:QD 1:7D >2 | 2:KD 3:KC 0:8D 1:TS >3 | 3:AS 0:8S 1:7S 2:QS >3 | 3:JS 0:KS 1:9S 2:9D >0 | 0:9C 1:7C 2:8C 3:AC >0 | 0:TC 1:8H 2:QC 3:9H >0",
+   "2:8D 3:7D 0:TD 1:JD >0 | 0:AD 1:QD 2:KD 3:9D >0 | 0:8C 1:AC 2:JC 3:9C >1 | 1:TC 2:KC 3:8H 0:QC >1 | 1:7H 2:9H 3:AH 0:TH >3 | 3:JS 0:8S 1:KH 2:KS >3 | 3:9S 0:QS 1:QH 2:AS >3 | 3:7S 0:TS 1:7C 2:JH >0"
+  ],
+  "firstHands": [
+   "KC AD 8H JC AS TH QS 9S",
+   "9C JD AH 9D 8S QD QC 9H",
+   "AC 8D KS TS 7D 7H 7C TC",
+   "TD 7S QH KD 8C KH JH JS"
+  ]
+ },
+ {
+  "seed": 1333,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 7,
+  "scores": [
+   1120,
+   510
+  ],
+  "winner": 0,
+  "rounds": [
+   "90H x1 @1 made +60/190",
+   "110D x1 @3 made +50/230",
+   "120H x1 @1 down +280/0",
+   "100H x1 @2 made +210/60",
+   "110D x1 @0 made +260/20",
+   "110H x1 @2 made +260/10"
+  ],
+  "cards": [
+   "0:AD 1:7D 2:9D 3:JD >0 | 0:AC 1:7C 2:8C 3:9C >0 | 0:TD 1:KD 2:TS 3:QD >0 | 0:JS 1:AS 2:8S 3:TC >1 | 1:JH 2:8H 3:QH 0:KH >1 | 1:9H 2:9S 3:TH 0:AH >1 | 1:7S 2:QS 3:JC 0:KC >2 | 2:KS 3:QC 0:8D 1:7H >1",
+   "1:JD 2:QD 3:TC 0:8D >1 | 1:AC 2:QC 3:JC 0:8C >1 | 1:9C 2:KC 3:7C 0:AS >2 | 2:7H 3:AH 0:9H 1:JH >3 | 3:TS 0:7S 1:9S 2:QS >3 | 3:JS 0:8S 1:7D 2:KS >1 | 1:KD 2:9D 3:QH 0:TD >2 | 2:8H 3:KH 0:TH 1:AD >1",
+   "2:9D 3:JD 0:7D 1:AD >1 | 1:8D 2:QD 3:JH 0:7S >3 | 3:AC 0:7C 1:TC 2:KH >2 | 2:JS 3:7H 0:8S 1:KS >3 | 3:QC 0:9C 1:8C 2:QS >3 | 3:8H 0:9H 1:9S 2:TS >0 | 0:AS 1:JC 2:KD 3:QH >3 | 3:AH 0:TH 1:KC 2:TD >3",
+   "3:7C 0:8C 1:AC 2:9C >1 | 1:AS 2:7S 3:KS 0:TS >1 | 1:TC 2:QC 3:JC 0:8H >0 | 0:JH 1:KH 2:AH 3:7H >0 | 0:9H 1:TH 2:TD 3:9D >0 | 0:7D 1:JD 2:AD 3:KD >2 | 2:8S 3:QS 0:QH 1:9S >0 | 0:8D 1:QD 2:JS 3:KC >1",
+   "0:7D 1:QD 2:9D 3:AD >2 | 2:JD 3:7S 0:KD 1:7H >2 | 2:AH 3:9C 0:JH 1:8H >2 | 2:TH 3:9S 0:TS 1:QH >2 | 2:8C 3:AC 0:JC 1:QC >3 | 3:TC 0:TD 1:7C 2:QS >0 | 0:AS 1:8S 2:9H 3:KS >0 | 0:JS 1:KH 2:8D 3:KC >2",
+   "2:7H 3:TH 0:9H 1:QH >0 | 0:JH 1:7D 2:8H 3:AH >0 | 0:AD 1:JD 2:TD 3:8S >0 | 0:AS 1:7C 2:QS 3:JS >0 | 0:9D 1:KD 2:8D 3:TS >1 | 1:8C 2:AC 3:JC 0:KS >2 | 2:9S 3:QC 0:QD 1:9C >2 | 2:7S 3:TC 0:KH 1:KC >0"
+  ],
+  "firstHands": [
+   "KC TD AC KH AH 8D AD JS",
+   "AS KD 7D 7C JH 7S 9H 7H",
+   "KS 8H 8S 9D QS TS 8C 9S",
+   "TH JC QD JD TC QH 9C QC"
+  ]
+ },
+ {
+  "seed": 1370,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 8,
+  "scores": [
+   820,
+   1180
+  ],
+  "winner": 1,
+  "rounds": [
+   "100H x1 @3 made +20/350",
+   "110S x1 @3 made +30/250",
+   "110H x1 @1 made +40/240",
+   "100D x1 @2 made +230/40",
+   "120S x1 @0 made +260/20",
+   "90D x1 @0 made +220/40",
+   "100D x1 @3 made +20/240"
+  ],
+  "cards": [
+   "2:AD 3:8D 0:JD 1:7H >1 | 1:JH 2:QH 3:TC 0:8H >1 | 1:9H 2:KH 3:TD 0:AH >1 | 1:8C 2:9C 3:AC 0:7C >3 | 3:KD 0:7S 1:KS 2:7D >3 | 3:QD 0:9S 1:KC 2:9D >3 | 3:QC 0:TS 1:JC 2:JS >3 | 3:8S 0:AS 1:TH 2:QS >1",
+   "3:AD 0:7D 1:TD 2:8D >3 | 3:KD 0:8S 1:9D 2:JD >0 | 0:AH 1:8H 2:TH 3:9H >0 | 0:7H 1:9S 2:JH 3:KH >1 | 1:JS 2:JC 3:QS 0:AS >1 | 1:7S 2:QC 3:KC 0:7C >1 | 1:KS 2:TC 3:QD 0:8C >1 | 1:TS 2:AC 3:QH 0:9C >1",
+   "0:AS 1:JH 2:9S 3:TS >1 | 1:7H 2:KH 3:7D 0:9H >0 | 0:7S 1:QH 2:JS 3:KS >1 | 1:AH 2:7C 3:QD 0:8H >1 | 1:AD 2:8C 3:JD 0:9D >1 | 1:QC 2:AC 3:9C 0:KC >2 | 2:JC 3:8S 0:KD 1:TC >1 | 1:TH 2:QS 3:8D 0:TD >1",
+   "1:7H 2:AH 3:7D 0:9H >3 | 3:AC 0:9D 1:JC 2:QC >0 | 0:JD 1:8D 2:AD 3:QD >0 | 0:TD 1:KD 2:QS 3:7C >0 | 0:TH 1:8H 2:JH 3:9S >0 | 0:KH 1:QH 2:9C 3:KC >0 | 0:8S 1:7S 2:AS 3:TS >2 | 2:8C 3:TC 0:KS 1:JS >3",
+   "2:JS 3:QS 0:TH 1:8S >2 | 2:9S 3:TS 0:TD 1:KS >2 | 2:7H 3:AH 0:JH 1:8H >3 | 3:KH 0:QH 1:JC 2:9H >3 | 3:QC 0:AC 1:8C 2:7C >0 | 0:AD 1:9D 2:7D 3:QD >0 | 0:KD 1:JD 2:7S 3:KC >2 | 2:AS 3:TC 0:8D 1:9C >2",
+   "3:9C 0:AC 1:7C 2:TC >0 | 0:8D 1:AD 2:JD 3:TD >2 | 2:AH 3:JH 0:7H 1:9H >2 | 2:AS 3:QS 0:TS 1:8S >2 | 2:JS 3:9D 0:7S 1:KS >3 | 3:KC 0:JC 1:8C 2:7D >2 | 2:KH 3:QH 0:8H 1:TH >1 | 1:9S 2:QD 3:QC 0:KD >0",
+   "0:AS 1:KS 2:7S 3:JS >0 | 0:TS 1:JD 2:9S 3:QS >1 | 1:AH 2:7H 3:JH 0:9H >1 | 1:AC 2:JC 3:TC 0:8C >1 | 1:7C 2:QC 3:KC 0:8D >0 | 0:TH 1:QH 2:8H 3:KD >3 | 3:9D 0:8S 1:7D 2:QD >3 | 3:9C 0:KH 1:AD 2:TD >1"
+  ],
+  "firstHands": [
+   "9D TS 8H QC TC JC 8S QH",
+   "AD 8C KH 7S 9H AH AS QD",
+   "9C KC JH 7H 8D QS JS JD",
+   "9S KD KS TH 7C TD AC 7D"
+  ]
+ },
+ {
+  "seed": 1407,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 7,
+  "scores": [
+   1150,
+   760
+  ],
+  "winner": 0,
+  "rounds": [
+   "120H x1 @0 made +260/20",
+   "80C x1 @3 made +60/180",
+   "100C x1 @0 made +210/50",
+   "100H x1 @3 made +40/220",
+   "120H x1 @0 made +290/20",
+   "100C x1 @1 made +40/230",
+   "110S x1 @2 made +250/40"
+  ],
+  "cards": [
+   "2:JH 3:KH 0:KD 1:QH >2 | 2:9H 3:7D 0:KS 1:TH >2 | 2:AC 3:8C 0:7C 1:QC >2 | 2:TC 3:8S 0:9C 1:AH >1 | 1:7S 2:7H 3:JS 0:AS >2 | 2:KC 3:QD 0:9S 1:8D >2 | 2:JC 3:TS 0:JD 1:QS >2 | 2:8H 3:AD 0:9D 1:TD >2",
+   "3:JC 0:8C 1:AC 2:7C >3 | 3:9C 0:QC 1:TS 2:KC >3 | 3:JD 0:9D 1:8S 2:AD >2 | 2:TD 3:KD 0:QD 1:8H >2 | 2:7H 3:QH 0:AH 1:9H >0 | 0:AS 1:QS 2:KH 3:JS >0 | 0:7S 1:KS 2:7D 3:TH >1 | 1:JH 2:8D 3:TC 0:9S >3",
+   "0:8C 1:7S 2:KC 3:TC >3 | 3:AS 0:TS 1:QS 2:JS >3 | 3:7H 0:8H 1:AH 2:7C >2 | 2:JC 3:QC 0:AC 1:8S >2 | 2:AD 3:JD 0:QD 1:8D >2 | 2:KS 3:JH 0:QH 1:9S >2 | 2:7D 3:KH 0:9H 1:TD >1 | 1:9D 2:KD 3:TH 0:9C >0",
+   "1:JH 2:QH 3:7H 0:8H >1 | 1:9H 2:AH 3:QC 0:KH >1 | 1:9S 2:7C 3:7S 0:TS >0 | 0:8S 1:QS 2:8D 3:AS >3 | 3:AD 0:QD 1:TD 2:JD >3 | 3:7D 0:8C 1:KC 2:KD >2 | 2:AC 3:JS 0:JC 1:TC >2 | 2:9C 3:9D 0:KS 1:TH >1",
+   "2:JH 3:TH 0:QH 1:AH >2 | 2:AS 3:8S 0:TC 1:9S >2 | 2:7S 3:JS 0:KH 1:QS >0 | 0:7D 1:AD 2:KD 3:JD >1 | 1:9C 2:7H 3:8C 0:JC >2 | 2:TD 3:8D 0:9D 1:QC >2 | 2:8H 3:KC 0:QD 1:KS >2 | 2:9H 3:AC 0:7C 1:TS >2",
+   "3:JC 0:QC 1:8C 2:AC >3 | 3:AH 0:7H 1:TH 2:9H >3 | 3:9S 0:QS 1:7S 2:AS >2 | 2:JD 3:7C 0:9D 1:AD >3 | 3:TS 0:8H 1:8S 2:JS >3 | 3:JH 0:QH 1:KH 2:9C >2 | 2:KD 3:KC 0:QD 1:7D >3 | 3:TC 0:TD 1:8D 2:KS >3",
+   "0:JS 1:8S 2:QS 3:9S >0 | 0:AS 1:TS 2:KS 3:7C >0 | 0:AC 1:7H 2:KC 3:8C >0 | 0:7D 1:AD 2:KD 3:QD >1 | 1:TD 2:9H 3:TC 0:8D >1 | 1:QH 2:AH 3:JH 0:8H >2 | 2:QC 3:KH 0:9C 1:9D >2 | 2:JC 3:TH 0:7S 1:JD >0"
+  ],
+  "firstHands": [
+   "9S AS 9D 9C JD KS KD 7C",
+   "8D QS TH AH TD QC QH 7S",
+   "8H AC JH 9H JC 7H KC TC",
+   "8S QD 7D KH AD 8C JS TS"
+  ]
+ },
+ {
+  "seed": 1444,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 7,
+  "scores": [
+   810,
+   1130
+  ],
+  "winner": 1,
+  "rounds": [
+   "100D x1 @2 made +220/40",
+   "100D x1 @0 down +0/280",
+   "110H x1 @2 made +230/40",
+   "100H x1 @3 made +50/210",
+   "110H x1 @2 made +240/30",
+   "140H x1 @2 down +0/320",
+   "90C x1 @3 made +70/210"
+  ],
+  "cards": [
+   "0:7H 1:QH 2:KH 3:AH >3 | 3:AC 0:8C 1:TC 2:KC >3 | 3:AS 0:8S 1:KS 2:KD >2 | 2:JD 3:7S 0:7D 1:8D >2 | 2:9D 3:8H 0:TD 1:QD >2 | 2:TH 3:JH 0:QS 1:7C >2 | 2:9H 3:9C 0:JC 1:JS >2 | 2:AD 3:TS 0:9S 1:QC >2",
+   "1:AC 2:8C 3:QC 0:TC >1 | 1:KC 2:9C 3:7C 0:7D >0 | 0:AH 1:8H 2:7H 3:KH >0 | 0:AS 1:7S 2:KS 3:8S >0 | 0:9S 1:TS 2:9D 3:JS >2 | 2:JD 3:QD 0:QS 1:TD >2 | 2:9H 3:KD 0:JH 1:TH >3 | 3:JC 0:QH 1:AD 2:8D >1",
+   "2:7H 3:AH 0:9H 1:7S >0 | 0:JH 1:7C 2:QH 3:7D >0 | 0:AS 1:8S 2:KS 3:QS >0 | 0:TS 1:9S 2:JS 3:9C >0 | 0:JD 1:QD 2:8D 3:AD >3 | 3:AC 0:JC 1:TC 2:8C >3 | 3:9D 0:8H 1:TD 2:QC >0 | 0:KH 1:KC 2:TH 3:KD >2",
+   "3:QH 0:KH 1:JH 2:TH >1 | 1:AS 2:7S 3:KS 0:QS >1 | 1:TS 2:7C 3:JS 0:AH >0 | 0:7D 1:7H 2:KD 3:AD >1 | 1:QC 2:AC 3:JC 0:8C >2 | 2:TC 3:9H 0:9C 1:9S >3 | 3:JD 0:8D 1:8S 2:TD >2 | 2:KC 3:QD 0:9D 1:8H >1",
+   "0:8S 1:AS 2:QS 3:9S >1 | 1:AD 2:AH 3:7D 0:9D >2 | 2:JH 3:QH 0:8H 1:KH >2 | 2:9H 3:7S 0:TH 1:8C >2 | 2:AC 3:9C 0:TC 1:JD >2 | 2:7C 3:KC 0:QC 1:TD >3 | 3:8D 0:KS 1:QD 2:7H >2 | 2:JC 3:KD 0:TS 1:JS >2",
+   "1:8S 2:AS 3:7H 0:QH >0 | 0:JH 1:8H 2:KC 3:TH >0 | 0:AC 1:QC 2:9C 3:7C >0 | 0:TC 1:JS 2:8C 3:JC >0 | 0:7D 1:TD 2:JD 3:AD >3 | 3:KD 0:8D 1:TS 2:QD >3 | 3:9D 0:KH 1:QS 2:9S >0 | 0:AH 1:KS 2:7S 3:9H >3",
+   "2:8H 3:JH 0:AH 1:QH >0 | 0:AD 1:KD 2:JD 3:9D >0 | 0:7H 1:KH 2:TH 3:9C >3 | 3:7S 0:8S 1:AS 2:JS >1 | 1:JC 2:7C 3:TS 0:TC >1 | 1:AC 2:QC 3:QD 0:7D >1 | 1:TD 2:KC 3:9S 0:8D >2 | 2:KS 3:QS 0:9H 1:8C >1"
+  ],
+  "firstHands": [
+   "7H JC TD 7D 8S QS 8C 9S",
+   "7C TC QH QC QD KS JS 8D",
+   "9D TH JD KC KH KD 9H AD",
+   "TS AH AS 8H AC JH 9C 7S"
+  ]
+ },
+ {
+  "seed": 1481,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 8,
+  "scores": [
+   460,
+   1110
+  ],
+  "winner": 1,
+  "rounds": [
+   "80C x1 @3 down +240/0",
+   "120H x1 @3 made +40/270",
+   "110H x1 @1 made +50/220",
+   "90H x1 @1 made +60/200",
+   "80C x1 @2 down +0/240",
+   "90C x1 @3 made +70/180"
+  ],
+  "cards": [
+   "3:JC 0:8C 1:KC 2:7C >3 | 3:QC 0:7D 1:7S 2:TC >2 | 2:9D 3:8D 0:QD 1:KD >1 | 1:8H 2:JH 3:AH 0:9H >3 | 3:7H 0:TH 1:KH 2:TS >0 | 0:AD 1:JD 2:QS 3:TD >0 | 0:AS 1:JS 2:9S 3:8S >0 | 0:QH 1:KS 2:9C 3:AC >2",
+   "0:7S 1:KS 2:TS 3:AS >3 | 3:7H 0:8D 1:QH 2:JH >2 | 2:QS 3:8S 0:9S 1:KH >1 | 1:9H 2:7C 3:8H 0:9D >1 | 1:AC 2:KC 3:QC 0:9C >1 | 1:JC 2:JD 3:8C 0:TC >0 | 0:JS 1:TH 2:QD 3:AD >1 | 1:AH 2:KD 3:7D 0:TD >1",
+   "1:JH 2:QH 3:7H 0:8H >1 | 1:KH 2:7D 3:7C 0:9H >0 | 0:AC 1:JC 2:QC 3:8C >0 | 0:TC 1:TH 2:8S 3:KC >1 | 1:AS 2:9S 3:JS 0:KS >1 | 1:AD 2:9D 3:JD 0:KD >1 | 1:QS 2:QD 3:7S 0:TS >0 | 0:9C 1:AH 2:TD 3:8D >1",
+   "2:AS 3:9S 0:JS 1:8S >2 | 2:TS 3:7H 0:7S 1:AC >3 | 3:TC 0:8H 1:7C 2:KC >0 | 0:AD 1:KD 2:9D 3:7D >0 | 0:TD 1:9H 2:8D 3:QD >1 | 1:JH 2:AH 3:QC 0:QH >1 | 1:JC 2:QS 3:8C 0:TH >0 | 0:JD 1:KH 2:KS 3:9C >1",
+   "3:AD 0:QD 1:JD 2:9D >3 | 3:7D 0:KD 1:KC 2:TD >1 | 1:AH 2:8H 3:TH 0:7H >1 | 1:7S 2:AS 3:8S 0:TS >2 | 2:JC 3:9S 0:QC 1:AC >2 | 2:7C 3:8D 0:TC 1:9C >1 | 1:KS 2:JS 3:KH 0:QS >1 | 1:9H 2:8C 3:QH 0:JH >2",
+   "2:7D 3:8D 0:AD 1:9D >0 | 0:7H 1:KH 2:9H 3:AH >3 | 3:TH 0:8H 1:TD 2:JH >3 | 3:9S 0:7S 1:AS 2:JS >1 | 1:JC 2:KC 3:TC 0:7C >1 | 1:KD 2:JD 3:TS 0:8C >0 | 0:8S 1:QC 2:QS 3:KS >1 | 1:AC 2:QD 3:QH 0:9C >0"
+  ],
+  "firstHands": [
+   "AS AD 8C QD 7D QH 9H TH",
+   "JS KC 7S KH JD KD 8H KS",
+   "7C 9C 9D TS JH QS TC 9S",
+   "TD QC 7H JC 8S AC 8D AH"
+  ]
+ },
+ {
+  "seed": 1518,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 9,
+  "scores": [
+   730,
+   1190
+  ],
+  "winner": 1,
+  "rounds": [
+   "90H x1 @2 made +210/40",
+   "80H x1 @2 down +0/240",
+   "120D x1 @1 made +50/250",
+   "110S x1 @2 made +230/50",
+   "120D x1 @0 down +0/300",
+   "110H x1 @2 made +230/40",
+   "110H x1 @1 made +10/270"
+  ],
+  "cards": [
+   "1:AS 2:QS 3:JS 0:7S >1 | 1:8C 2:AC 3:KC 0:7C >2 | 2:8H 3:7H 0:TH 1:9H >1 | 1:9S 2:KH 3:8S 0:TS >2 | 2:TC 3:7D 0:9D 1:JC >2 | 2:8D 3:QD 0:AD 1:JD >0 | 0:JH 1:QH 2:QC 3:KD >0 | 0:AH 1:KS 2:9C 3:TD >0",
+   "3:AS 0:8S 1:TD 2:JS >3 | 3:AD 0:7D 1:KD 2:9D >3 | 3:7S 0:9S 1:TH 2:KS >1 | 1:QD 2:JH 3:QS 0:JD >2 | 2:QH 3:KH 0:8C 1:9H >1 | 1:7C 2:AC 3:TC 0:QC >2 | 2:AH 3:7H 0:TS 1:JC >2 | 2:KC 3:8H 0:9C 1:8D >3",
+   "1:JD 2:8D 3:TH 0:7H >1 | 1:9D 2:TD 3:TS 0:9S >1 | 1:7D 2:AD 3:7C 0:AH >2 | 2:AC 3:KC 0:JC 1:QD >1 | 1:KH 2:JH 3:QH 0:9H >1 | 1:8S 2:8C 3:7S 0:AS >0 | 0:KS 1:JS 2:TC 3:QS >0 | 0:9C 1:KD 2:QC 3:8H >1",
+   "2:KS 3:TS 0:JS 1:8S >0 | 0:AH 1:9C 2:9H 3:7H >0 | 0:8C 1:JC 2:7C 3:AC >3 | 3:TH 0:JH 1:TC 2:8H >3 | 3:KC 0:7S 1:QC 2:AD >0 | 0:9D 1:TD 2:JD 3:7D >1 | 1:KD 2:AS 3:8D 0:QH >2 | 2:9S 3:KH 0:QS 1:QD >2",
+   "3:8C 0:JD 1:QC 2:JC >0 | 0:QD 1:TD 2:7D 3:9D >3 | 3:9H 0:KH 1:AH 2:7H >1 | 1:8H 2:7C 3:QH 0:TH >0 | 0:AD 1:KS 2:9C 3:8D >0 | 0:AS 1:JH 2:8S 3:JS >0 | 0:QS 1:TC 2:7S 3:TS >3 | 3:KC 0:KD 1:AC 2:9S >0",
+   "0:JH 1:7S 2:TH 3:8H >0 | 0:9H 1:7D 2:KC 3:QH >0 | 0:7C 1:9C 2:AC 3:TC >2 | 2:AS 3:8S 0:QS 1:JS >2 | 2:8C 3:AH 0:QC 1:JC >3 | 3:TS 0:7H 1:KS 2:9S >0 | 0:TD 1:AD 2:9D 3:KD >1 | 1:JD 2:QD 3:8D 0:KH >0",
+   "1:AS 2:QS 3:JS 0:9S >1 | 1:AC 2:7C 3:KC 0:8C >1 | 1:TS 2:QH 3:9H 0:KS >3 | 3:JH 0:8H 1:TH 2:AH >3 | 3:AD 0:KD 1:TD 2:8D >3 | 3:7D 0:KH 1:QD 2:9D >0 | 0:TC 1:7S 2:QC 3:7H >3 | 3:JD 0:9C 1:8S 2:JC >3"
+  ],
+  "firstHands": [
+   "TH 7S 7C JH AD AH TS 9D",
+   "AS QH 8C KS JC 9S 9H JD",
+   "QS 8D 9C TC KH QC AC 8H",
+   "KD 7H TD JS KC QD 8S 7D"
+  ]
+ },
+ {
+  "seed": 1555,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 9,
+  "scores": [
+   520,
+   1370
+  ],
+  "winner": 1,
+  "rounds": [
+   "100D x1 @3 down +260/0",
+   "120D x1 @3 made +30/250",
+   "100D x1 @2 down +0/260",
+   "90C x1 @0 made +210/40",
+   "140C x1 @3 made +20/300",
+   "90H x2 @2 down +0/520"
+  ],
+  "cards": [
+   "1:JD 2:7D 3:TS 0:QD >1 | 1:AH 2:JH 3:8H 0:QH >1 | 1:7S 2:9S 3:AS 0:KS >3 | 3:AC 0:9C 1:KH 2:7C >3 | 3:7H 0:9D 1:9H 2:TH >0 | 0:QC 1:AD 2:8C 3:KC >1 | 1:JS 2:QS 3:8S 0:TC >2 | 2:KD 3:JC 0:TD 1:8D >0",
+   "2:7C 3:AC 0:KC 1:AH >3 | 3:7H 0:JH 1:TH 2:7D >2 | 2:JC 3:8C 0:TC 1:KD >1 | 1:JD 2:8D 3:QD 0:7S >1 | 1:8H 2:9D 3:9H 0:KH >2 | 2:QS 3:9S 0:8S 1:TD >1 | 1:QH 2:KS 3:TS 0:JS >1 | 1:AD 2:QC 3:9C 0:AS >1",
+   "3:JS 0:7S 1:KS 2:8S >1 | 1:AS 2:QS 3:TS 0:9S >1 | 1:7C 2:AC 3:KC 0:AH >2 | 2:7D 3:8D 0:9D 1:8H >0 | 0:JD 1:9H 2:QD 3:TD >0 | 0:JH 1:TH 2:7H 3:QH >1 | 1:9C 2:8C 3:TC 0:KD >0 | 0:KH 1:QC 2:JC 3:AD >3",
+   "3:AS 0:KS 1:QS 2:8S >3 | 3:TS 0:9C 1:7S 2:JS >0 | 0:8D 1:JD 2:AD 3:7D >2 | 2:JC 3:8C 0:TD 1:KC >2 | 2:AH 3:TH 0:QH 1:7H >2 | 2:JH 3:QC 0:8H 1:KH >3 | 3:9D 0:QD 1:AC 2:7C >1 | 1:9H 2:TC 3:9S 0:KD >2",
+   "0:AH 1:JC 2:JH 3:TH >1 | 1:AD 2:7D 3:JD 0:9D >1 | 1:JS 2:8S 3:QS 0:7S >3 | 3:9C 0:7C 1:8C 2:QH >3 | 3:AS 0:9S 1:TS 2:KS >3 | 3:7H 0:8H 1:QC 2:QD >1 | 1:KC 2:KD 3:8D 0:AC >0 | 0:KH 1:TC 2:TD 3:9H >1",
+   "1:7C 2:AC 3:QH 0:8C >3 | 3:AS 0:7S 1:KS 2:QS >3 | 3:TS 0:9S 1:8S 2:7H >2 | 2:JH 3:KH 0:TC 1:8H >2 | 2:AD 3:JD 0:9D 1:8D >2 | 2:QD 3:KD 0:7D 1:TD >1 | 1:9C 2:KC 3:TH 0:QC >3 | 3:9H 0:JS 1:JC 2:AH >3"
+  ],
+  "firstHands": [
+   "9D QD 9C QH TC KS QC TD",
+   "JS JD 8D AH KH 9H AD 7S",
+   "TH 9S 7D QS 8C JH KD 7C",
+   "KC 7H AS 8S AC 8H TS JC"
+  ]
+ },
+ {
+  "seed": 1592,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 7,
+  "scores": [
+   1000,
+   350
+  ],
+  "winner": 0,
+  "rounds": [
+   "100H x1 @1 down +260/0",
+   "110H x1 @1 made +20/250",
+   "120D x1 @0 made +240/40",
+   "90H x1 @2 made +230/30",
+   "120C x1 @0 made +250/30"
+  ],
+  "cards": [
+   "3:JH 0:8H 1:KH 2:7H >3 | 3:AS 0:8S 1:KS 2:7S >3 | 3:8C 0:AC 1:7C 2:QC >0 | 0:TS 1:QS 2:KD 3:9S >0 | 0:TC 1:KC 2:9C 3:JC >0 | 0:7D 1:QD 2:AD 3:TD >2 | 2:JD 3:QH 0:8D 1:AH >1 | 1:9H 2:9D 3:TH 0:JS >1",
+   "1:8H 2:QH 3:9H 0:TH >3 | 3:JH 0:7C 1:KH 2:AH >3 | 3:AD 0:9D 1:KD 2:QD >3 | 3:AC 0:JC 1:KC 2:8C >3 | 3:8D 0:TD 1:7D 2:TC >0 | 0:8S 1:AS 2:9S 3:TS >1 | 1:KS 2:QS 3:QC 0:JS >1 | 1:7S 2:9C 3:7H 0:JD >3",
+   "2:JD 3:7S 0:9D 1:7D >2 | 2:AD 3:8S 0:KS 1:8D >2 | 2:TD 3:9H 0:QS 1:KD >2 | 2:AH 3:JC 0:8H 1:7H >2 | 2:8C 3:KC 0:AC 1:QC >0 | 0:7C 1:JH 2:9S 3:TC >3 | 3:AS 0:JS 1:TH 2:QD >2 | 2:QH 3:TS 0:9C 1:KH >1",
+   "3:8D 0:JD 1:AD 2:7D >1 | 1:7S 2:9S 3:JS 0:AS >0 | 0:JH 1:7H 2:AH 3:9H >0 | 0:TH 1:8H 2:KD 3:JC >0 | 0:KH 1:QH 2:7C 3:QS >0 | 0:TD 1:9D 2:8C 3:QD >0 | 0:8S 1:KS 2:9C 3:TS >3 | 3:KC 0:TC 1:QC 2:AC >2",
+   "0:JC 1:KC 2:QC 3:7C >0 | 0:9C 1:8D 2:KS 3:8C >0 | 0:AS 1:9S 2:7S 3:JS >0 | 0:AD 1:QD 2:JD 3:KD >0 | 0:8S 1:TS 2:7H 3:QS >1 | 1:TD 2:7D 3:9H 0:TC >0 | 0:QH 1:KH 2:JH 3:AH >3 | 3:8H 0:AC 1:TH 2:9D >0"
+  ],
+  "firstHands": [
+   "7C 9S 8C JD KC QC 8S AH",
+   "9H AC QH KD AS 7D 8D KS",
+   "9D JS 9C 8H AD QD JH TC",
+   "TH 7S JC TS QS TD 7H KH"
+  ]
+ },
+ {
+  "seed": 1629,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 5,
+  "scores": [
+   1130,
+   300
+  ],
+  "winner": 0,
+  "rounds": [
+   "130D x1 @0 made +310/10",
+   "80H x1 @1 made +60/190",
+   "110S x1 @2 made +240/60",
+   "110H x1 @0 made +250/20",
+   "110C x1 @0 made +270/20"
+  ],
+  "cards": [
+   "0:8D 1:TD 2:9D 3:7D >2 | 2:JD 3:7S 0:QD 1:9H >2 | 2:AS 3:QS 0:8S 1:JS >2 | 2:7H 3:8H 0:AH 1:KH >0 | 0:AC 1:9C 2:TC 3:8C >0 | 0:7C 1:KC 2:9S 3:QC >1 | 1:TS 2:KS 3:JH 0:KD >0 | 0:AD 1:TH 2:QH 3:JC >0",
+   "1:JH 2:7H 3:KH 0:8H >1 | 1:9H 2:AH 3:TD 0:QH >1 | 1:AD 2:7D 3:JD 0:QD >1 | 1:AS 2:KS 3:JS 0:TS >1 | 1:QS 2:7C 3:9S 0:TH >0 | 0:9C 1:8C 2:AC 3:QC >2 | 2:KD 3:KC 0:TC 1:9D >2 | 2:8D 3:8S 0:JC 1:7S >2",
+   "2:JS 3:7S 0:TS 1:8S >2 | 2:9S 3:7H 0:AS 1:7D >2 | 2:8D 3:AD 0:9D 1:QD >3 | 3:8H 0:8C 1:KH 2:JH >1 | 1:AC 2:QC 3:9C 0:JC >1 | 1:AH 2:QS 3:9H 0:TD >2 | 2:KC 3:QH 0:JD 1:TC >1 | 1:7C 2:KS 3:TH 0:KD >2",
+   "3:8S 0:AS 1:QS 2:KS >0 | 0:JH 1:7H 2:8H 3:9D >0 | 0:9H 1:TH 2:QH 3:JC >0 | 0:AC 1:7C 2:TC 3:KC >0 | 0:AD 1:7D 2:QD 3:KD >0 | 0:TD 1:JD 2:QC 3:9S >0 | 0:8D 1:AH 2:7S 3:TS >1 | 1:9C 2:8C 3:JS 0:KH >0",
+   "0:TC 1:QC 2:AC 3:8C >2 | 2:JC 3:7S 0:9C 1:KC >2 | 2:AH 3:JH 0:TH 1:7H >2 | 2:KH 3:8D 0:TD 1:9H >2 | 2:8H 3:9D 0:8S 1:QH >1 | 1:7D 2:7C 3:JD 0:AD >2 | 2:9S 3:KS 0:AS 1:JS >0 | 0:KD 1:TS 2:QS 3:QD >0"
+  ],
+  "firstHands": [
+   "AC AH 8S QD 8D KD AD 7C",
+   "KC TH 9H TD KH JS 9C TS",
+   "KS AS TC QH 9S JD 7H 9D",
+   "8C JC 7S 8H JH QC 7D QS"
+  ]
+ },
+ {
+  "seed": 1666,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 7,
+  "scores": [
+   810,
+   1150
+  ],
+  "winner": 1,
+  "rounds": [
+   "110D x1 @3 made +50/220",
+   "120D x1 @2 down +0/300",
+   "130S x1 @0 made +280/30",
+   "100H x1 @0 made +210/50",
+   "90S x1 @0 made +200/50",
+   "120D x1 @1 made +40/240",
+   "110S x1 @1 made +30/260"
+  ],
+  "cards": [
+   "3:AH 0:TH 1:JH 2:8H >3 | 3:7H 0:9D 1:JD 2:KH >1 | 1:AD 2:7D 3:TD 0:7S >1 | 1:AS 2:JS 3:QS 0:8S >1 | 1:9C 2:8C 3:7C 0:AC >0 | 0:TS 1:KS 2:KC 3:JC >0 | 0:TC 1:8D 2:QC 3:QH >1 | 1:QD 2:KD 3:9H 0:9S >2",
+   "0:JD 1:8D 2:9D 3:7S >0 | 0:7H 1:JH 2:KH 3:AH >3 | 3:AC 0:7D 1:9C 2:TC >0 | 0:JS 1:8S 2:AS 3:9S >2 | 2:7C 3:QC 0:QD 1:KC >0 | 0:QH 1:TD 2:9H 3:TH >1 | 1:TS 2:8C 3:QS 0:KS >1 | 1:AD 2:JC 3:8H 0:KD >1",
+   "1:7C 2:AC 3:JC 0:AD >2 | 2:JS 3:8D 0:7S 1:QS >2 | 2:9S 3:9D 0:8S 1:KS >2 | 2:9C 3:TC 0:7H 1:8C >3 | 3:AH 0:8H 1:JH 2:TS >2 | 2:KC 3:KH 0:KD 1:7D >2 | 2:QC 3:TH 0:QH 1:JD >2 | 2:AS 3:TD 0:9H 1:QD >2",
+   "2:JH 3:7H 0:KH 1:TH >2 | 2:9H 3:8H 0:QS 1:AH >2 | 2:AC 3:7C 0:9C 1:KC >2 | 2:8D 3:QD 0:9D 1:AD >1 | 1:7D 2:TD 3:8S 0:AS >2 | 2:JD 3:QC 0:7S 1:KD >1 | 1:JS 2:QH 3:TS 0:9S >2 | 2:JC 3:TC 0:8C 1:KS >3",
+   "3:AC 0:JC 1:QC 2:7C >3 | 3:JH 0:AH 1:7H 2:AD >0 | 0:8S 1:KS 2:9S 3:7S >2 | 2:JS 3:QS 0:TS 1:8H >2 | 2:8C 3:KC 0:TC 1:9C >0 | 0:TH 1:QH 2:KD 3:KH >0 | 0:7D 1:TD 2:8D 3:JD >1 | 1:QD 2:9D 3:AS 0:9H >3",
+   "0:9H 1:AH 2:7H 3:QH >1 | 1:AS 2:JS 3:8S 0:9S >1 | 1:7S 2:TS 3:9D 0:JC >3 | 3:JD 0:7D 1:AD 2:7C >3 | 3:TD 0:8D 1:TC 2:8H >3 | 3:AC 0:KD 1:8C 2:KC >0 | 0:TH 1:QS 2:JH 3:QD >3 | 3:9C 0:KH 1:KS 2:QC >2",
+   "1:QS 2:AS 3:JS 0:7S >3 | 3:AC 0:8C 1:JC 2:9C >3 | 3:8H 0:AH 1:JH 2:9H >0 | 0:TH 1:KS 2:JD 3:KH >1 | 1:AD 2:TD 3:KD 0:QD >1 | 1:9D 2:QC 3:8D 0:9S >0 | 0:7H 1:7C 2:KC 3:8S >3 | 3:TS 0:QH 1:7D 2:TC >3"
+  ],
+  "firstHands": [
+   "7S 8S TH AC 9D 9S TC TS",
+   "JH 9C KS AD AS QD JD 8D",
+   "7D 8C QC 8H KD KH KC JS",
+   "QS JC QH AH TD 7H 9H 7C"
+  ]
+ },
+ {
+  "seed": 1703,
+  "scoring": "ffb",
+  "level": "normal",
+  "deals": 7,
+  "scores": [
+   890,
+   1040
+  ],
+  "winner": 1,
+  "rounds": [
+   "100S x1 @0 made +250/10",
+   "90C x1 @1 made +40/210",
+   "90S x1 @0 made +240/40",
+   "100S x1 @3 made +70/220",
+   "120D x1 @0 down +0/300",
+   "100C x1 @2 made +220/40",
+   "100S x1 @1 made +70/220"
+  ],
+  "cards": [
+   "2:JS 3:AS 0:7S 1:8S >2 | 2:9S 3:8H 0:QS 1:7C >2 | 2:7D 3:AD 0:9D 1:QD >3 | 3:TD 0:TS 1:JD 2:8D >0 | 0:AH 1:9H 2:KH 3:9C >0 | 0:TH 1:JH 2:QH 3:QC >0 | 0:7H 1:8C 2:KC 3:KD >0 | 0:JC 1:AC 2:KS 3:TC >2",
+   "3:JC 0:7C 1:QC 2:7D >3 | 3:8H 0:9H 1:AH 2:TH >1 | 1:7S 2:AS 3:KS 0:JS >2 | 2:TS 3:8C 0:9C 1:9S >0 | 0:AD 1:9D 2:QD 3:KC >3 | 3:AC 0:8D 1:TC 2:JD >3 | 3:KH 0:QH 1:7H 2:8S >3 | 3:JH 0:KD 1:TD 2:QS >3",
+   "0:TS 1:QS 2:JS 3:9S >2 | 2:AC 3:7C 0:KC 1:9C >2 | 2:TC 3:8C 0:KD 1:QC >2 | 2:7D 3:QD 0:AD 1:8D >0 | 0:AS 1:KS 2:7S 3:JH >0 | 0:8H 1:7H 2:KH 3:AH >3 | 3:TD 0:9D 1:JD 2:8S >2 | 2:JC 3:QH 0:9H 1:TH >2",
+   "1:JS 2:7S 3:QS 0:8S >1 | 1:9S 2:7D 3:KS 0:AS >1 | 1:9D 2:AD 3:8D 0:AC >2 | 2:AH 3:8H 0:KH 1:TH >2 | 2:TC 3:KC 0:JC 1:QC >2 | 2:7C 3:9H 0:9C 1:TS >1 | 1:TD 2:JD 3:QD 0:7H >1 | 1:KD 2:8C 3:JH 0:QH >1",
+   "2:JD 3:8D 0:TH 1:TD >2 | 2:9H 3:7H 0:JH 1:8H >0 | 0:AH 1:AD 2:JS 3:QH >1 | 1:AC 2:QC 3:KC 0:JC >1 | 1:7C 2:TC 3:9C 0:AS >2 | 2:7D 3:9D 0:7S 1:QS >3 | 3:9S 0:TS 1:8S 2:QD >2 | 2:KD 3:KS 0:KH 1:8C >2",
+   "3:AD 0:TD 1:JD 2:8D >3 | 3:7H 0:9C 1:8H 2:TH >0 | 0:JC 1:QC 2:7C 3:9H >0 | 0:8S 1:AS 2:9S 3:TS >1 | 1:7D 2:KD 3:9D 0:KS >2 | 2:AC 3:QH 0:8C 1:7S >2 | 2:JH 3:KH 0:KC 1:AH >0 | 0:JS 1:QS 2:TC 3:QD >2",
+   "0:AH 1:8S 2:KH 3:TH >1 | 1:QS 2:7C 3:7S 0:JS >0 | 0:AD 1:9D 2:QD 3:JD >0 | 0:7H 1:KS 2:7D 3:QH >1 | 1:QC 2:AC 3:TC 0:JC >2 | 2:8C 3:8H 0:8D 1:TS >1 | 1:AS 2:9C 3:9H 0:KD >1 | 1:9S 2:KC 3:TD 0:JH >1"
+  ],
+  "firstHands": [
+   "QS TH JC TS AH 9D 7H 7S",
+   "9H AC 8C 7C JD JH 8S QD",
+   "KH 9S KC QH 8D JS 7D KS",
+   "AS 8H QC TD TC 9C AD KD"
+  ]
+ },
+ {
+  "seed": 2000,
+  "scoring": "tunisian",
+  "level": "normal",
+  "deals": 9,
+  "scores": [
+   1010,
+   260
+  ],
+  "winner": 0,
+  "rounds": [
+   "80D x1 @0 made +90/70",
+   "90H x1 @1 down +160/0",
+   "130D x1 @1 down +180/0",
+   "140C x1 @2 made +270/0",
+   "110H x1 @0 made +110/50",
+   "90C x1 @1 made +60/100",
+   "120S x1 @2 made +140/40"
+  ],
+  "cards": [
+   "1:7S 2:JS 3:AS 0:9S >3 | 3:AH 0:9D 1:7H 2:QH >0 | 0:JD 1:KD 2:7D 3:QD >0 | 0:AC 1:7C 2:TC 3:QC >0 | 0:TS 1:8S 2:QS 3:AD >3 | 3:9H 0:8C 1:8H 2:JH >2 | 2:JC 3:KH 0:KC 1:9C >0 | 0:KS 1:TD 2:8D 3:TH >1",
+   "2:8D 3:QD 0:7H 1:7D >0 | 0:AC 1:JC 2:9C 3:8C >0 | 0:7C 1:TC 2:AH 3:JH >3 | 3:AS 0:QS 1:JS 2:9S >3 | 3:TS 0:8H 1:7S 2:KS >0 | 0:QC 1:9D 2:KD 3:QH >3 | 3:8S 0:KH 1:JD 2:TD >0 | 0:KC 1:AD 2:9H 3:TH >2",
+   "3:JD 0:7C 1:QD 2:7D >3 | 3:9D 0:7S 1:KD 2:AD >3 | 3:AC 0:8C 1:TH 2:QC >3 | 3:7H 0:8H 1:AH 2:KH >1 | 1:TD 2:8S 3:8D 0:KS >1 | 1:9S 2:AS 3:9C 0:TC >2 | 2:TS 3:9H 0:KC 1:QS >2 | 2:JS 3:QH 0:JC 1:JH >2",
+   "0:AH 1:7H 2:QD 3:7D >0 | 0:TH 1:8H 2:8D 3:7S >0 | 0:9D 1:TD 2:AD 3:JD >2 | 2:JC 3:8S 0:7C 1:TC >2 | 2:9C 3:9S 0:TS 1:AC >2 | 2:8C 3:JS 0:9H 1:QS >2 | 2:QC 3:KD 0:QH 1:KS >2 | 2:KC 3:AS 0:JH 1:KH >2",
+   "2:8S 3:AS 0:7S 1:TS >3 | 3:AC 0:7C 1:JC 2:8C >3 | 3:TC 0:JH 1:9C 2:TD >0 | 0:7H 1:9H 2:8H 3:QH >1 | 1:KS 2:9S 3:JS 0:KH >0 | 0:AD 1:8D 2:KD 3:7D >0 | 0:TH 1:9D 2:JD 3:QC >0 | 0:AH 1:QD 2:QS 3:KC >0",
+   "3:8S 0:JS 1:AS 2:7S >1 | 1:8D 2:AD 3:9D 0:TD >2 | 2:KD 3:7C 0:JC 1:QD >0 | 0:AH 1:JH 2:9H 3:QH >0 | 0:TH 1:KH 2:JD 3:8C >3 | 3:9C 0:7H 1:KS 2:KC >3 | 3:AC 0:8H 1:QS 2:TC >3 | 3:QC 0:TS 1:9S 2:7D >3",
+   "0:JS 1:7S 2:TH 3:8S >0 | 0:9S 1:QS 2:KH 3:7C >0 | 0:AS 1:KS 2:KD 3:8C >0 | 0:7D 1:QD 2:AD 3:8D >2 | 2:AC 3:8H 0:TC 1:9C >2 | 2:JC 3:JH 0:KC 1:7H >0 | 0:9D 1:TD 2:JD 3:AH >1 | 1:9H 2:QC 3:QH 0:TS >0"
+  ],
+  "firstHands": [
+   "KD 8S AH TD 9C QH 8H QC",
+   "KH 7D 7C 7S AD JS 8C TH",
+   "QS KC QD TS AS 9D JH AC",
+   "JD JC 9H 7H TC 9S 8D KS"
+  ]
+ },
+ {
+  "seed": 2037,
+  "scoring": "tunisian",
+  "level": "normal",
+  "deals": 11,
+  "scores": [
+   1110,
+   430
+  ],
+  "winner": 0,
+  "rounds": [
+   "90H x1 @3 made +40/120",
+   "100D x1 @0 made +120/50",
+   "100S x1 @2 made +110/50",
+   "100S x1 @2 made +150/30",
+   "110D x1 @0 made +130/50",
+   "110C x1 @2 made +150/20",
+   "80D x1 @3 down +180/0",
+   "90D x1 @2 made +90/70",
+   "130C x1 @0 made +140/40"
+  ],
+  "cards": [
+   "1:7C 2:QC 3:AC 0:9C >3 | 3:JH 0:AH 1:7H 2:9H >3 | 3:TH 0:JD 1:QH 2:7D >3 | 3:QD 0:KD 1:9D 2:AD >2 | 2:AS 3:TS 0:KS 1:8S >2 | 2:7S 3:8H 0:JS 1:9S >3 | 3:TD 0:QS 1:JC 2:8D >3 | 3:KH 0:TC 1:8C 2:KC >3",
+   "2:JD 3:AD 0:7D 1:KD >2 | 2:AS 3:8S 0:JS 1:KS >2 | 2:TS 3:9S 0:7S 1:9D >1 | 1:AC 2:7C 3:TC 0:8C >1 | 1:9H 2:KH 3:TH 0:AH >0 | 0:KC 1:9C 2:8D 3:7H >2 | 2:QD 3:8H 0:JC 1:QC >2 | 2:TD 3:QS 0:JH 1:QH >2",
+   "3:AH 0:JH 1:9H 2:KH >3 | 3:TH 0:JS 1:7H 2:AD >0 | 0:7D 1:QD 2:8D 3:TD >3 | 3:KD 0:9D 1:JC 2:JD >3 | 3:8C 0:KC 1:AC 2:9C >1 | 1:7C 2:TC 3:QC 0:KS >0 | 0:TS 1:7S 2:9S 3:8S >2 | 2:QS 3:QH 0:AS 1:8H >0",
+   "0:JS 1:TS 2:7S 3:AS >0 | 0:AC 1:8C 2:7C 3:KC >0 | 0:9H 1:7H 2:8H 3:JH >3 | 3:AD 0:QD 1:KD 2:8S >2 | 2:AH 3:9S 0:QC 1:KH >3 | 3:TC 0:QS 1:JC 2:9C >0 | 0:TD 1:8D 2:TH 3:7D >0 | 0:KS 1:JD 2:QH 3:9D >0",
+   "1:AC 2:9C 3:KC 0:7C >1 | 1:9H 2:QH 3:AH 0:7H >3 | 3:AS 0:JS 1:TS 2:7S >3 | 3:KS 0:AD 1:QS 2:8S >0 | 0:TC 1:8D 2:JD 3:JC >2 | 2:7D 3:KH 0:9D 1:TD >0 | 0:8H 1:JH 2:QD 3:9S >2 | 2:KD 3:QC 0:8C 1:TH >2",
+   "2:JC 3:7C 0:TC 1:KC >2 | 2:9C 3:7D 0:AC 1:7H >2 | 2:AH 3:JH 0:TH 1:8H >2 | 2:AD 3:TD 0:JD 1:8D >2 | 2:7S 3:AS 0:JS 1:KD >3 | 3:8S 0:TS 1:9H 2:9D >0 | 0:QS 1:QD 2:8C 3:9S >2 | 2:QC 3:KS 0:QH 1:KH >2",
+   "3:JD 0:8D 1:7D 2:7S >3 | 3:9D 0:QD 1:AD 2:7H >3 | 3:AS 0:9S 1:TS 2:8C >3 | 3:KS 0:KD 1:JS 2:AH >0 | 0:AC 1:9C 2:TC 3:7C >0 | 0:TH 1:KH 2:9H 3:8H >0 | 0:JH 1:JC 2:QC 3:QH >3 | 3:8S 0:TD 1:QS 2:KC >0",
+   "0:JD 1:7D 2:8D 3:KD >0 | 0:AC 1:KC 2:QC 3:7C >0 | 0:8C 1:TC 2:7H 3:9C >1 | 1:8H 2:AH 3:9H 0:TH >2 | 2:KH 3:JH 0:JC 1:QH >2 | 2:7S 3:AS 0:8S 1:KS >3 | 3:JS 0:QD 1:QS 2:TS >0 | 0:AD 1:9D 2:9S 3:TD >1",
+   "3:AS 0:8S 1:TS 2:7S >3 | 3:KS 0:JS 1:JH 2:9S >3 | 3:JD 0:AD 1:7D 2:9D >0 | 0:TD 1:7C 2:9C 3:QD >2 | 2:JC 3:QH 0:KH 1:TC >2 | 2:8C 3:QS 0:7H 1:AC >1 | 1:AH 2:QC 3:TH 0:8H >2 | 2:KC 3:KD 0:8D 1:9H >2"
+  ],
+  "firstHands": [
+   "AH QS 9C KS JD JS TC KD",
+   "8C 8S 7C JC 9S 9D 7H QH",
+   "AS 9H KC 7D AD 7S QC 8D",
+   "TH 8H AC TD TS JH QD KH"
+  ]
+ },
+ {
+  "seed": 2074,
+  "scoring": "tunisian",
+  "level": "normal",
+  "deals": 11,
+  "scores": [
+   770,
+   1080
+  ],
+  "winner": 1,
+  "rounds": [
+   "120D x1 @3 made +60/120",
+   "110D x1 @0 down +0/180",
+   "130D x1 @0 made +130/30",
+   "100S x1 @2 made +110/50",
+   "110S x1 @3 made +20/150",
+   "120C x1 @0 made +140/20",
+   "110C x1 @0 made +150/10",
+   "110S x1 @2 down +0/160",
+   "130D x1 @2 made +140/50",
+   "110D x1 @3 made +20/150",
+   "130S x1 @3 made +0/160"
+  ],
+  "cards": [
+   "0:AS 1:8S 2:QS 3:9S >0 | 0:7S 1:TS 2:7D 3:JS >2 | 2:AC 3:8C 0:TC 1:7C >2 | 2:8H 3:7H 0:9H 1:AH >1 | 1:JD 2:AD 3:QD 0:9C >1 | 1:QC 2:JC 3:QH 0:KC >0 | 0:KH 1:8D 2:JH 3:KD >3 | 3:9D 0:KS 1:TD 2:TH >3",
+   "1:AC 2:8C 3:QC 0:JC >1 | 1:AH 2:JH 3:9H 0:QH >1 | 1:7C 2:TD 3:7H 0:TC >2 | 2:JD 3:7D 0:TH 1:8H >2 | 2:9D 3:8D 0:KH 1:8S >2 | 2:AD 3:QD 0:QS 1:9C >2 | 2:9S 3:JS 0:AS 1:TS >0 | 0:7S 1:KC 2:KS 3:KD >3",
+   "2:JD 3:KD 0:KS 1:7D >2 | 2:9D 3:7C 0:JS 1:TD >2 | 2:8H 3:7H 0:9H 1:TH >1 | 1:7S 2:TS 3:AS 0:9S >3 | 3:8C 0:AC 1:9C 2:QC >0 | 0:AH 1:QH 2:8D 3:KH >2 | 2:QD 3:KC 0:JC 1:8S >2 | 2:AD 3:TC 0:JH 1:QS >2",
+   "3:AD 0:JD 1:KD 2:9D >3 | 3:AC 0:JC 1:9C 2:7C >3 | 3:TC 0:KC 1:TH 2:8C >3 | 3:8D 0:9S 1:7D 2:TD >0 | 0:JS 1:TS 2:7S 3:AS >0 | 0:AH 1:7H 2:8H 3:JH >0 | 0:KH 1:9H 2:8S 3:QD >2 | 2:KS 3:QC 0:QS 1:QH >2",
+   "0:7H 1:QH 2:AH 3:JH >2 | 2:AC 3:8C 0:TC 1:7S >1 | 1:JS 2:8H 3:TS 0:KS >1 | 1:9S 2:8D 3:TD 0:AS >1 | 1:7D 2:QD 3:AD 0:JD >3 | 3:KC 0:7C 1:KD 2:9C >3 | 3:JC 0:9H 1:8S 2:QC >1 | 1:QS 2:KH 3:9D 0:TH >1",
+   "1:7S 2:8S 3:9S 0:AS >0 | 0:JC 1:KC 2:TC 3:AC >0 | 0:AH 1:JH 2:KH 3:8H >0 | 0:JS 1:QS 2:KS 3:TS >3 | 3:AD 0:7C 1:7D 2:KD >0 | 0:8C 1:JD 2:7H 3:8D >0 | 0:QC 1:TD 2:QD 3:QH >0 | 0:9C 1:TH 2:9H 3:9D >0",
+   "2:JC 3:7C 0:9C 1:KC >2 | 2:AC 3:QC 0:TH 1:7H >2 | 2:7D 3:KD 0:AD 1:8D >0 | 0:AS 1:JS 2:TD 3:7S >0 | 0:QS 1:KS 2:8C 3:8S >2 | 2:9H 3:QH 0:9D 1:AH >1 | 1:8H 2:KH 3:9S 0:QD >2 | 2:TC 3:TS 0:JD 1:JH >2",
+   "3:AH 0:KH 1:TH 2:9H >3 | 3:QH 0:JS 1:7H 2:AC >0 | 0:AD 1:7D 2:TD 3:8D >0 | 0:KD 1:9D 2:JD 3:QS >3 | 3:7C 0:JC 1:TC 2:9C >1 | 1:KC 2:9S 3:QC 0:QD >2 | 2:KS 3:AS 0:7S 1:JH >3 | 3:8H 0:8S 1:8C 2:TS >2",
+   "0:JD 1:7S 2:8D 3:9D >0 | 0:AC 1:8C 2:QC 3:9C >0 | 0:8S 1:JS 2:TS 3:AS >3 | 3:TC 0:KC 1:TH 2:7C >3 | 3:8H 0:7D 1:9H 2:AH >0 | 0:QD 1:JH 2:AD 3:QS >2 | 2:7H 3:KH 0:KD 1:QH >0 | 0:TD 1:KS 2:9S 3:JC >0",
+   "1:JD 2:AD 3:KD 0:9D >1 | 1:AH 2:9H 3:JH 0:7H >1 | 1:TH 2:QH 3:TS 0:KH >1 | 1:9S 2:7S 3:KS 0:AS >0 | 0:QS 1:7D 2:JS 3:AC >1 | 1:8H 2:7C 3:8C 0:JC >1 | 1:8D 2:9C 3:TD 0:8S >3 | 3:KC 0:TC 1:QD 2:QC >1",
+   "2:7D 3:KD 0:TD 1:AD >1 | 1:JS 2:7S 3:9S 0:KS >1 | 1:AH 2:9H 3:TH 0:7H >1 | 1:9D 2:8D 3:7C 0:QD >0 | 0:AC 1:8S 2:KC 3:TC >1 | 1:QS 2:JH 3:8C 0:8H >1 | 1:TS 2:JD 3:QH 0:JC >1 | 1:AS 2:KH 3:9C 0:QC >1"
+  ],
+  "firstHands": [
+   "7S KC KS AS TC KH 9H 9C",
+   "8D JD QC AH 8S TS TD 7C",
+   "8H JH 7D QS JC TH AC AD",
+   "9D 9S 8C 7H QH QD JS KD"
+  ]
+ },
+ {
+  "seed": 2111,
+  "scoring": "tunisian",
+  "level": "normal",
+  "deals": 9,
+  "scores": [
+   1000,
+   490
+  ],
+  "winner": 0,
+  "rounds": [
+   "90H x1 @1 down +160/0",
+   "120S x1 @3 made +40/150",
+   "110C x1 @2 made +130/50",
+   "140H x1 @2 made +160/20",
+   "110S x1 @2 made +130/60",
+   "100S x1 @2 made +250/0",
+   "120D x1 @1 made +60/120",
+   "90H x1 @1 made +70/90"
+  ],
+  "cards": [
+   "3:JH 0:KH 1:QH 2:8H >3 | 3:9H 0:TH 1:KS 2:9S >3 | 3:7D 0:8D 1:QD 2:AD >2 | 2:9D 3:TD 0:JD 1:AC >3 | 3:8C 0:JC 1:7C 2:TC >2 | 2:KC 3:9C 0:QS 1:7S >2 | 2:QC 3:7H 0:AH 1:8S >0 | 0:AS 1:JS 2:KD 3:TS >0",
+   "1:JS 2:9S 3:7S 0:8S >1 | 1:AS 2:7D 3:TD 0:TS >1 | 1:7C 2:8C 3:AC 0:9C >3 | 3:8H 0:7H 1:TH 2:AH >2 | 2:AD 3:QD 0:8D 1:9D >2 | 2:JD 3:9H 0:QH 1:KD >1 | 1:QS 2:JH 3:KC 0:KH >1 | 1:KS 2:JC 3:QC 0:TC >1",
+   "2:QC 3:8C 0:TC 1:7C >0 | 0:9D 1:8D 2:QD 3:AD >3 | 3:7D 0:TD 1:JD 2:QS >0 | 0:9H 1:AH 2:7H 3:TH >1 | 1:AS 2:8S 3:KS 0:JS >1 | 1:KH 2:8H 3:QH 0:9C >0 | 0:TS 1:JH 2:KC 3:7S >2 | 2:AC 3:9S 0:JC 1:KD >0",
+   "3:7D 0:AH 1:JD 2:AD >0 | 0:JH 1:8H 2:7H 3:TH >0 | 0:9H 1:7C 2:QH 3:8S >0 | 0:AC 1:9S 2:KC 3:QC >0 | 0:7S 1:AS 2:JS 3:TC >1 | 1:TD 2:KH 3:8D 0:KS >2 | 2:JC 3:9D 0:9C 1:QD >2 | 2:8C 3:KD 0:QS 1:TS >2",
+   "0:JS 1:QS 2:TH 3:9S >0 | 0:AS 1:KS 2:KD 3:8C >0 | 0:AH 1:QH 2:7H 3:8H >0 | 0:KH 1:TS 2:9H 3:JH >1 | 1:AD 2:7D 3:TD 0:8D >1 | 1:QD 2:JC 3:JD 0:7S >0 | 0:7C 1:9C 2:AC 3:KC >2 | 2:QC 3:TC 0:8S 1:9D >0",
+   "1:AD 2:9S 3:KD 0:TD >2 | 2:JS 3:7S 0:8S 1:QS >2 | 2:KS 3:8H 0:AS 1:7D >0 | 0:QD 1:8D 2:QH 3:8C >0 | 0:JD 1:9D 2:JC 3:9C >0 | 0:7H 1:9H 2:TS 3:JH >2 | 2:AC 3:TH 0:TC 1:KC >2 | 2:7C 3:AH 0:QC 1:KH >0",
+   "2:AH 3:7H 0:QH 1:QD >1 | 1:JD 2:TD 3:8D 0:7D >1 | 1:KD 2:9D 3:7C 0:TC >2 | 2:AS 3:9S 0:QS 1:7S >2 | 2:TS 3:JS 0:QC 1:KS >2 | 2:9H 3:KH 0:8H 1:AC >3 | 3:KC 0:JC 1:9C 2:8S >3 | 3:8C 0:JH 1:AD 2:TH >1",
+   "3:7S 0:TS 1:9H 2:JS >1 | 1:JH 2:7H 3:KH 0:TH >1 | 1:AD 2:9D 3:QD 0:7D >1 | 1:8C 2:9C 3:8S 0:AC >0 | 0:TD 1:8D 2:KC 3:JD >0 | 0:7C 1:TC 2:QC 3:KS >1 | 1:JC 2:QH 3:9S 0:KD >2 | 2:AS 3:QS 0:AH 1:8H >0"
+  ],
+  "firstHands": [
+   "JC JD TH AH QS KH 8D AS",
+   "QH 7S 7C KS AC QD JS 8S",
+   "9S KD 9D 8H TC QC KC AD",
+   "TD JH 9C 7H 9H 7D TS 8C"
+  ]
+ },
+ {
+  "seed": 2148,
+  "scoring": "tunisian",
+  "level": "normal",
+  "deals": 13,
+  "scores": [
+   820,
+   1010
+  ],
+  "winner": 1,
+  "rounds": [
+   "120C x1 @3 made +40/130",
+   "100C x1 @3 made +30/130",
+   "110C x1 @2 made +130/30",
+   "100H x1 @0 made +100/60",
+   "120H x1 @1 made +10/170",
+   "120S x1 @1 made +30/140",
+   "110D x1 @0 made +140/30",
+   "110D x1 @1 down +160/0",
+   "100S x1 @0 down +0/180",
+   "110C x1 @0 made +130/30",
+   "110H x1 @1 made +50/110"
+  ],
+  "cards": [
+   "0:7S 1:9C 2:8S 3:TS >1 | 1:JC 2:AC 3:QC 0:7C >1 | 1:AD 2:JD 3:8D 0:7D >1 | 1:TD 2:KD 3:9D 0:QD >1 | 1:8H 2:7H 3:TH 0:9H >3 | 3:AH 0:KH 1:QH 2:JH >3 | 3:9S 0:KS 1:8C 2:QS >1 | 1:KC 2:AS 3:JS 0:TC >0",
+   "3:AS 0:9S 1:JS 2:8S >3 | 3:TS 0:QS 1:7S 2:7C >2 | 2:AD 3:7D 0:TD 1:8C >1 | 1:JC 2:KC 3:TH 0:9C >1 | 1:AH 2:7H 3:KH 0:9H >1 | 1:QH 2:JH 3:8H 0:8D >1 | 1:QC 2:AC 3:JD 0:QD >2 | 2:KD 3:KS 0:9D 1:TC >1",
+   "0:JC 1:QC 2:TC 3:KC >0 | 0:AS 1:9S 2:7S 3:QS >0 | 0:8S 1:7D 2:7H 3:TS >3 | 3:8H 0:9H 1:QH 2:AH >2 | 2:9C 3:JH 0:7C 1:8D >2 | 2:QD 3:KD 0:JD 1:AD >1 | 1:9D 2:AC 3:KS 0:JS >2 | 2:KH 3:TH 0:8C 1:TD >0",
+   "1:7C 2:AC 3:8C 0:KC >2 | 2:JH 3:QH 0:8H 1:7S >2 | 2:AS 3:9S 0:QS 1:8S >2 | 2:8D 3:AD 0:9D 1:TD >3 | 3:KD 0:KH 1:7D 2:KS >0 | 0:9C 1:TC 2:JC 3:QC >1 | 1:TS 2:7H 3:9H 0:JS >3 | 3:QD 0:TH 1:JD 2:AH >2",
+   "2:AD 3:9D 0:7D 1:8D >2 | 2:8C 3:AC 0:JC 1:AS >3 | 3:JH 0:7S 1:7H 2:TH >3 | 3:TD 0:JS 1:KD 2:QD >3 | 3:7C 0:KC 1:AH 2:9C >1 | 1:9H 2:9S 3:QH 0:QS >1 | 1:JD 2:QC 3:8S 0:TS >1 | 1:8H 2:KS 3:KH 0:TC >3",
+   "3:JS 0:8S 1:QS 2:7S >3 | 3:AC 0:QC 1:9C 2:7C >3 | 3:TC 0:9H 1:TH 2:8C >3 | 3:7D 0:AD 1:KD 2:QD >0 | 0:AH 1:8H 2:JH 3:KS >3 | 3:JC 0:9D 1:QH 2:KC >2 | 2:7H 3:TS 0:KH 1:TD >3 | 3:AS 0:JD 1:9S 2:8D >1",
+   "0:AS 1:JS 2:TH 3:8S >0 | 0:TS 1:KS 2:8C 3:9S >0 | 0:7S 1:KD 2:JD 3:QS >2 | 2:AC 3:QC 0:TC 1:9C >2 | 2:7D 3:9D 0:AD 1:JC >3 | 3:AH 0:QH 1:9H 2:8D >2 | 2:QD 3:JH 0:KC 1:7H >2 | 2:TD 3:KH 0:7C 1:8H >2",
+   "1:AS 2:7S 3:9S 0:8S >1 | 1:7C 2:TC 3:8C 0:AC >0 | 0:TS 1:QS 2:JS 3:QD >3 | 3:JD 0:7D 1:KH 2:TD >3 | 3:9D 0:8D 1:QH 2:JH >3 | 3:AD 0:KD 1:JC 2:KS >3 | 3:7H 0:9C 1:8H 2:AH >2 | 2:TH 3:QC 0:KC 1:9H >2",
+   "2:JS 3:7S 0:9S 1:8D >2 | 2:AS 3:8S 0:KD 1:JC >2 | 2:TS 3:QS 0:QD 1:QH >2 | 2:AD 3:KS 0:JD 1:TD >3 | 3:8C 0:7C 1:KC 2:7H >1 | 1:AC 2:JH 3:TC 0:QC >1 | 1:KH 2:7D 3:9H 0:AH >0 | 0:8H 1:TH 2:9D 3:9C >1",
+   "3:7S 0:9C 1:KS 2:JS >0 | 0:JC 1:TC 2:TD 3:QC >0 | 0:7C 1:7H 2:7D 3:AC >3 | 3:9D 0:AD 1:QH 2:KD >0 | 0:QD 1:KH 2:8D 3:JD >0 | 0:9H 1:AH 2:8H 3:TH >1 | 1:TS 2:8S 3:9S 0:8C >0 | 0:KC 1:AS 2:JH 3:QS >0",
+   "0:7D 1:QD 2:9D 3:AD >3 | 3:JH 0:KH 1:AH 2:7H >3 | 3:9H 0:8D 1:KC 2:QH >3 | 3:TD 0:JC 1:KD 2:JD >3 | 3:7C 0:QC 1:AC 2:TH >2 | 2:9S 3:8S 0:JS 1:AS >1 | 1:7S 2:TS 3:8H 0:QS >3 | 3:8C 0:TC 1:9C 2:KS >0"
+  ],
+  "firstHands": [
+   "7S KH 7D KS TC 7C 9H QD",
+   "QH 9C TD 8C AD 8H JC KC",
+   "7H JH QS AC AS KD 8S JD",
+   "9D TH QC 8D 9S AH TS JS"
+  ]
+ },
+ {
+  "seed": 3000,
+  "scoring": "ffb",
+  "level": "easy",
+  "deals": 7,
+  "scores": [
+   860,
+   1020
+  ],
+  "winner": 1,
+  "rounds": [
+   "90S x1 @0 down +0/250",
+   "120D x1 @3 down +280/0",
+   "100C x1 @3 made +60/200",
+   "100S x1 @2 down +0/280",
+   "130C x1 @2 made +270/40",
+   "90D x1 @3 down +250/0",
+   "90H x1 @0 down +0/250"
+  ],
+  "cards": [
+   "3:AD 0:QD 1:TD 2:8D >3 | 3:9C 0:AC 1:JC 2:AH >0 | 0:7C 1:KS 2:JS 3:QC >2 | 2:9D 3:KD 0:AS 1:7D >0 | 0:7H 1:JH 2:KH 3:8S >3 | 3:KC 0:8C 1:JD 2:7S >2 | 2:TH 3:9S 0:8H 1:QH >3 | 3:TC 0:9H 1:TS 2:QS >1",
+   "0:AC 1:AD 2:QC 3:TC >1 | 1:JD 2:8D 3:7D 0:7C >1 | 1:7H 2:8H 3:AH 0:JH >3 | 3:QD 0:7S 1:KD 2:8S >1 | 1:9H 2:QH 3:TD 0:8C >3 | 3:9C 0:KC 1:9D 2:9S >1 | 1:JS 2:TS 3:QS 0:AS >0 | 0:KS 1:TH 2:KH 3:JC >0",
+   "1:7D 2:8D 3:AD 0:JD >3 | 3:JC 0:7C 1:KC 2:QC >3 | 3:8C 0:TC 1:9H 2:AC >2 | 2:9D 3:9C 0:7S 1:QD >3 | 3:AH 0:KH 1:QH 2:JH >3 | 3:7H 0:TH 1:JS 2:TD >0 | 0:AS 1:KS 2:9S 3:8S >0 | 0:QS 1:TS 2:KD 3:8H >1",
+   "2:QS 3:AS 0:9S 1:7S >0 | 0:JS 1:8S 2:KS 3:8D >0 | 0:9C 1:7C 2:QC 3:AC >3 | 3:AH 0:TS 1:9H 2:JH >0 | 0:JC 1:8C 2:7H 3:KC >3 | 3:AD 0:JD 1:7D 2:9D >3 | 3:TD 0:QD 1:QH 2:KD >3 | 3:TH 0:TC 1:KH 2:8H >3",
+   "3:AS 0:QS 1:KS 2:9S >3 | 3:7D 0:AD 1:JD 2:TS >0 | 0:JC 1:8C 2:7C 3:8S >0 | 0:AH 1:8H 2:QH 3:TH >0 | 0:8D 1:AC 2:7H 3:TD >1 | 1:7S 2:QC 3:JS 0:KD >2 | 2:JH 3:9D 0:TC 1:9H >0 | 0:9C 1:KH 2:KC 3:QD >0",
+   "0:AH 1:TH 2:7H 3:8H >0 | 0:8C 1:AC 2:7C 3:KC >1 | 1:JD 2:8D 3:9D 0:7D >1 | 1:9C 2:JC 3:QC 0:KD >0 | 0:8S 1:TS 2:AS 3:JS >2 | 2:7S 3:9H 0:KS 1:QD >1 | 1:TC 2:9S 3:JH 0:TD >0 | 0:QH 1:AD 2:QS 3:KH >1",
+   "1:AD 2:TD 3:8D 0:9D >1 | 1:7D 2:JH 3:JC 0:KD >2 | 2:AC 3:QC 0:TC 1:8C >2 | 2:8S 3:AS 0:7S 1:QS >3 | 3:JS 0:QH 1:9S 2:KS >0 | 0:7C 1:9C 2:KC 3:8H >3 | 3:TS 0:9H 1:QD 2:7H >0 | 0:JD 1:TH 2:KH 3:AH >3"
+  ],
+  "firstHands": [
+   "8C AS QD 9H 7C 7H 8H AC",
+   "TD 7D QH TS KS JH JC JD",
+   "AH 9D 8D 7S KH JS QS TH",
+   "KD KC QC TC 9C 8S 9S AD"
+  ]
+ },
+ {
+  "seed": 3037,
+  "scoring": "ffb",
+  "level": "easy",
+  "deals": 8,
+  "scores": [
+   780,
+   1310
+  ],
+  "winner": 1,
+  "rounds": [
+   "100S x1 @2 made +250/20",
+   "100S x1 @3 made +60/220",
+   "110H x1 @2 made +220/70",
+   "100D x1 @2 made +240/20",
+   "80D x1 @0 down +0/260",
+   "130H x1 @3 made +10/310",
+   "140H x1 @3 made +0/410"
+  ],
+  "cards": [
+   "1:7H 2:QH 3:AH 0:JH >3 | 3:9C 0:AC 1:7C 2:TC >0 | 0:JS 1:9S 2:KS 3:AS >0 | 0:7D 1:8D 2:AD 3:JD >2 | 2:9D 3:9H 0:7S 1:QD >0 | 0:QC 1:8C 2:KC 3:JC >2 | 2:KD 3:KH 0:8S 1:TD >0 | 0:QS 1:8H 2:TS 3:TH >2",
+   "2:AC 3:JC 0:7C 1:8C >2 | 2:8D 3:9D 0:QD 1:AD >1 | 1:JS 2:7S 3:QS 0:8S >1 | 1:KC 2:9C 3:7H 0:7D >1 | 1:KD 2:TS 3:JD 0:TD >2 | 2:QC 3:KS 0:9H 1:TH >3 | 3:8H 0:AH 1:KH 2:TC >0 | 0:QH 1:9S 2:AS 3:JH >1",
+   "3:AS 0:7S 1:KS 2:JS >3 | 3:8C 0:JC 1:AC 2:7C >1 | 1:9S 2:TS 3:8S 0:AD >2 | 2:QH 3:7H 0:AH 1:9H >1 | 1:9C 2:KH 3:KC 0:TC >2 | 2:7D 3:8D 0:QD 1:TD >1 | 1:QS 2:TH 3:9D 0:8H >2 | 2:JD 3:KD 0:JH 1:QC >0",
+   "0:JD 1:7D 2:QD 3:KD >0 | 0:AH 1:7H 2:TH 3:KH >0 | 0:AC 1:QC 2:7C 3:9C >0 | 0:9H 1:8H 2:7S 3:8S >0 | 0:TC 1:KC 2:8C 3:JC >0 | 0:TS 1:8D 2:9S 3:AS >1 | 1:JH 2:9D 3:QS 0:TD >2 | 2:JS 3:KS 0:AD 1:QH >0",
+   "2:7S 3:TS 0:JS 1:AS >1 | 1:AC 2:TC 3:QC 0:JC >1 | 1:9H 2:QH 3:QD 0:7H >3 | 3:7C 0:9D 1:KC 2:KH >0 | 0:JD 1:8D 2:7D 3:KD >0 | 0:AH 1:JH 2:9S 3:TD >3 | 3:8C 0:8H 1:QS 2:AD >2 | 2:8S 3:9C 0:TH 1:KS >1",
+   "3:QH 0:AH 1:JH 2:7C >1 | 1:AD 2:7D 3:QD 0:9D >1 | 1:AC 2:8C 3:TC 0:QC >1 | 1:JD 2:7S 3:8D 0:KD >0 | 0:8S 1:KS 2:9S 3:AS >3 | 3:KH 0:8H 1:TH 2:9C >1 | 1:TD 2:JC 3:JS 0:KC >1 | 1:7H 2:QS 3:9H 0:TS >3",
+   "0:7D 1:AD 2:9D 3:AS >1 | 1:JH 2:8S 3:8H 0:TH >1 | 1:8D 2:TD 3:AH 0:JD >3 | 3:7S 0:9S 1:TS 2:JS >1 | 1:KD 2:8C 3:7C 0:QD >1 | 1:7H 2:9C 3:9H 0:JC >3 | 3:KS 0:QC 1:QH 2:QS >1 | 1:KH 2:AC 3:TC 0:KC >1"
+  ],
+  "firstHands": [
+   "JS 7S JH AC QC 8S QS 7D",
+   "8C 8H TD 7H 8D 9S 7C QD",
+   "QH AD TC 9D KS TS KD KC",
+   "9C AH AS JD KH TH 9H JC"
+  ]
+ },
+ {
+  "seed": 3074,
+  "scoring": "ffb",
+  "level": "easy",
+  "deals": 6,
+  "scores": [
+   590,
+   1130
+  ],
+  "winner": 1,
+  "rounds": [
+   "130S x1 @1 made +0/380",
+   "80S x1 @2 made +160/80",
+   "110C x1 @0 down +0/270",
+   "100C x1 @0 made +220/40",
+   "100C x1 @0 made +210/70",
+   "110C x1 @0 down +0/290"
+  ],
+  "cards": [
+   "3:JS 0:QS 1:7S 2:7D >3 | 3:AC 0:KC 1:TC 2:7C >3 | 3:8C 0:7H 1:JC 2:9C >1 | 1:KS 2:8H 3:TS 0:JD >3 | 3:QC 0:JH 1:8D 2:9H >3 | 3:TH 0:KD 1:AH 2:QH >1 | 1:9D 2:QD 3:8S 0:TD >3 | 3:AS 0:AD 1:9S 2:KH >1",
+   "0:7C 1:8C 2:QC 3:AC >3 | 3:AH 0:9H 1:TH 2:JH >3 | 3:7H 0:8S 1:8H 2:KH >0 | 0:9C 1:TC 2:9S 3:JC >2 | 2:JS 3:7S 0:QS 1:TS >2 | 2:AD 3:KD 0:QD 1:9D >2 | 2:7D 3:KS 0:JD 1:TD >3 | 3:AS 0:KC 1:QH 2:8D >3",
+   "1:AD 2:8D 3:TD 0:7D >1 | 1:AH 2:8H 3:TH 0:7H >1 | 1:JH 2:AC 3:9H 0:KH >2 | 2:JC 3:QC 0:TC 1:8C >2 | 2:JS 3:7S 0:9S 1:TS >1 | 1:KS 2:7C 3:8S 0:AS >2 | 2:JD 3:9D 0:QD 1:KD >1 | 1:KC 2:9C 3:QH 0:QS >2",
+   "2:7D 3:JD 0:TD 1:AD >1 | 1:7H 2:JH 3:9H 0:AH >0 | 0:JC 1:7C 2:KC 3:7S >0 | 0:8C 1:TC 2:AC 3:JS >2 | 2:8D 3:QD 0:9D 1:KH >3 | 3:AS 0:9S 1:8S 2:QS >3 | 3:KS 0:QC 1:8H 2:TS >0 | 0:9C 1:QH 2:TH 3:KD >0",
+   "3:7S 0:JS 1:AS 2:9S >1 | 1:7H 2:AH 3:JH 0:KH >2 | 2:JC 3:QC 0:TC 1:7C >2 | 2:QH 3:KC 0:9H 1:TH >3 | 3:9D 0:AD 1:7D 2:TD >0 | 0:8D 1:QD 2:KD 3:AC >3 | 3:QS 0:KS 1:8S 2:8C >2 | 2:9C 3:TS 0:JD 1:8H >2",
+   "0:AD 1:7D 2:8D 3:KD >0 | 0:9D 1:JD 2:JC 3:8H >2 | 2:7S 3:KS 0:QS 1:AS >1 | 1:AH 2:QH 3:JH 0:KH >1 | 1:7H 2:8C 3:9H 0:TH >2 | 2:JS 3:TS 0:AC 1:8S >0 | 0:QD 1:9C 2:QC 3:7C >1 | 1:9S 2:KC 3:TC 0:TD >3"
+  ],
+  "firstHands": [
+   "JD JH 7H KD KC AD TD QS",
+   "AH JC 9S 9D 8D 7S KS TC",
+   "9H QD 8H 9C KH 7D 7C QH",
+   "8S 8C QC AC AS JS TH TS"
+  ]
+ },
+ {
+  "seed": 3111,
+  "scoring": "ffb",
+  "level": "easy",
+  "deals": 6,
+  "scores": [
+   570,
+   1080
+  ],
+  "winner": 1,
+  "rounds": [
+   "130H x1 @2 down +0/310",
+   "120C x1 @2 made +260/50",
+   "90C x1 @2 made +190/60",
+   "100H x1 @3 made +20/240",
+   "90D x1 @1 made +50/200",
+   "100H x1 @3 made +50/220"
+  ],
+  "cards": [
+   "3:AC 0:JC 1:KC 2:7C >3 | 3:8D 0:7D 1:9D 2:QH >2 | 2:JH 3:7H 0:KD 1:9C >2 | 2:KH 3:9H 0:7S 1:AD >3 | 3:KS 0:AS 1:JS 2:QC >0 | 0:8S 1:QS 2:TH 3:TD >2 | 2:8C 3:TC 0:9S 1:TS >3 | 3:8H 0:JD 1:QD 2:AH >2",
+   "0:AD 1:9D 2:JH 3:8D >0 | 0:7D 1:JD 2:JC 3:KD >2 | 2:8C 3:7C 0:AC 1:9C >1 | 1:AS 2:8S 3:TS 0:9S >1 | 1:7S 2:QC 3:KS 0:JS >2 | 2:KC 3:8H 0:7H 1:QS >2 | 2:AH 3:9H 0:KH 1:TH >2 | 2:TC 3:QH 0:QD 1:TD >2",
+   "1:7H 2:AH 3:7C 0:9H >3 | 3:AS 0:JS 1:TD 2:9S >3 | 3:7S 0:8C 1:QC 2:QS >1 | 1:8D 2:AD 3:7D 0:QD >2 | 2:JC 3:8S 0:TC 1:9C >2 | 2:KC 3:KD 0:9D 1:8H >2 | 2:KH 3:KS 0:QH 1:TH >1 | 1:JH 2:AC 3:TS 0:JD >2",
+   "2:7D 3:AD 0:QH 1:8D >0 | 0:AC 1:JC 2:KC 3:AH >3 | 3:9D 0:7C 1:7H 2:JD >1 | 1:JH 2:8H 3:9H 0:8C >1 | 1:AS 2:KS 3:TS 0:8S >1 | 1:7S 2:KH 3:QS 0:9S >2 | 2:9C 3:QD 0:QC 1:TH >1 | 1:JS 2:KD 3:TD 0:TC >1",
+   "3:JD 0:8D 1:KD 2:TD >3 | 3:AC 0:8C 1:TS 2:7C >3 | 3:7S 0:AS 1:8S 2:KS >0 | 0:9H 1:7H 2:8H 3:TH >3 | 3:QC 0:JC 1:JH 2:9C >3 | 3:KC 0:TC 1:9D 2:9S >1 | 1:QS 2:QH 3:7D 0:JS >3 | 3:QD 0:AD 1:KH 2:AH >0",
+   "0:AD 1:7D 2:QD 3:JD >0 | 0:7S 1:9S 2:KS 3:AS >3 | 3:JH 0:7H 1:TH 2:QH >3 | 3:KH 0:8H 1:8C 2:AH >2 | 2:8S 3:JS 0:TS 1:QS >0 | 0:9D 1:QC 2:8D 3:9H >3 | 3:AC 0:KD 1:TC 2:9C >3 | 3:7C 0:TD 1:KC 2:JC >1"
+  ],
+  "firstHands": [
+   "KD 8S JC JD 9S 7S AS 7D",
+   "AD TS 9C QS KC JS 9D QD",
+   "QH JH 8C AH QC 7C KH TH",
+   "8H AC 9H TD KS 7H 8D TC"
+  ]
+ },
+ {
+  "seed": 3148,
+  "scoring": "ffb",
+  "level": "easy",
+  "deals": 9,
+  "scores": [
+   1250,
+   420
+  ],
+  "winner": 0,
+  "rounds": [
+   "100H x1 @2 made +230/50",
+   "100C x1 @3 made +40/220",
+   "110C x1 @2 made +250/20",
+   "120S x1 @2 made +240/40",
+   "100D x1 @2 made +200/80",
+   "140S x1 @2 made +290/10"
+  ],
+  "cards": [
+   "0:JH 1:7H 2:TH 3:QH >0 | 0:AC 1:7C 2:JC 3:8C >0 | 0:7S 1:AS 2:9S 3:TS >1 | 1:8S 2:AH 3:JS 0:QC >2 | 2:AD 3:8D 0:9D 1:KD >2 | 2:7D 3:KH 0:9H 1:TD >0 | 0:9C 1:KC 2:JD 3:KS >1 | 1:TC 2:QD 3:QS 0:8H >0",
+   "1:AD 2:JC 3:7D 0:QD >2 | 2:7S 3:KS 0:TS 1:AS >1 | 1:9S 2:8S 3:7H 0:JS >0 | 0:8D 1:7C 2:QC 3:KD >2 | 2:8H 3:AH 0:KH 1:8C >1 | 1:TC 2:QS 3:9H 0:KC >1 | 1:AC 2:QH 3:JH 0:9D >1 | 1:9C 2:TH 3:TD 0:JD >1",
+   "2:8C 3:9C 0:JC 1:7C >0 | 0:AD 1:JD 2:TD 3:7D >0 | 0:7H 1:TH 2:AH 3:8H >2 | 2:9D 3:8D 0:KC 1:QD >0 | 0:KH 1:7S 2:JH 3:9H >0 | 0:TS 1:8S 2:JS 3:AS >3 | 3:9S 0:TC 1:QS 2:KS >0 | 0:AC 1:KD 2:QC 3:QH >0",
+   "3:7C 0:JC 1:AC 2:9C >1 | 1:AD 2:8D 3:TH 0:9D >1 | 1:7D 2:JD 3:8S 0:KS >0 | 0:JS 1:7S 2:KD 3:9H >0 | 0:8H 1:QS 2:7H 3:KH >1 | 1:8C 2:JH 3:QC 0:TS >0 | 0:AS 1:KC 2:QD 3:QH >0 | 0:9S 1:TD 2:AH 3:TC >0",
+   "3:AH 0:9H 1:KH 2:8H >3 | 3:8C 0:AC 1:9C 2:TC >0 | 0:JD 1:8D 2:KC 3:7D >0 | 0:JC 1:AD 2:7C 3:TS >1 | 1:7H 2:JH 3:TD 0:TH >3 | 3:QS 0:QD 1:9S 2:AS >0 | 0:QC 1:JS 2:7S 3:9D >3 | 3:KS 0:KD 1:QH 2:8S >0",
+   "0:JS 1:TS 2:7S 3:8S >0 | 0:AC 1:7C 2:TD 3:8C >0 | 0:QD 1:7H 2:8D 3:KD >3 | 3:7D 0:QS 1:8H 2:AD >0 | 0:QC 1:9C 2:9H 3:KC >3 | 3:9D 0:AS 1:JH 2:JD >0 | 0:TC 1:QH 2:KS 3:JC >2 | 2:AH 3:TH 0:9S 1:KH >0"
+  ],
+  "firstHands": [
+   "QC 8H 7S 9D JH AC 9C 9H",
+   "7H KD TC AS 8S 7C KC TD",
+   "JD AD 9S 7D JC QD TH AH",
+   "QS 8C 8D TS JS QH KS KH"
+  ]
+ },
+ {
+  "seed": 4000,
+  "scoring": "ffb",
+  "level": "expert",
+  "deals": 4,
+  "scores": [
+   1150,
+   100
+  ],
+  "winner": 0,
+  "rounds": [
+   "150H x1 @0 made +420/0",
+   "110H x1 @0 made +270/30",
+   "100H x1 @0 made +230/30",
+   "110H x1 @2 made +230/40"
+  ],
+  "cards": [
+   "1:7S 2:KS 3:TS 0:AS >0 | 0:8H 1:7H 2:AH 3:TH >2 | 2:JD 3:TD 0:AD 1:QD >0 | 0:8D 1:AC 2:9H 3:7D >2 | 2:KC 3:QS 0:TC 1:8C >0 | 0:KD 1:8S 2:QH 3:9D >2 | 2:KH 3:9S 0:9C 1:JC >2 | 2:JH 3:JS 0:7C 1:QC >2",
+   "2:8H 3:QH 0:AH 1:TH >0 | 0:9S 1:7S 2:JS 3:KS >3 | 3:8S 0:AS 1:QD 2:TS >0 | 0:JH 1:JD 2:7H 3:KH >0 | 0:AD 1:TD 2:8D 3:9D >0 | 0:7D 1:9C 2:KD 3:QC >2 | 2:QS 3:7C 0:JC 1:TC >2 | 2:8C 3:KC 0:9H 1:AC >0",
+   "3:7H 0:KH 1:TH 2:JH >2 | 2:8D 3:KD 0:AD 1:9D >0 | 0:7S 1:KS 2:JS 3:9S >1 | 1:TD 2:JD 3:TC 0:7D >1 | 1:QS 2:QH 3:8S 0:TS >2 | 2:8H 3:AS 0:9H 1:AH >0 | 0:JC 1:QC 2:7C 3:9C >1 | 1:8C 2:AC 3:KC 0:QD >2",
+   "0:7H 1:8H 2:AH 3:TH >2 | 2:9C 3:AC 0:QH 1:8C >0 | 0:JD 1:7D 2:AD 3:TD >2 | 2:8S 3:AS 0:7S 1:TS >3 | 3:7C 0:KS 1:TC 2:QC >1 | 1:JC 2:KH 3:KC 0:9S >2 | 2:9H 3:JS 0:QD 1:8D >2 | 2:JH 3:QS 0:KD 1:9D >2"
+  ],
+  "firstHands": [
+   "AS AD KD 8H 7C 8D TC 9C",
+   "AC QD 7S QC JC 7H 8S 8C",
+   "AH 9H KS KH QH JD KC JH",
+   "7D TD QS TH JS 9S TS 9D"
+  ]
+ },
+ {
+  "seed": 4037,
+  "scoring": "ffb",
+  "level": "expert",
+  "deals": 7,
+  "scores": [
+   1200,
+   810
+  ],
+  "winner": 0,
+  "rounds": [
+   "90H x1 @3 made +30/220",
+   "110H x1 @2 made +260/30",
+   "90D x1 @2 made +210/40",
+   "100D x1 @0 made +220/40",
+   "120D x1 @3 made +40/250",
+   "100D x1 @3 made +30/230",
+   "140C x1 @0 made +410/0"
+  ],
+  "cards": [
+   "3:KS 0:QS 1:TH 2:TS >1 | 1:JH 2:AH 3:9H 0:KH >1 | 1:KD 2:QD 3:7D 0:AD >0 | 0:8S 1:7H 2:AS 3:JS >1 | 1:QC 2:JC 3:9C 0:AC >0 | 0:TC 1:KC 2:7C 3:8H >3 | 3:8D 0:7S 1:TD 2:JD >1 | 1:QH 2:8C 3:9D 0:9S >1",
+   "0:AD 1:7D 2:TD 3:9D >0 | 0:8D 1:QD 2:7H 3:JD >2 | 2:QS 3:AS 0:9H 1:8S >0 | 0:JH 1:8H 2:QH 3:TH >0 | 0:8C 1:AC 2:JC 3:KC >1 | 1:7C 2:KH 3:AH 0:9C >3 | 3:9S 0:TC 1:7S 2:TS >2 | 2:KS 3:KD 0:QC 1:JS >2",
+   "1:7H 2:8H 3:AH 0:JH >3 | 3:AS 0:8S 1:7S 2:JS >3 | 3:QC 0:7C 1:QD 2:TC >1 | 1:KH 2:9H 3:KC 0:TH >0 | 0:KD 1:8D 2:JD 3:7D >2 | 2:9D 3:AD 0:JC 1:QS >2 | 2:AC 3:8C 0:TS 1:QH >2 | 2:TD 3:9C 0:9S 1:KS >2",
+   "2:JD 3:KD 0:KC 1:7D >2 | 2:9D 3:TD 0:QS 1:QD >2 | 2:AH 3:QH 0:8H 1:TH >2 | 2:KH 3:JH 0:QC 1:AD >1 | 1:AS 2:KS 3:JS 0:7S >1 | 1:8S 2:8D 3:9S 0:TS >2 | 2:7H 3:9H 0:9C 1:JC >3 | 3:TC 0:AC 1:7C 2:8C >0",
+   "3:7S 0:AS 1:KS 2:TS >0 | 0:QS 1:KD 2:9S 3:8S >1 | 1:JH 2:QH 3:KH 0:7H >3 | 3:9H 0:7D 1:8H 2:AC >0 | 0:7C 1:TD 2:QC 3:KC >1 | 1:JD 2:8D 3:TH 0:QD >1 | 1:AD 2:JS 3:JC 0:8C >1 | 1:9D 2:TC 3:AH 0:9C >1",
+   "0:AC 1:QC 2:KC 3:8C >0 | 0:7C 1:TC 2:JC 3:9C >1 | 1:JD 2:7D 3:AD 0:8D >1 | 1:9D 2:QD 3:QS 0:8S >1 | 1:KD 2:JS 3:QH 0:9S >1 | 1:7S 2:AS 3:7H 0:KS >2 | 2:KH 3:AH 0:9H 1:TS >3 | 3:TH 0:JH 1:TD 2:8H >1",
+   "1:8D 2:KD 3:JD 0:AD >0 | 0:7C 1:AC 2:JC 3:TC >2 | 2:TS 3:8S 0:QS 1:JS >2 | 2:8C 3:JH 0:9C 1:9D >0 | 0:TD 1:KH 2:7S 3:7D >0 | 0:9S 1:8H 2:AS 3:7H >2 | 2:QC 3:QH 0:TH 1:9H >2 | 2:KC 3:QD 0:KS 1:AH >2"
+  ],
+  "firstHands": [
+   "8S AC KH AD QS 9S 7S TC",
+   "JH 7H TD KD TH QH QC KC",
+   "7C AS AH TS QD 8C JD JC",
+   "8H 7D JS 9C 8D KS 9H 9D"
+  ]
+ },
+ {
+  "seed": 4074,
+  "scoring": "ffb",
+  "level": "expert",
+  "deals": 9,
+  "scores": [
+   860,
+   1090
+  ],
+  "winner": 1,
+  "rounds": [
+   "120H x1 @1 down +280/0",
+   "110H x1 @3 made +50/220",
+   "90S x1 @3 down +250/0",
+   "120H x1 @0 made +240/40",
+   "140D x1 @1 made +30/290",
+   "130S x1 @1 made +10/280",
+   "100C x1 @2 down +0/260"
+  ],
+  "cards": [
+   "3:JH 0:KH 1:9H 2:8H >3 | 3:TC 0:8C 1:7C 2:KC >3 | 3:7H 0:AH 1:7D 2:TS >0 | 0:9C 1:JD 2:7S 3:JC >3 | 3:TH 0:9D 1:KS 2:8S >3 | 3:AC 0:QC 1:KD 2:9S >3 | 3:8D 0:TD 1:QS 2:AD >2 | 2:JS 3:QH 0:QD 1:AS >3",
+   "0:7D 1:KD 2:JD 3:9D >1 | 1:JH 2:QH 3:AD 0:KH >1 | 1:7H 2:AH 3:8S 0:TC >2 | 2:QD 3:TD 0:7C 1:8D >3 | 3:TS 0:7S 1:TH 2:JS >1 | 1:JC 2:KC 3:AC 0:8C >3 | 3:AS 0:9S 1:8H 2:QS >1 | 1:QC 2:9H 3:KS 0:9C >2",
+   "1:AH 2:8H 3:KH 0:QH >1 | 1:8S 2:QC 3:QS 0:9S >0 | 0:AD 1:QD 2:JD 3:TD >0 | 0:7D 1:JS 2:9D 3:JC >1 | 1:KS 2:TC 3:TS 0:AS >0 | 0:AC 1:8C 2:9C 3:7S >3 | 3:9H 0:TH 1:7H 2:KD >0 | 0:8D 1:KC 2:7C 3:JH >0",
+   "2:AC 3:8C 0:JC 1:KC >2 | 2:JH 3:KH 0:QH 1:7D >2 | 2:9H 3:TH 0:AD 1:KS >2 | 2:7H 3:AH 0:8D 1:TD >3 | 3:JD 0:TS 1:KD 2:QD >1 | 1:7S 2:AS 3:JS 0:QC >2 | 2:TC 3:9D 0:9C 1:8S >2 | 2:8H 3:QS 0:7C 1:9S >2",
+   "0:QS 1:JS 2:AS 3:7S >2 | 2:AC 3:7C 0:KC 1:QD >1 | 1:JD 2:QH 3:7D 0:9H >1 | 1:JH 2:AH 3:7H 0:KH >2 | 2:TH 3:8H 0:8C 1:KD >1 | 1:TD 2:JC 3:8D 0:9S >1 | 1:AD 2:QC 3:TS 0:9C >1 | 1:9D 2:TC 3:8S 0:KS >1",
+   "1:7S 2:TC 3:9S 0:KS >3 | 3:7D 0:AD 1:9D 2:QD >0 | 0:7C 1:AC 2:9C 3:KC >1 | 1:AH 2:JH 3:7H 0:8H >1 | 1:KD 2:JD 3:QS 0:8D >3 | 3:JS 0:8C 1:8S 2:JC >3 | 3:TS 0:9H 1:TD 2:KH >3 | 3:AS 0:TH 1:QH 2:QC >3",
+   "3:AH 0:8H 1:QH 2:KH >3 | 3:TH 0:JH 1:7H 2:AC >2 | 2:AD 3:JD 0:KD 1:8D >2 | 2:JC 3:8C 0:QC 1:QD >2 | 2:KC 3:9C 0:7C 1:AS >3 | 3:KS 0:9S 1:TS 2:8S >1 | 1:TD 2:9D 3:7S 0:7D >1 | 1:9H 2:TC 3:QS 0:JS >2"
+  ],
+  "firstHands": [
+   "QD 8C KH 9C TD AH QC 9D",
+   "KD 9H JD KS 7D 7C QS AS",
+   "9S 8S AD TS 7S KC JS 8H",
+   "JC TH TC JH QH 8D AC 7H"
+  ]
+ }
+]
