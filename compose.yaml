@@ -29,6 +29,8 @@ services:
       KABBOUT_PORT: ${KABBOUT_PORT:-8080}
       KABBOUT_COACH_LIMIT: ${KABBOUT_COACH_LIMIT:-6}
       KABBOUT_COACH_PER_DEAL: ${KABBOUT_COACH_PER_DEAL:-2}
+      KABBOUT_COACH_DAILY: ${KABBOUT_COACH_DAILY:-500}
+      KABBOUT_TRUSTED_PROXIES: ${KABBOUT_TRUSTED_PROXIES:-}
       BRIDGE_URL: http://bridge:8787
     # for this machine only; write '${KABBOUT_PORT:-8080}:8080' to open it to others
     ports:

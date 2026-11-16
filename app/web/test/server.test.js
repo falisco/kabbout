@@ -97,6 +97,8 @@ test('no answer always comes with its reason, and never as an error', async () =
       'busy',
     ],
     'the questions of the deal spent': [answering(429, { error: { code: 'deal_quota', left: 0 } }), 'spent'],
+    'the questions of the day spent': [answering(429, { error: { code: 'daily_quota' } }), 'resting'],
+    'a limit the page does not know': [answering(429, { error: { code: 'constructor' } }), 'busy'],
     'a deal the server refused': [answering(422, { error: { code: 'refused' } }), 'refused'],
     'the AI off': [answering(503, { error: { code: 'ai_off' } }), 'unavailable'],
     'a server error': [answering(500, {}), 'unavailable'],

@@ -22,6 +22,8 @@ use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Infrastructure\Bridge\BridgeDealAnalysis;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\AnalysisMapper;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\Json;
+use Kabbout\Game\Infrastructure\Bridge\Transport\BridgeResponse;
+use Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport;
 use Kabbout\Tests\Game\Infrastructure\Bridge\EngineContractTestCase;
 use Kabbout\Tests\Support\RecordedBridgeTransport;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -115,6 +117,37 @@ final class DealCapabilitiesTest extends TestCase
         $arabic = (new ReviewBids($this->analysis))($this->record, Seat::First, Lang::Ar);
         self::assertSame(array_column($review->turns, 'expert'), array_column($arabic->turns, 'expert'));
         self::assertNotSame(array_column($review->turns, 'why'), array_column($arabic->turns, 'why'));
+    }
+
+    public function testAnAnalysisAskedTwiceInARequestIsWorkedOutOnce(): void
+    {
+        $counting = new class(RecordedBridgeTransport::fromContractFile(EngineContractTestCase::CASES)) implements BridgeTransport {
+            /** @var list<string> */
+            public array $asked = [];
+
+            public function __construct(private BridgeTransport $inner)
+            {
+            }
+
+            public function post(string $path, array $body): BridgeResponse
+            {
+                $this->asked[] = $path;
+
+                return $this->inner->post($path, $body);
+            }
+        };
+        $analysis = new BridgeDealAnalysis($counting);
+
+        $first = $analysis->swings($this->record, Seat::First);
+        self::assertEquals($first, $analysis->swings($this->record, Seat::First));
+        $analysis->swings($this->record, Seat::Second);
+        $analysis->summary($this->record, Seat::First);
+        self::assertCount(3, $counting->asked);
+
+        // the next request starts afresh
+        $analysis->reset();
+        $analysis->swings($this->record, Seat::First);
+        self::assertSame(['/analysis/swings', '/analysis/swings', '/analysis/summary', '/analysis/swings'], $counting->asked);
     }
 
     public function testATrickNumberIsOneToEight(): void

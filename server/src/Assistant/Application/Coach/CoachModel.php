@@ -14,8 +14,9 @@ interface CoachModel
 {
     /**
      * @param Rejected|null $rejected a first answer that stated things no tool result holds, to be written again
+     * @param float|null    $until    the time (in seconds, as microtime gives it) past which the model looks at the deal no more and must answer
      *
      * @throws CoachModelFailed when no answer could be had: the platform is down, the model went in circles
      */
-    public function answer(CoachBrief $brief, Facts $facts, ?Rejected $rejected = null): string;
+    public function answer(CoachBrief $brief, Facts $facts, ?Rejected $rejected = null, ?float $until = null): string;
 }

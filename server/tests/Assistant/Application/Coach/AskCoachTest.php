@@ -156,6 +156,24 @@ final class AskCoachTest extends TestCase
         yield 'ar' => [Lang::Ar, 'في البلي 4 لعبت 10 سباتة؛ الخبير كان يلعب اللاص كارو، وهي تجيب '.self::loss().' نقطة أكثر في المعدّل. الكونترا 80 كارو'];
     }
 
+    public function testAPlayerIsNotKeptWaitingForASecondTry(): void
+    {
+        $model = new ScriptedCoachModel([self::INVENTED, 'Au pli 4, le 10 de trèfle.'], [self::swings()]);
+        // the first answer took twenty-one seconds to come
+        $times = [1000.0, 1021.0];
+        $now = static function () use (&$times): float {
+            return array_shift($times) ?? 1021.0;
+        };
+
+        $answer = (new AskCoach($model, RecordedDeal::summarise(), RecordedDeal::rankSwings(), $now))(new CoachBrief(RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?'));
+
+        self::assertSame(AnswerSource::Summary, $answer->source);
+        self::assertCount(1, $model->calls);
+        self::assertCount(1, $answer->rejected);
+        // and the model was told until when its tools would answer
+        self::assertSame([1000.0 + AskCoach::LOOKING_SECONDS], $model->untils);
+    }
+
     public function testAQuestionIsOneLineOfPlainTextOfAReasonableLength(): void
     {
         $brief = new CoachBrief(RecordedDeal::record(), Seat::First, Lang::En, "  What did\n\nI do\twrong?\u{0000}\u{202E} ");

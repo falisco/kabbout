@@ -154,6 +154,7 @@ export default {
   debriefBack: 'Back to the result',
   debriefBackCoach: 'Back to the coach',
   debriefErrors: {
+    resting: 'The coach has answered a lot today: it is back tomorrow.',
     spent: 'You have asked all your questions about this deal.',
     busy: 'Too many questions in a row: try again in a minute.',
     refused: 'The server could not replay this deal.',

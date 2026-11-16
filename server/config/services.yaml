@@ -9,6 +9,10 @@ parameters:
   env(KABBOUT_COACH_LIMIT): '6'
   # questions to the coach one visitor may ask about one deal
   env(KABBOUT_COACH_PER_DEAL): '2'
+  # questions to the coach all visitors together may ask in a day
+  env(KABBOUT_COACH_DAILY): '500'
+  # the reverse proxies in front of the server, if any: addresses or ranges, comma separated
+  env(KABBOUT_TRUSTED_PROXIES): ''
 
 services:
   _defaults:

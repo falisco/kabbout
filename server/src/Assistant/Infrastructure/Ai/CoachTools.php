@@ -31,6 +31,9 @@ use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
 #[AsTool('biggest_swings', 'The player\'s decisions the expert would have made otherwise, the costliest first, each with its trick, the card played, the expert\'s card and the loss on average. A decision that is not in this list is not a mistake.', 'biggestSwings')]
 final readonly class CoachTools
 {
+    /** what a tool answers once the question has had its looks or its time: it adds no fact */
+    private const string NO_MORE = 'No more looks at the deal for this question: answer now, with what the tools already returned.';
+
     public function __construct(
         private CoachConversation $conversation,
         private SummariseDeal $summarise,
@@ -44,6 +47,10 @@ final readonly class CoachTools
 
     public function dealSummary(): string
     {
+        if (!$this->conversation->mayLook()) {
+            return self::NO_MORE;
+        }
+
         return $this->established(($this->summarise)($this->conversation->record(), $this->conversation->seat())->toArray());
     }
 
@@ -52,6 +59,9 @@ final readonly class CoachTools
      */
     public function trick(int $n): string
     {
+        if (!$this->conversation->mayLook()) {
+            return self::NO_MORE;
+        }
         $trick = TrickNumber::tryFrom($n);
 
         return null === $trick ? self::noSuchTrick($n) : $this->established(($this->reviewTrick)($this->conversation->record(), $this->conversation->seat(), $trick)->toArray());
@@ -62,6 +72,9 @@ final readonly class CoachTools
      */
     public function expertChoice(int $n): string
     {
+        if (!$this->conversation->mayLook()) {
+            return self::NO_MORE;
+        }
         $trick = TrickNumber::tryFrom($n);
 
         return null === $trick ? self::noSuchTrick($n) : $this->established(($this->askExpertChoice)($this->conversation->record(), $this->conversation->seat(), $trick)->toArray());
@@ -73,6 +86,9 @@ final readonly class CoachTools
      */
     public function whatIf(int $n, string $card): string
     {
+        if (!$this->conversation->mayLook()) {
+            return self::NO_MORE;
+        }
         $trick = TrickNumber::tryFrom($n);
         if (null === $trick) {
             return self::noSuchTrick($n);
@@ -91,11 +107,19 @@ final readonly class CoachTools
 
     public function expertBids(): string
     {
+        if (!$this->conversation->mayLook()) {
+            return self::NO_MORE;
+        }
+
         return $this->established(($this->reviewBids)($this->conversation->record(), $this->conversation->seat(), $this->conversation->lang())->toArray());
     }
 
     public function biggestSwings(): string
     {
+        if (!$this->conversation->mayLook()) {
+            return self::NO_MORE;
+        }
+
         return $this->established(($this->rankSwings)($this->conversation->record(), $this->conversation->seat())->toArray());
     }
 

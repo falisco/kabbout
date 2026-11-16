@@ -47,14 +47,18 @@ export function aiNotice(capabilities) {
   return states.every((state) => state === 'planned') ? 'planned' : null;
 }
 
-/** how long the page waits for the coach: the model may be asked twice, with the engine's analysis in between */
-export const COACH_TIMEOUT_MS = 60_000;
+/**
+ * How long the page waits for the coach. The server gives a question about 55 seconds at the very worst
+ * (its tools stop after 30, a call to the model lasts 25 at most): the page waits longer than that, so
+ * an answer the server paid for is an answer the player reads.
+ */
+export const COACH_TIMEOUT_MS = 70_000;
 const SOURCES = ['model', 'summary'];
 const LAST_TRICK = 8;
 /** why the coach has no answer, by the status the server gave */
 const REASONS = { 422: 'refused', 429: 'busy' };
-/** the server's word that the questions of this deal are spent */
-const DEAL_QUOTA = 'deal_quota';
+/** the server's words past a limit: the questions of this deal are spent, or those of the day for everybody */
+const QUOTAS = { deal_quota: 'spent', daily_quota: 'resting' };
 
 /**
  * @param {unknown} body the answer of POST api/coach
@@ -76,7 +80,7 @@ function readAnswer(body) {
 
 /**
  * Asks the coach about a deal. Never fails: when there is no answer, `reason` says why, 'busy' (too many
- * questions), 'spent' (no question left on this deal), 'refused' (the server could not replay the deal) or 'unavailable' (anything else, a server
+ * questions), 'spent' (no question left on this deal), 'resting' (the day's questions are spent for everybody), 'refused' (the server could not replay the deal) or 'unavailable' (anything else, a server
  * that takes too long included).
  * @param {{ record: object, seat: number, lang: string, question: string }} question
  * @param {typeof fetch} [fetchFn]
@@ -96,7 +100,7 @@ export async function askCoach(question, fetchFn = (url, init) => fetch(url, ini
     const body = await response.json().catch(() => null);
     const answer = response.status === 200 ? readAnswer(body) : null;
     if (answer) return { answer, reason: '' };
-    if (response.status === 429 && body?.error?.code === DEAL_QUOTA) return { answer: null, reason: 'spent' };
+    if (response.status === 429 && Object.hasOwn(QUOTAS, body?.error?.code)) return { answer: null, reason: QUOTAS[body.error.code] };
     return { answer: null, reason: REASONS[response.status] ?? 'unavailable' };
   } catch {
     return { answer: null, reason: 'unavailable' };

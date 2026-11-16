@@ -77,7 +77,7 @@ export const debrief = {
   turns: /** @type {{ question: string, answer: { text: string, source: string, tricks: number[] } }[]} */ ([]),
   /** questions still open on this deal, as the server counts them; null until it has said */
   left: /** @type {number | null} */ (null),
-  /** why there is no answer: 'busy' | 'spent' | 'refused' | 'unavailable' */
+  /** why there is no answer: 'busy' | 'spent' | 'resting' | 'refused' | 'unavailable' */
   reason: '',
   /** the trick being looked at, from 1 */
   trick: 0,

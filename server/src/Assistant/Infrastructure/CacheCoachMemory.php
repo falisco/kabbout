@@ -7,16 +7,17 @@ namespace Kabbout\Assistant\Infrastructure;
 use Kabbout\Assistant\Application\Coach\CoachMemory;
 use Kabbout\Assistant\Application\Coach\Exchange;
 use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
- * The conversations in the application cache, an hour each: the time a deal is talked about. Lost with
+ * The conversations in the coach's cache pool, an hour each: the time a deal is talked about. Lost with
  * the cache, which costs a player nothing but the thread of a second question.
  */
 final readonly class CacheCoachMemory implements CoachMemory
 {
     private const int SECONDS_KEPT = 3600;
 
-    public function __construct(private CacheItemPoolInterface $cache)
+    public function __construct(#[Autowire(service: 'cache.coach')] private CacheItemPoolInterface $cache)
     {
     }
 

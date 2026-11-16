@@ -15,24 +15,28 @@ final class ScriptedCoachModel implements CoachModel
 {
     /** @var list<Rejected|null> what each call was given to correct */
     public array $calls = [];
+    /** @var list<float|null> until when each call may look at the deal */
+    public array $untils = [];
     /** @var list<CoachBrief> what each call was asked */
     public array $briefs = [];
 
     /**
      * @param list<string|CoachModelFailed> $answers
-     * @param list<mixed>                   $toolResults added to the facts on the first call
+     * @param list<mixed>                   $toolResults added to the facts of each question, when it is first asked
      */
     public function __construct(private array $answers, private array $toolResults = [])
     {
     }
 
-    public function answer(CoachBrief $brief, Facts $facts, ?Rejected $rejected = null): string
+    public function answer(CoachBrief $brief, Facts $facts, ?Rejected $rejected = null, ?float $until = null): string
     {
-        if ([] === $this->calls) {
+        // every question starts with no fact: its tools return what they were told to
+        if ($facts->isEmpty()) {
             array_map($facts->add(...), $this->toolResults);
         }
         $this->calls[] = $rejected;
         $this->briefs[] = $brief;
+        $this->untils[] = $until;
         $answer = $this->answers[\count($this->calls) - 1] ?? throw new \LogicException('The model was asked more often than scripted.');
 
         return $answer instanceof CoachModelFailed ? throw $answer : $answer;

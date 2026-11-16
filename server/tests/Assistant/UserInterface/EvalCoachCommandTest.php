@@ -52,7 +52,7 @@ final class EvalCoachCommandTest extends KernelTestCase
             {
             }
 
-            public function answer(CoachBrief $brief, Facts $facts, ?Rejected $rejected = null): string
+            public function answer(CoachBrief $brief, Facts $facts, ?Rejected $rejected = null, ?float $until = null): string
             {
                 if (Lang::Ar === $brief->lang) {
                     throw new CoachModelFailed('down');

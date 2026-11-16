@@ -39,9 +39,9 @@ final class SymfonyAiCoachModel implements CoachModel
         $this->messages = new \WeakMap();
     }
 
-    public function answer(CoachBrief $brief, Facts $facts, ?Rejected $rejected = null): string
+    public function answer(CoachBrief $brief, Facts $facts, ?Rejected $rejected = null, ?float $until = null): string
     {
-        $this->conversation->open($brief, $facts);
+        $this->conversation->open($brief, $facts, $until);
         try {
             if (null === $this->configuration->settings()) {
                 throw new CoachModelFailed('The AI is off.');

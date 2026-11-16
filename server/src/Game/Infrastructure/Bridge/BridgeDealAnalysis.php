@@ -19,12 +19,30 @@ use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\AnalysisMapper;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\AnswerMapper;
 use Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport;
+use Symfony\Contracts\Service\ResetInterface;
 
-/** The analysis of a deal, asked through the bridge: which call each question becomes, nothing more. */
-final readonly class BridgeDealAnalysis implements DealAnalysis
+/**
+ * The analysis of a deal, asked through the bridge: which call each question becomes, nothing more.
+ *
+ * The bridge answers the same question the same way, and an analysis is seconds of its one thread: an
+ * answer is kept for the rest of the request, so the coach's tools and its fallback do not have the
+ * same deal worked out twice.
+ */
+final class BridgeDealAnalysis implements DealAnalysis, ResetInterface
 {
-    public function __construct(private BridgeTransport $transport)
+    /** a question to the coach asks a dozen things of one deal: more than this is another deal's, and is let go */
+    private const int KEPT = 32;
+
+    /** @var array<string, array<string, mixed>> the answers of this request, by the call that got them */
+    private array $answers = [];
+
+    public function __construct(private readonly BridgeTransport $transport)
     {
+    }
+
+    public function reset(): void
+    {
+        $this->answers = [];
     }
 
     public function summary(DealRecord $record, Seat $seat): DealSummary
@@ -64,6 +82,16 @@ final readonly class BridgeDealAnalysis implements DealAnalysis
      */
     private function ask(string $path, DealRecord $record, Seat $seat, array $more = []): array
     {
-        return AnswerMapper::accepted($this->transport->post($path, ['record' => $record->toArray(), 'seat' => $seat->value, ...$more]), $path);
+        $body = ['record' => $record->toArray(), 'seat' => $seat->value, ...$more];
+        $asked = $path.' '.hash('sha256', json_encode($body, \JSON_THROW_ON_ERROR));
+        if (!isset($this->answers[$asked])) {
+            if (\count($this->answers) >= self::KEPT) {
+                $this->answers = [];
+            }
+            // a refusal is an exception and is not kept: only what the bridge accepted is
+            $this->answers[$asked] = AnswerMapper::accepted($this->transport->post($path, $body), $path);
+        }
+
+        return $this->answers[$asked];
     }
 }

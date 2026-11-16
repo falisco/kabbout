@@ -156,6 +156,7 @@ export default {
   debriefBack: 'Retour au résultat',
   debriefBackCoach: 'Retour au coach',
   debriefErrors: {
+    resting: 'Le coach a beaucoup répondu aujourd’hui : il reprend demain.',
     spent: 'Vous avez posé toutes vos questions sur cette donne.',
     busy: 'Trop de questions à la suite : réessayez dans une minute.',
     refused: 'Le serveur n’a pas pu rejouer cette donne.',

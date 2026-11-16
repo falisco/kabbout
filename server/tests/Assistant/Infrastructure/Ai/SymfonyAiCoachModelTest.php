@@ -130,6 +130,29 @@ final class SymfonyAiCoachModelTest extends KernelTestCase
         self::assertStringContainsString('was not found', $third);
     }
 
+    public function testPastItsTimeOrItsLooksAQuestionGetsNoMoreOfTheDeal(): void
+    {
+        $every = [['deal_summary', []], ['trick', ['n' => 1]], ['expert_choice', ['n' => 1]], ['what_if', ['n' => 1, 'card' => 'QH']], ['expert_bids', []], ['biggest_swings', []]];
+        AnthropicMock::willAnswer(AnthropicMock::toolUse(...$every), AnthropicMock::text('Rien.'));
+        $facts = new Facts();
+
+        // a question whose time was up before its first look
+        self::model()->answer(self::brief(), $facts, null, microtime(true) - 1.0);
+
+        self::assertTrue($facts->isEmpty());
+        self::assertSame(6, substr_count((string) json_encode(AnthropicMock::requests()[1]['body']), 'No more looks at the deal for this question'));
+
+        // and one round asking for more looks than a question is worth: the first ones are answered, the rest are not
+        $many = array_fill(0, CoachConversation::MAX_LOOKS + 3, ['biggest_swings', []]);
+        AnthropicMock::willAnswer(AnthropicMock::toolUse(...$many), AnthropicMock::text('Rien.'));
+        $facts = new Facts();
+
+        self::model()->answer(self::brief(), $facts, null, microtime(true) + 60.0);
+
+        self::assertFalse($facts->isEmpty());
+        self::assertSame(3, substr_count((string) json_encode(AnthropicMock::requests()[1]['body']), 'No more looks at the deal for this question'));
+    }
+
     public function testAWhatIfGivesBothEndings(): void
     {
         $asked = RecordedDeal::call('/analysis/what-if')['request'];

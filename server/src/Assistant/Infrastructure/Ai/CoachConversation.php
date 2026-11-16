@@ -20,17 +20,39 @@ final class CoachConversation implements ResetInterface
 {
     private ?CoachBrief $brief = null;
     private ?Facts $facts = null;
+    private ?float $until = null;
+    private int $looks = 0;
 
-    public function open(CoachBrief $brief, Facts $facts): void
+    /** how many tool results one question may gather: the agent's limit is on rounds, and a round may hold many calls */
+    public const int MAX_LOOKS = 14;
+
+    /** @param float|null $until the time, as microtime gives it, past which the tools answer no more */
+    public function open(CoachBrief $brief, Facts $facts, ?float $until = null): void
     {
         $this->brief = $brief;
         $this->facts = $facts;
+        $this->until = $until;
     }
 
     public function close(): void
     {
         $this->brief = null;
         $this->facts = null;
+        $this->until = null;
+        $this->looks = 0;
+    }
+
+    /**
+     * Whether a tool may still look at the deal: not past the time given to the question, and not more
+     * often than a question is worth. Each look allowed is counted.
+     */
+    public function mayLook(): bool
+    {
+        if (null !== $this->until && microtime(true) > $this->until) {
+            return false;
+        }
+
+        return ++$this->looks <= self::MAX_LOOKS;
     }
 
     public function reset(): void
