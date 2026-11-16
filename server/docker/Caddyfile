@@ -1,0 +1,44 @@
+# One port for the game and its API. The address is plain HTTP on purpose: this runs on a juror's machine
+# or behind a proxy that holds the certificate.
+{
+	frankenphp
+	admin off
+	auto_https off
+	# the two lines worth reading at the start are the check's and the address to open
+	log {
+		level ERROR
+	}
+}
+
+:8080 {
+	root * /app/public
+	encode zstd br gzip
+
+	# the same policy as the page's own meta tag and as scripts/serve.mjs
+	header {
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self'; style-src-attr 'unsafe-inline'; object-src 'none'; base-uri 'none'"
+		X-Content-Type-Options nosniff
+		-X-Powered-By
+		-Server
+	}
+
+	# Symfony answers under /api and nowhere else
+	@api path /api /api/*
+	handle @api {
+		rewrite * /index.php
+		php
+	}
+
+	# everything else is the built game, as files
+	handle {
+		# cards, fonts and brand images keep their names between versions: a day, not a year
+		@assets path /cards/* /fonts/* /brand/*
+		header @assets Cache-Control "public, max-age=86400"
+		# the page and its bundle are asked again each time, and answered 304 when they have not moved
+		@page not path /cards/* /fonts/* /brand/*
+		header @page Cache-Control no-cache
+		file_server {
+			hide *.php
+		}
+	}
+}

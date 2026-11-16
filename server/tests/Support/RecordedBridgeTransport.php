@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Support;
 
-use Kabbout\Infrastructure\Engine\Bridge\Mapping\Json;
-use Kabbout\Infrastructure\Engine\Bridge\Transport\BridgeResponse;
-use Kabbout\Infrastructure\Engine\Bridge\Transport\BridgeTransport;
+use Kabbout\Game\Infrastructure\Bridge\Mapping\Json;
+use Kabbout\Game\Infrastructure\Bridge\Transport\BridgeResponse;
+use Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport;
 
 /**
  * A bridge for unit tests, with none running: it only knows the answers it was given, and gives each

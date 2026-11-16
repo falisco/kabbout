@@ -4,6 +4,7 @@ dist/
 .DS_Store
 .env
 .env.*
+!.env.example
 # Capacitor native builds (added later)
 android/app/build/
 ios/App/Pods/
@@ -25,3 +26,6 @@ server/vendor/
 server/var/
 .phpunit.cache/
 .php-cs-fixer.cache
+
+# written by Symfony when the container is built in debug
+server/config/reference.php

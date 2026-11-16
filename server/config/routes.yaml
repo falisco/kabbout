@@ -1,0 +1,5 @@
+assistant:
+  resource:
+    path: ../src/Assistant/UserInterface/Http/
+    namespace: Kabbout\Assistant\UserInterface\Http
+  type: attribute

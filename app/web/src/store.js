@@ -1,6 +1,7 @@
 // Presentation state: what is on screen besides the game itself, and the player's settings.
 // Only flow.js, input.js and speech.js change it; the render modules read it.
 import { isLang, isLevel, isScoring } from '../../../engine/src/index.ts';
+import { NO_SERVER } from './server.js';
 import { KEYS, OLD_KEYS, isObj, loadJSON, loadObj, saveJSON } from './storage.js';
 
 /** The player's settings, kept between visits. */
@@ -60,6 +61,9 @@ export const overlay = {
   modal: null,
   chatOpen: false,
 };
+
+/** What the server adds to the game, as server.js read it; nothing until a server answers. */
+export const capabilities = { ...NO_SERVER };
 
 /** The last human action, while it can still be taken back. */
 export const undoState = {

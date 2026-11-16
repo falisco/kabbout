@@ -8,17 +8,37 @@ Belote contrée for four: you and your partner against two opponents, at a quiet
 
 **The name.** At a Tunisian café table nobody says _capot_ when a side takes all eight tricks. They say _kabbout_ (كبّوط), and they say it loud. The emblem is the eight-pointed star of the tilework: one point per trick. During a deal a star in the middle of the table lights one point for each trick, in the colour of the side that took it; eight points of one colour and the whole screen says Kabbout.
 
+## Run it
+
+With Docker and nothing else:
+
+```bash
+git clone https://github.com/falisco/kabbout && cd kabbout
+docker compose up
+```
+
+Open the address it prints, `http://localhost:8080`. That is the whole game: no key, no account, nothing to set. The port is published to this machine only (`127.0.0.1`); `compose.yaml` says what to change to open it to others.
+
+Two services start: `app`, a Symfony application that serves the built game and `/api` on that one port, and `bridge`, the rules engine, which only `app` can reach. To change the port or to switch the AI on, copy `.env.example` to `.env`:
+
+| Variable       | What it does                                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `KABBOUT_AI`   | Switches the AI on, in one line: `<platform>://<key>@<provider>/<model>`, for example `huggingface://hf_xxx@auto/openai/gpt-oss-120b` (`auto` lets Hugging Face choose who runs the model; a key holding `@`, `/` or `%` is written percent-encoded). Empty: the AI is off. A value that cannot work stops `app` at the start, with one line that says why and repeats nothing of the value. |
+| `KABBOUT_PORT` | The port the game is opened on, 8080 unless set.                                                                                                                                                                                                                                                                                                                                             |
+
+`GET /api/capabilities` says what the server can do with the AI: for each feature (`coach`, `spoken_bids`, `referee`, `agent_seat`) a `state`, `planned`, `off` or `on`, and a `hint` when it is not on. In this version every feature is `planned`: the AI features arrive with the next ones, and the menu of the game says so in one line. The key is never part of an answer. An address or a method the API does not know is answered in JSON too (`404`, `405`), in the shape `{ "error": { "code", "message" } }`.
+
 ## Layout
 
-| Folder     | Content                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `engine/`  | The game engine in TypeScript: rules, bidding, scoring, robots. A pure state machine (`apply(state, seat, action)`) with no DOM and no timers, usable in the app and on a server. Each player only receives a `PlayerView`, which does not hold the others' cards.                                                                                                                                                                                                                                                             |
-| `bridge/`  | The engine behind a small HTTP service, for the server side only: new game, action, view of a seat, legal moves, robot's move, replay of a recorded deal. It keeps nothing between two calls (the game travels in the request), draws from a seed sent by the caller, and has no dependency beyond Node. `contract/cases.json` records what it answers; both sides are tested against it.                                                                                                                                      |
-| `server/`  | The server side, in PHP 8.4. `Domain/Engine` holds the `Engine` interface, with `Enum/` (seat, suit, count, level, language, phase), `Model/` (game state, seat view, action, seed, recorded deal) and `Exception/`. `Infrastructure/Engine/Bridge` holds `BridgeEngine`, which only says which call each question becomes, with `Transport/` (how a call travels: the interface and its HTTP implementation) and `Mapping/` (how an answer is read into the domain's models). The rules are not written a second time in PHP. |
-| `app/web/` | The game: `index.html` (layout), `styles.css`, `src/` (the interface in modules, see below), `test/` (tests of the game session and of the texts), `sounds.js` (CC0 sounds), `cards/`, `fonts/` (embedded: the page loads nothing from another site), `brand/` (app icons, share image). `npm run build:web` bundles `src/` and the engine into `app.js` (generated, not versioned).                                                                                                                                           |
-| `e2e/`     | Functional tests in a real browser (Playwright): games played through the interface (taking a contract, contre, advice, quick phrases, tutorial), keyboard, undo, the three languages, layout on five phone formats, sounds, accessibility audit of every screen and dialog (axe, WCAG 2.2 AA).                                                                                                                                                                                                                                |
-| `scripts/` | `serve.mjs` (local server with no dependency), `check-conformity.mjs` (the conformity checks of the CI) and `run-coverage.mjs` (what `npm run test:coverage` runs).                                                                                                                                                                                                                                                                                                                                                            |
-| `tools/`   | `frcards.py` builds the cards from the CC0 deck (French indices, and the English court cards); `brand.mjs` draws the icon, the app icons, the card back and the share image from the star of the game (see `CREDITS.md`).                                                                                                                                                                                                                                                                                                      |
+| Folder     | Content                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `engine/`  | The game engine in TypeScript: rules, bidding, scoring, robots. A pure state machine (`apply(state, seat, action)`) with no DOM and no timers, usable in the app and on a server. Each player only receives a `PlayerView`, which does not hold the others' cards.                                                                                                                        |
+| `bridge/`  | The engine behind a small HTTP service, for the server side only: new game, action, view of a seat, legal moves, robot's move, replay of a recorded deal. It keeps nothing between two calls (the game travels in the request), draws from a seed sent by the caller, and has no dependency beyond Node. `contract/cases.json` records what it answers; both sides are tested against it. |
+| `server/`  | The server side: a Symfony 8.1 application on PHP 8.5, cut by bounded context, then by layer (see [The server](#the-server)). The rules are not written a second time in PHP.                                                                                                                                                                                                             |
+| `app/web/` | The game: `index.html` (layout), `styles.css`, `src/` (the interface in modules, see below), `test/` (tests of the game session and of the texts), `sounds.js` (CC0 sounds), `cards/`, `fonts/` (embedded: the page loads nothing from another site), `brand/` (app icons, share image). `npm run build:web` bundles `src/` and the engine into `app.js` (generated, not versioned).      |
+| `e2e/`     | Functional tests in a real browser (Playwright): games played through the interface (taking a contract, contre, advice, quick phrases, tutorial), keyboard, undo, the three languages, layout on five phone formats, sounds, accessibility audit of every screen and dialog (axe, WCAG 2.2 AA).                                                                                           |
+| `scripts/` | `serve.mjs` (local server with no dependency), `check-conformity.mjs` (the conformity checks of the CI) and `run-coverage.mjs` (what `npm run test:coverage` runs).                                                                                                                                                                                                                       |
+| `tools/`   | `frcards.py` builds the cards from the CC0 deck (French indices, and the English court cards); `brand.mjs` draws the icon, the app icons, the card back and the share image from the star of the game (see `CREDITS.md`).                                                                                                                                                                 |
 
 ## Languages
 
@@ -126,8 +146,29 @@ The rules stay in TypeScript, shared by the game in the browser and the server: 
 - A seat's view never holds another hand, a belote not yet announced or a robot's reasoning; `bridge/test/bridge.test.ts` checks every view of a whole game.
 - Every call that draws at random takes a seed, so the same question always gets the same answer, byte for byte. A seed is 128 to 256 bits and the draws are an HMAC-SHA256 stream: the engine's own generator takes 32 bits, few enough to try them all against the eight cards of a hand and find the three others. A view gives the hand sorted, not in the order it was dealt.
 - A seed serves one call. On the PHP side a game keeps one secret `Seed` and derives a new one for each call (`$secret->derive('move 17')`); a seed used twice deals the same cards twice.
-- On the PHP side, `Engine` is the only door. The full state, a robot's move with its reason and a step only come out through methods named `toEngineArray()`; what may be sent to a player is a `SeatView`, or `toPublicArray()`. A recorded deal sent by a client is checked for its shape and stripped to its known fields by `DealRecord::fromArray()` before the engine judges it.
+- On the PHP side, `Engine` is the only door, and the domain does not know how the engine writes things: an action is an `Action` holding a `Bid` or a `Card`, and its JSON shape belongs to `Infrastructure/Bridge/Mapping`. A robot's bid carries its reason, which names its cards; what the table may hear is `$action->withoutReason()`. The full state stays an opaque `GameState` that only goes back to the engine; what may be sent to a player is a `SeatView`. A recorded deal sent by a client is checked for its shape and stripped to its known fields by `DealRecord::fromArray()` before the engine judges it.
 - `bridge/contract/cases.json` is recorded from the bridge (`npm run contract:record`) and checked against it by its tests; the PHP tests then make the same calls through `BridgeEngine`, against the running bridge and against a transport that replays the recording (`tests/Support`).
+
+## The server
+
+`server/src` is cut by bounded context first, then by layer. A test (`tests/Architecture/LayersTest.php`) reads the imports and fails when the rule below is broken.
+
+| Context     | What it is about                                                                                                                                                                                                                                            |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Game`      | The table. Its domain holds the words of the game (seat, suit, card, action, seed, game state, seat view, recorded deal) and one port, `Engine`. The rules themselves stay in TypeScript: the adapter `Infrastructure/Bridge` asks them through the bridge. |
+| `Assistant` | The AI features and whether they can be used. Its domain says what a feature is and which state it is in, from `AiSettings`; the application layer answers `GetCapabilities`; the HTTP controller and the start-up check `kabbout:check` are its interface. |
+| `Api`       | What every answer under `/api` has in common. Today one thing: errors are JSON, `{ "error": { "code", "message" } }`, the shape the bridge uses, and never an HTML page or the text of an exception.                                                        |
+
+| Layer            | May know                                         | Holds                                                                                   |
+| ---------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `Domain`         | its own context's domain, and nothing of Symfony | value objects that cannot exist in a wrong state, enums, ports (interfaces), exceptions |
+| `Application`    | domains and applications                         | one class per question or action a client has                                           |
+| `Infrastructure` | everything in its context                        | adapters of the ports: the bridge, the environment                                      |
+| `UserInterface`  | everything in its context                        | HTTP controllers and console commands, thin                                             |
+
+Left out on purpose until something needs them: command and query buses, repositories, domain events, a shared kernel.
+
+The server runs on FrankenPHP in classic mode (a fresh PHP for each request, one process for PHP and the game's files). Only `server/docker/app.Dockerfile` and `server/docker/Caddyfile` know it.
 
 ## Commands
 
@@ -138,11 +179,12 @@ npm install                 # development tools
 npm run serve               # builds app.js and serves the game on http://127.0.0.1:4173
 npm test                    # engine (FFB rules, contract, non-regression on 33 games replayed card for card), bridge, game session, texts
 npm run test:e2e            # functional browser tests (installed Chrome locally, Chromium in CI)
+E2E_BASE_URL=http://localhost:8080 npx playwright test --project=desktop  # the same tests against `docker compose up`
 npm run test:coverage       # unit and browser tests together; fails under 80% of lines or branches run (report in coverage/)
 npm run lint                # ESLint: shadowed names, unused code, functions over 60 lines
 npm run check               # everything: types, format, lint, conformity, unit, browser, coverage
 npm run bridge              # starts the bridge on http://127.0.0.1:8787 (BRIDGE_HOST, BRIDGE_PORT)
-npm run check:php           # PHP side: coding standard, PHPStan at its strictest, PHPUnit against a running bridge; fails under 80% of lines run (PHP 8.4 with pcov, or Docker)
+npm run check:php           # PHP side: coding standard, PHPStan at its strictest, PHPUnit against a running bridge; fails under 80% of lines run (PHP 8.5 with pcov, or Docker)
 npm run contract:record     # after an intended change of the bridge: records bridge/contract/cases.json again
 npm run bench:robots        # measures the robots' levels against each other (add `-- --scoring tunisian` for the other count)
 npm run test:golden:update  # after an intended change of rules or robots: records the reference games again
@@ -159,10 +201,11 @@ URL parameters for tests: `?seed=42` makes the deal and the robots' choices repr
 2. **Unit and non-regression tests**: rules, scoring, bidding, robots, 160 simulated games, 33 reference games replayed card for card (both counts, the three robot levels), the three dictionaries, settings and storage, the screen's questions about a game.
 3. **PHP side**: coding standard (php-cs-fixer, Symfony rules), static analysis (PHPStan at its strictest), `composer audit`, and the PHPUnit tests with the bridge running; fails under 80% of the lines of `server/src` run.
 4. **Browser tests and coverage** (after the first two): Chromium, desktop and one phone (375 wide) for every test, four more phone formats for the layout (portrait 360 and 320 wide, landscape 812 and 667), and WebKit as an iPhone 13 (Safari's engine) for the layout, the sounds and whole games; fails under 80% of lines or branches run by unit and browser tests together; coverage report attached, Playwright report and traces on failure.
+5. **One command** (after the first two): builds the two images, `docker compose up --wait`, asks `/api/capabilities`, then runs the browser tests on the desktop project against the game as Symfony serves it.
 
 ## Branches
 
-Git flow. `main` only holds released versions, each one tagged; `develop` is where finished work meets. A piece of work lives on `feature/<nn>-<name>`, cut from `develop` and merged back with a merge commit once `npm run check` is green. A version is prepared on `release/<x.y.z>`, then merged into `main` (tagged `v<x.y.z>`) and back into `develop`; an urgent fix to a released version goes through `hotfix/<x.y.z>` the same way.
+Git flow. `main` only holds released versions, each one tagged; `develop` is where finished work meets. A piece of work lives on `feature/<nn>-<name>`, cut from `develop` and merged back with a merge commit once `npm run check` and `npm run check:php` are green. A version is prepared on `release/<x.y.z>`, then merged into `main` (tagged `v<x.y.z>`) and back into `develop`; an urgent fix to a released version goes through `hotfix/<x.y.z>` the same way.
 
 ## Roadmap
 
@@ -171,3 +214,7 @@ Git flow. `main` only holds released versions, each one tagged; `develop` is whe
 3. ~~French, English and Tunisian Arabic, the Tunisian count, and a name: Kabbout~~
 4. Mobile app with Capacitor (solo, offline) + AdMob advertising, GDPR / ATT consent
 5. Online server (private tables by code, replacement robots, reconnection)
+
+## Licence
+
+The code is under the [MIT licence](LICENSE). Cards and sounds are in the public domain (CC0); the fonts are under the SIL Open Font License, whose text travels with them in `app/web/fonts/OFL.txt`. Details in [CREDITS.md](CREDITS.md).

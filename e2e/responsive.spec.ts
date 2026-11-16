@@ -59,10 +59,10 @@ for (const [name, opts, names] of [
   });
 }
 
-test('the font files are served by the app itself', async ({ page }) => {
+test('the font files are served by the app itself', async ({ page, baseURL }) => {
   const foreign: string[] = [];
   page.on('request', (r) => {
-    if (!r.url().startsWith('http://127.0.0.1') && !r.url().startsWith('data:')) foreign.push(r.url());
+    if (!r.url().startsWith(String(baseURL)) && !r.url().startsWith('data:')) foreign.push(r.url());
   });
   await openGame(page);
   await newGame(page);

@@ -10,4 +10,4 @@ return (new PhpCsFixer\Config())
         'declare_strict_types' => true,
     ])
     ->setCacheFile(__DIR__.'/var/php-cs-fixer.cache')
-    ->setFinder((new PhpCsFixer\Finder())->in([__DIR__.'/src', __DIR__.'/tests'])->append([__FILE__]));
+    ->setFinder((new PhpCsFixer\Finder())->in([__DIR__.'/src', __DIR__.'/tests', __DIR__.'/config', __DIR__.'/public'])->notName('reference.php')->append([__FILE__, __DIR__.'/bin/console']));

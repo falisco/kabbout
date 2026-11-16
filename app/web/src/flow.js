@@ -12,11 +12,18 @@ import { render } from './render/index.js';
 import { renderHand } from './render/table.js';
 import { say, toast } from './render/transient.js';
 import { turnKey } from './selectors.js';
+import { loadCapabilities } from './server.js';
 import { clearBubbles } from './speech.js';
-import { overlay, prefs, selection, tableState, undoState } from './store.js';
+import { capabilities, overlay, prefs, selection, tableState, undoState } from './store.js';
 
 /** the one thing the table is waiting to do by itself */
 let pendingStep = null;
+
+/** Asks the server, if there is one, what it adds; the menu says it once the answer is in. */
+export async function askServer() {
+  Object.assign(capabilities, await loadCapabilities());
+  render();
+}
 
 export function newGame() {
   const events = session.start();

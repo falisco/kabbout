@@ -7,9 +7,10 @@ import { esc } from '../html.js';
 import { LANGS, LANG_NAMES, lang, t } from '../i18n/index.js';
 import { bidHTML, cardHTML } from '../labels.js';
 import { consultableTrick } from '../selectors.js';
+import { aiNotice } from '../server.js';
 import { loadStats } from '../storage.js';
 import { starSVG } from '../star.js';
-import { overlay, prefs, tableState, tutorial } from '../store.js';
+import { capabilities, overlay, prefs, tableState, tutorial } from '../store.js';
 import { historyHTML, valuesTable } from './bidding.js';
 import { multiplierMark } from './table.js';
 import { keepFocus } from './transient.js';
@@ -86,6 +87,13 @@ function scoringRow() {
 /** the way the game on the table is counted (the choice of the menu before any game) */
 const scoringNow = () => (view ? view.scoring : prefs.scoring);
 
+/** one line about the AI when the page comes from a server that has something to say about it */
+function aiLine() {
+  const notice = aiNotice(capabilities);
+  const variable = `<code>${esc(capabilities.variable)}</code>`;
+  return notice ? `<p class="sub" id="aiNotice">${t(notice === 'off' ? 'aiOff' : 'aiPlanned', variable)}</p>` : '';
+}
+
 function menuDialog() {
   const stats = loadStats();
   const inGame = view && view.phase !== 'gameEnd';
@@ -98,6 +106,7 @@ function menuDialog() {
       ${actionButton('new', inGame ? 'pass' : 'take', t('newGame'))}
     </div>
     ${levelRow()}${scoringRow()}${langRow()}
+    ${aiLine()}
     ${stats.played ? `<p class="stats">${t('stats', stats.won, stats.played)}</p>` : ''}`;
 }
 
