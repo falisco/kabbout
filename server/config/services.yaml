@@ -7,6 +7,8 @@ parameters:
   env(BRIDGE_URL): 'http://bridge:8787'
   # questions to the coach one visitor may ask in a minute
   env(KABBOUT_COACH_LIMIT): '6'
+  # questions to the coach one visitor may ask about one deal
+  env(KABBOUT_COACH_PER_DEAL): '2'
 
 services:
   _defaults:

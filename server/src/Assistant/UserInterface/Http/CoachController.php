@@ -27,6 +27,10 @@ use Symfony\Component\Routing\Attribute\Route;
  * table saw it), the seat of the player, the language and the question. The record is not taken at its
  * word: the engine plays it again and a deal the rules do not allow is answered 422, with the place
  * where it goes wrong. The answer names the tricks and the cards it speaks of, for the screen to show them.
+ *
+ * Two limits, both counted here and not by the page: questions a minute per visitor, and questions per
+ * deal per visitor. The answer says how many are left on the deal (`left`). Until players have accounts
+ * a visitor is an address; the count will be the account's then.
  */
 final readonly class CoachController
 {
@@ -35,7 +39,7 @@ final readonly class CoachController
     private const int MAX_BODY_BYTES = 16 * 1024;
     private const int JSON_DEPTH = 8;
 
-    public function __construct(private AskCoach $askCoach, private AiConfiguration $configuration, private RateLimiterFactoryInterface $coachLimiter)
+    public function __construct(private AskCoach $askCoach, private AiConfiguration $configuration, private RateLimiterFactoryInterface $coachLimiter, private RateLimiterFactoryInterface $coachDealLimiter)
     {
     }
 
@@ -59,6 +63,13 @@ final readonly class CoachController
         if (!$limit->isAccepted()) {
             throw new TooManyRequestsHttpException(max(1, $limit->getRetryAfter()->getTimestamp() - time()));
         }
+        $visitor = $request->getClientIp() ?? 'unknown';
+        // the deal as the server read it, so the same deal written otherwise is still the same deal
+        $deal = hash('sha256', json_encode([$brief->record->toArray(), $brief->seat->value], \JSON_THROW_ON_ERROR));
+        $onDeal = $this->coachDealLimiter->create($visitor.'|'.$deal)->consume();
+        if (!$onDeal->isAccepted()) {
+            return self::error(Response::HTTP_TOO_MANY_REQUESTS, 'deal_quota', 'No question left about this deal.', ['left' => 0]);
+        }
 
         try {
             $answer = ($this->askCoach)($brief);
@@ -72,6 +83,7 @@ final readonly class CoachController
             [
                 'version' => self::VERSION,
                 'answer' => ['text' => $answer->text, 'source' => $answer->source->value, 'tricks' => $answer->tricks, 'cards' => $answer->cards],
+                'left' => $onDeal->getRemainingTokens(),
             ],
             headers: ['Cache-Control' => 'no-store'],
         );

@@ -137,6 +137,10 @@ export default {
   aiOff: (variable) => `الذكاء الاصطناعي راقد في السرفور هذا: اكتب ${variable} في .env وعاود شعّلو.`,
   // the coach of the server, after a deal
   debriefOpen: 'اسأل الكوتش',
+  debriefReopen: 'ارجع للكوتش',
+  debriefMore: 'سؤال آخر على الدونة هذي؟',
+  debriefLeft: (n) => (n > 1 ? `مازالولك ${n} أسئلة على الدونة هذي.` : 'مازالك سؤال واحد على الدونة هذي.'),
+  debriefSpent: 'الكوتش قال اللي عندو على الدونة هذي. نتقابلو في الدونة الجاية.',
   debriefOff: (variable) => `الكوتش راقد: اكتب ${variable} في .env باش تسألو على الدونة.`,
   debriefTitle: 'الكوتش',
   debriefIntro: 'عندك سؤال على الدونة هذي؟ الموتور عاود حسب كل شي، والكوتش يفسّر.',
@@ -150,6 +154,7 @@ export default {
   debriefBack: 'ارجع للنتيجة',
   debriefBackCoach: 'ارجع للكوتش',
   debriefErrors: {
+    spent: 'سألت أسئلتك الكل على الدونة هذي.',
     busy: 'برشا أسئلة ورا بعضها: عاود بعد دقيقة.',
     refused: 'السرفور ما نجّمش يعاود يلعب الدونة هذي.',
     unavailable: 'الكوتش ما يجاوبش توّا. عاود بعد شوية.',

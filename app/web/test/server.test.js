@@ -69,9 +69,17 @@ test('a question to the coach is posted to the page’s own origin, as JSON', as
 
 test('the coach’s answer is its text, who wrote it, and the tricks it points at', async () => {
   const reply = await askCoach(QUESTION, coachSays({ text: 'Au pli 4…', source: 'model', tricks: [6, 4, 4], cards: ['TC'] }));
-  assert.deepEqual(reply, { answer: { text: 'Au pli 4…', source: 'model', tricks: [4, 6] }, reason: '' });
+  assert.deepEqual(reply, { answer: { text: 'Au pli 4…', source: 'model', tricks: [4, 6], left: null }, reason: '' });
   const plain = await askCoach(QUESTION, coachSays({ text: 'Rien à reprocher.', source: 'summary' }));
-  assert.deepEqual(plain.answer, { text: 'Rien à reprocher.', source: 'summary', tricks: [] });
+  assert.deepEqual(plain.answer, { text: 'Rien à reprocher.', source: 'summary', tricks: [], left: null });
+});
+
+test('the answer says how many questions are left on the deal, when the server counts them', async () => {
+  const left = async (value) =>
+    (await askCoach(QUESTION, answering(200, { version: 1, answer: { text: 'x', source: 'model' }, left: value }))).answer.left;
+  assert.equal(await left(1), 1);
+  assert.equal(await left(0), 0);
+  for (const value of [-1, 1.5, '2', null, {}]) assert.equal(await left(value), null);
 });
 
 test('only numbers that name a trick become tricks to show', async () => {
@@ -84,6 +92,11 @@ test('no answer always comes with its reason, and never as an error', async () =
   const failing = /** @type {any} */ (async () => Promise.reject(new TypeError('network')));
   const cases = {
     'too many questions': [answering(429, {}), 'busy'],
+    'too many questions that are not JSON': [
+      /** @type {any} */ (async () => ({ status: 429, json: async () => Promise.reject(new SyntaxError('x')) })),
+      'busy',
+    ],
+    'the questions of the deal spent': [answering(429, { error: { code: 'deal_quota', left: 0 } }), 'spent'],
     'a deal the server refused': [answering(422, { error: { code: 'refused' } }), 'refused'],
     'the AI off': [answering(503, { error: { code: 'ai_off' } }), 'unavailable'],
     'a server error': [answering(500, {}), 'unavailable'],

@@ -22,6 +22,11 @@ framework:
       limit: '%env(int:KABBOUT_COACH_LIMIT)%'
       interval: '1 minute'
       lock_factory: null
+    coach_deal:
+      policy: fixed_window
+      limit: '%env(int:KABBOUT_COACH_PER_DEAL)%'
+      interval: '1 hour'
+      lock_factory: null
 
 when@test:
   framework:

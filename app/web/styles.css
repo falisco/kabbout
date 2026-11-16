@@ -178,6 +178,11 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .dbf-head h2{grid-column:2}
 .icon-x{width:44px;height:44px;border-radius:999px;border:0;background:#ffffff17;color:var(--ink);font-size:24px;line-height:1;cursor:pointer}
 .dbf-body{display:grid;gap:10px;align-content:start;overflow:auto;overscroll-behavior:contain}
+.dbf-foot{display:grid;gap:6px}
+.dbf-foot:empty{display:none}
+.dbf-foot .sub{font-size:12.5px}
+.asked{justify-self:end;max-width:85%;margin:0;background:#d4ae6226;border:1px solid #d4ae6240;border-radius:14px 14px 4px 14px;padding:8px 12px;font-size:15px;line-height:1.4;overflow-wrap:anywhere}
+.send[aria-disabled=true]{opacity:.45;cursor:default}
 .ask{display:flex;gap:8px;align-items:center}
 .ask input{flex:1 1 auto;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:#ffffff14;border:1px solid var(--line);border-radius:12px;padding:0 12px;min-height:46px;user-select:text;-webkit-user-select:text}
 .ask .send{flex:none;width:46px;padding:0;font-family:var(--f-body);font-size:22px;font-weight:700}

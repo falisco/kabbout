@@ -30,7 +30,7 @@ final class CoachEndpointTest extends WebTestCase
 
     protected function tearDown(): void
     {
-        unset($_SERVER['ANTHROPIC_API_KEY'], $_SERVER['KABBOUT_AI_MODEL'], $_SERVER['KABBOUT_COACH_LIMIT']);
+        unset($_SERVER['ANTHROPIC_API_KEY'], $_SERVER['KABBOUT_AI_MODEL'], $_SERVER['KABBOUT_COACH_LIMIT'], $_SERVER['KABBOUT_COACH_PER_DEAL']);
         parent::tearDown();
     }
 
@@ -139,6 +139,7 @@ final class CoachEndpointTest extends WebTestCase
     public function testAVisitorIsStoppedPastTheLimitAndToldWhenToComeBack(): void
     {
         $_SERVER['KABBOUT_COACH_LIMIT'] = '2';
+        $_SERVER['KABBOUT_COACH_PER_DEAL'] = '9';
         $swings = RecordedDeal::call('/analysis/swings')['response'];
         $client = self::client(new ScriptedCoachModel(['Le pli 4.', 'Le pli 4.', 'Le pli 4.'], [$swings]));
 
@@ -162,6 +163,27 @@ final class CoachEndpointTest extends WebTestCase
         // another visitor is not the one who asked too much
         self::ask($client, self::question(), '2001:db8:ffff::'.bin2hex(random_bytes(2)));
         self::assertResponseStatusCodeSame(200);
+    }
+
+    public function testADealIsAskedAboutTwiceAndTheAnswerSaysWhatIsLeft(): void
+    {
+        $swings = RecordedDeal::call('/analysis/swings')['response'];
+        $client = self::client(new ScriptedCoachModel(['Le pli 4.', 'Le pli 4.', 'Le pli 4.'], [$swings]));
+
+        self::assertSame(1, self::ask($client, self::question())['left'] ?? null);
+        // the same deal with its fields in another order is the same deal
+        $reordered = self::question();
+        self::assertIsArray($reordered['record']);
+        $reordered['record'] = array_reverse($reordered['record'], true);
+        self::assertSame(0, self::ask($client, $reordered)['left'] ?? null);
+
+        $answer = self::ask($client, ['question' => 'Et le pli 5 ?'] + self::question());
+
+        self::assertResponseStatusCodeSame(429);
+        self::assertSame(['error' => ['code' => 'deal_quota', 'message' => 'No question left about this deal.', 'left' => 0]], $answer);
+
+        // the count is one visitor's on one deal: another seat of it, or another visitor, starts afresh
+        self::assertSame(1, self::ask($client, self::question(), '2001:db8:ffff::'.bin2hex(random_bytes(2)))['left'] ?? null);
     }
 
     public function testTheCoachOnlyTakesQuestionsByPost(): void

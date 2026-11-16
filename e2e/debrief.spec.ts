@@ -175,8 +175,9 @@ test('the player’s own question is the one sent, and an answer without the mod
   await expect(page.locator(ANSWER)).toBeVisible();
   await expect(page.locator('#debriefPlain')).toBeVisible();
   expect(questions[0].question).toBe('Fallait-il couper au pli 4 ?');
-  // the question stays in its field, to be asked again or changed
-  await expect(page.locator(QUESTION)).toHaveValue('Fallait-il couper au pli 4 ?');
+  // the question is in the conversation now, and its field is free for the next one
+  await expect(page.locator('#sheet .asked')).toHaveText('Fallait-il couper au pli 4 ?');
+  await expect(page.locator(QUESTION)).toHaveValue('');
 });
 
 test('a coach that cannot answer says why, and can be asked again', async ({ page }) => {
@@ -239,4 +240,66 @@ test('an answer belongs to its deal: the next deal starts with none, even if one
   await expect(page.locator(QUESTION)).toBeVisible();
   await expect(page.locator(ANSWER)).toHaveCount(0);
   await expect(page.locator('#debriefWait')).toHaveCount(0);
+});
+
+test('a deal is a short conversation: each question once, and as many as the server leaves', async ({ page }) => {
+  let left = 2;
+  const questions = await coachAnswers(page, (asked, route) => {
+    left--;
+    return route.fulfill({
+      json: { version: 1, answer: { text: `Réponse à « ${asked.question} »`, source: 'model', tricks: [4], cards: [] }, left },
+    });
+  });
+  const errors = await dealPlayed(page, 'on');
+  await page.locator(ENTRY).click();
+  const ask = page.locator('#sheet [data-action="ask"]');
+  await expect(page.locator('#debriefLeft')).toHaveCount(0);
+  await ask.click();
+
+  // the question is a line of the conversation, its answer under it, and the field is free
+  await expect(page.locator('#sheet .asked')).toHaveText(WORDS.fr.question);
+  await expect(page.locator(ANSWER)).toHaveText(`Réponse à « ${WORDS.fr.question} »`);
+  await expect(page.locator(QUESTION)).toHaveValue('');
+  await expect(page.locator('#debriefLeft')).toContainText('1 question');
+  await expect(ask).toHaveAttribute('aria-disabled', 'true');
+  expect(await axe(page)).toEqual([]);
+
+  // nothing to send, and the same question again: neither is asked of the server
+  await ask.click({ force: true });
+  await page.locator(QUESTION).fill(`  ${WORDS.fr.question.toUpperCase()} `);
+  await expect(ask).toHaveAttribute('aria-disabled', 'false');
+  await page.locator(QUESTION).press('Enter');
+  await expect(page.locator(QUESTION)).toHaveValue('');
+  expect(questions).toHaveLength(1);
+
+  // the way in now leads back to what was said, and nothing is asked by coming back
+  await page.locator('#sheet [data-action="close"]').click();
+  await expect(page.locator(ENTRY)).toHaveText('Revoir le coach');
+  await page.locator(ENTRY).click();
+  await expect(page.locator(ANSWER)).toBeVisible();
+  expect(questions).toHaveLength(1);
+
+  // the last question: both answers stay, and the field gives way to a word that the deal is done
+  await page.locator(QUESTION).fill('Et le pli 5 ?');
+  await page.locator(QUESTION).press('Enter');
+  await expect(page.locator('#sheet .asked')).toHaveText([WORDS.fr.question, 'Et le pli 5 ?']);
+  await expect(page.locator('#sheet .answer')).toHaveCount(2);
+  await expect(page.locator(ANSWER)).toHaveText('Réponse à « Et le pli 5 ? »');
+  await expect(page.locator('#debriefSpent')).toBeVisible();
+  await expect(page.locator(QUESTION)).toHaveCount(0);
+  await expect(ask).toHaveCount(0);
+  expect(await axe(page)).toEqual([]);
+  expect(questions).toHaveLength(2);
+  expect(errors).toEqual([]);
+});
+
+test('a server that says the deal has had its questions closes the field', async ({ page }) => {
+  await coachAnswers(page, (_asked, route) => route.fulfill({ status: 429, json: { error: { code: 'deal_quota', message: 'x', left: 0 } } }));
+  await dealPlayed(page, 'on');
+  await page.locator(ENTRY).click();
+  await page.locator('#sheet [data-action="ask"]').click();
+
+  await expect(page.locator('#debriefError')).toContainText('toutes vos questions');
+  await expect(page.locator('#debriefSpent')).toBeVisible();
+  await expect(page.locator(QUESTION)).toHaveCount(0);
 });

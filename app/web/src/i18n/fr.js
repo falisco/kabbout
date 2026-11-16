@@ -139,6 +139,10 @@ export default {
   aiOff: (variable) => `L’IA dort sur ce serveur : renseignez ${variable} dans .env, puis relancez-le.`,
   // the coach of the server, after a deal
   debriefOpen: 'Demander au coach',
+  debriefReopen: 'Revoir le coach',
+  debriefMore: 'Une autre question sur cette donne ?',
+  debriefLeft: (n) => (n > 1 ? `Encore ${n} questions sur cette donne.` : 'Encore 1 question sur cette donne.'),
+  debriefSpent: 'Le coach a tout dit sur cette donne. Rendez-vous à la prochaine.',
   debriefOff: (variable) => `Le coach dort : renseignez ${variable} dans .env pour lui poser vos questions sur la donne.`,
   debriefTitle: 'Le coach',
   debriefIntro: 'Une question sur cette donne ? Le moteur a tout recompté, le coach l’explique.',
@@ -152,6 +156,7 @@ export default {
   debriefBack: 'Retour au résultat',
   debriefBackCoach: 'Retour au coach',
   debriefErrors: {
+    spent: 'Vous avez posé toutes vos questions sur cette donne.',
     busy: 'Trop de questions à la suite : réessayez dans une minute.',
     refused: 'Le serveur n’a pas pu rejouer cette donne.',
     unavailable: 'Le coach ne répond pas pour le moment. Réessayez un peu plus tard.',

@@ -8,6 +8,7 @@ import { esc } from './html.js';
 import { lang, t } from './i18n/index.js';
 import { bidHTML, suitHTML } from './labels.js';
 import { renderBid } from './render/bidding.js';
+import { showLastTurn } from './render/debrief.js';
 import { render } from './render/index.js';
 import { renderHand } from './render/table.js';
 import { say, toast } from './render/transient.js';
@@ -31,19 +32,40 @@ export async function askServer() {
  */
 export async function askDebrief() {
   const record = session.record();
-  if (!record || debrief.status === 'asking') return;
-  const question = debrief.question.trim() || t('debriefDefault');
+  if (!record || debrief.status === 'asking' || debrief.left === 0) return;
+  // the screen proposes the first question; after it, an empty field asks nothing
+  const question = debrief.question.trim() || (debrief.turns.length ? '' : t('debriefDefault'));
+  if (!question) return;
+  // a question already answered on this deal is not paid for twice: its answer is on the screen
+  if (debrief.turns.some((turn) => sameQuestion(turn.question, question))) {
+    debrief.question = '';
+    debrief.asked++;
+    render();
+    return;
+  }
   const asked = debrief.asked + 1;
-  Object.assign(debrief, { status: 'asking', answer: null, reason: '', asked });
+  Object.assign(debrief, { status: 'asking', pending: question, reason: '', asked });
   say(t('debriefAsking'));
   render();
+  showLastTurn();
   const reply = await askCoach({ record, seat: ME, lang: lang(), question });
   // the table moved on while the coach was thinking: this answer is about another deal
   if (asked !== debrief.asked) return;
-  Object.assign(debrief, reply.answer ? { status: 'answered', answer: reply.answer } : { status: 'failed', reason: reply.reason });
+  debrief.pending = '';
+  debrief.asked++;
+  if (reply.answer) {
+    const { left, ...answer } = reply.answer;
+    debrief.turns.push({ question, answer });
+    Object.assign(debrief, { status: 'answered', question: '', left: left ?? debrief.left });
+  } else {
+    // the question goes back to its field, to be sent again
+    Object.assign(debrief, { status: 'failed', reason: reply.reason, question, left: reply.reason === 'spent' ? 0 : debrief.left });
+  }
   say(reply.answer ? reply.answer.text : t('debriefErrors')[reply.reason]);
   render();
+  showLastTurn();
 }
+const sameQuestion = (a, b) => a.trim().toLowerCase().replace(/\s+/g, ' ') === b.trim().toLowerCase().replace(/\s+/g, ' ');
 /** Shows one trick of the deal the coach spoke of. */
 export function showDebriefTrick(number) {
   debrief.trick = number;

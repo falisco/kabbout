@@ -69,11 +69,15 @@ export const overlay = {
 export const debrief = {
   /** 'idle' | 'asking' | 'answered' | 'failed' */
   status: 'idle',
-  /** what the player typed; empty for the question the screen proposes */
+  /** what the player is typing; empty at first for the question the screen proposes */
   question: '',
-  /** @type {{ text: string, source: string, tricks: number[] } | null} */
-  answer: null,
-  /** why there is no answer: 'busy' | 'refused' | 'unavailable' */
+  /** the question the coach is looking at, while it does */
+  pending: '',
+  /** the conversation about this deal, a question and its answer at a time */
+  turns: /** @type {{ question: string, answer: { text: string, source: string, tricks: number[] } }[]} */ ([]),
+  /** questions still open on this deal, as the server counts them; null until it has said */
+  left: /** @type {number | null} */ (null),
+  /** why there is no answer: 'busy' | 'spent' | 'refused' | 'unavailable' */
   reason: '',
   /** the trick being looked at, from 1 */
   trick: 0,
@@ -81,7 +85,7 @@ export const debrief = {
   asked: 0,
 };
 export function resetDebrief() {
-  Object.assign(debrief, { status: 'idle', question: '', answer: null, reason: '', trick: 0, asked: debrief.asked + 1 });
+  Object.assign(debrief, { status: 'idle', question: '', pending: '', turns: [], left: null, reason: '', trick: 0, asked: debrief.asked + 1 });
 }
 
 /** What the server adds to the game, as server.js read it; nothing until a server answers. */

@@ -137,6 +137,10 @@ export default {
   aiOff: (variable) => `The AI is asleep on this server: write ${variable} in .env and start it again.`,
   // the coach of the server, after a deal
   debriefOpen: 'Ask the coach',
+  debriefReopen: 'Back to the coach',
+  debriefMore: 'Another question about this deal?',
+  debriefLeft: (n) => (n > 1 ? `${n} questions left on this deal.` : '1 question left on this deal.'),
+  debriefSpent: 'The coach has said its piece on this deal. See you on the next one.',
   debriefOff: (variable) => `The coach is asleep: write ${variable} in .env to ask it about your deal.`,
   debriefTitle: 'The coach',
   debriefIntro: 'A question about this deal? The engine has counted it all again, the coach explains.',
@@ -150,6 +154,7 @@ export default {
   debriefBack: 'Back to the result',
   debriefBackCoach: 'Back to the coach',
   debriefErrors: {
+    spent: 'You have asked all your questions about this deal.',
     busy: 'Too many questions in a row: try again in a minute.',
     refused: 'The server could not replay this deal.',
     unavailable: 'The coach is not answering right now. Try again a little later.',

@@ -20,6 +20,7 @@ import {
 import { coachStep, myBidTurn, view } from './game.js';
 import { setLang, t } from './i18n/index.js';
 import { renderBid } from './render/bidding.js';
+import { markSendable } from './render/debrief.js';
 import { render, renderAll } from './render/index.js';
 import { availableBids, bidValueToShow } from './selectors.js';
 import { bubble, clearBubbles } from './speech.js';
@@ -147,7 +148,9 @@ function onSheetClick(event) {
 }
 /** the question to the coach is kept as it is typed, and Enter sends it */
 function onSheetInput(event) {
-  if (event.target.id === 'debriefQ') debrief.question = event.target.value;
+  if (event.target.id !== 'debriefQ') return;
+  debrief.question = event.target.value;
+  markSendable(event.target);
 }
 function onSheetKeyDown(event) {
   if (event.key !== 'Enter' || event.target.id !== 'debriefQ') return;
