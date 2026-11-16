@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kabbout\Tests\Assistant\Application\Coach;
 
 use Kabbout\Assistant\Application\Coach\CoachAllowance;
+use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Coach\DealSpent;
 use Kabbout\Assistant\Domain\Visitor;
 
@@ -13,6 +14,9 @@ final class CountingAllowance implements CoachAllowance
 {
     /** @var list<string> what was asked, in order */
     public array $asked = [];
+
+    /** whether the questions of the day are spent */
+    public bool $resting = false;
 
     public function __construct(private int $left = 2)
     {
@@ -25,6 +29,9 @@ final class CountingAllowance implements CoachAllowance
 
     public function day(): void
     {
+        if ($this->resting) {
+            throw new CoachResting();
+        }
         $this->asked[] = 'day';
     }
 

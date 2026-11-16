@@ -1,7 +1,11 @@
 # One port for the game and its API. The address is plain HTTP on purpose: this runs on a juror's machine
 # or behind a proxy that holds the certificate.
 {
-	frankenphp
+	frankenphp {
+		# PHP's own default, 30 seconds, counts the wait for the model here: a question to the coach may take
+		# longer (about 55 at worst, see AskCoach). Past 65 PHP stops it, before the page gives up at 70.
+		php_ini max_execution_time 65
+	}
 	admin off
 	auto_https off
 	# the two lines worth reading at the start are the check's and the address to open

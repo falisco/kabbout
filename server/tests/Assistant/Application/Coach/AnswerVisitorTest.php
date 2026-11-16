@@ -8,6 +8,7 @@ use Kabbout\Assistant\Application\Coach\AnswerSource;
 use Kabbout\Assistant\Application\Coach\AnswerVisitor;
 use Kabbout\Assistant\Application\Coach\AskCoach;
 use Kabbout\Assistant\Application\Coach\CoachModelFailed;
+use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Coach\DealSpent;
 use Kabbout\Assistant\Application\Coach\Exchange;
 use Kabbout\Assistant\Domain\Visitor;
@@ -37,7 +38,7 @@ final class AnswerVisitorTest extends TestCase
         $desk($ana, RecordedDeal::record(), Seat::First, Lang::Fr, 'Et pourquoi ?');
 
         self::assertSame([AnswerSource::Model, 1], [$first->answer->source, $first->left]);
-        self::assertSame(['pace', 'day', 'take', 'pace', 'day', 'take'], $this->allowance->asked);
+        self::assertSame(['pace', 'take', 'day', 'pace', 'take', 'day'], $this->allowance->asked);
         self::assertSame([], $model->briefs[0]->earlier);
         self::assertEquals([new Exchange('Qu’ai-je mal joué ?', 'Le pli 4.')], $model->briefs[1]->earlier);
         // a conversation is a visitor's about a deal: another seat of the same deal is another one
@@ -51,7 +52,7 @@ final class AnswerVisitorTest extends TestCase
         $answered = $desk(Visitor::atAddress('203.0.113.1'), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
 
         self::assertSame([AnswerSource::Summary, 2], [$answered->answer->source, $answered->left]);
-        self::assertSame(['pace', 'day', 'take', 'giveBack'], $this->allowance->asked);
+        self::assertSame(['pace', 'take', 'day', 'giveBack'], $this->allowance->asked);
         self::assertSame([], $this->memory->threads ?? null);
     }
 
@@ -62,7 +63,7 @@ final class AnswerVisitorTest extends TestCase
         $answered = $desk(Visitor::atAddress('203.0.113.1'), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
 
         self::assertSame([AnswerSource::Summary, 1], [$answered->answer->source, $answered->left]);
-        self::assertSame(['pace', 'day', 'take'], $this->allowance->asked);
+        self::assertSame(['pace', 'take', 'day'], $this->allowance->asked);
         self::assertSame([], $this->memory->threads ?? null);
     }
 
@@ -97,6 +98,23 @@ final class AnswerVisitorTest extends TestCase
         try {
             $this->desk($model, left: 0)(Visitor::atAddress('203.0.113.1'), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
         } finally {
+            self::assertSame([], $model->calls);
+            // asking again about a spent deal takes nothing from the day of everybody else
+            self::assertSame(['pace'], $this->allowance->asked);
+        }
+    }
+
+    public function testAQuestionOnADayThatIsSpentIsNotCountedAgainstTheDeal(): void
+    {
+        $model = new ScriptedCoachModel([]);
+        $desk = $this->desk($model);
+        $this->allowance->resting = true;
+
+        try {
+            $desk(Visitor::atAddress('203.0.113.1'), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
+            self::fail('The coach rests for the day.');
+        } catch (CoachResting) {
+            self::assertSame(['pace', 'take', 'giveBack'], $this->allowance->asked);
             self::assertSame([], $model->calls);
         }
     }

@@ -22,6 +22,9 @@ final class VisitorTest extends TestCase
     {
         self::assertSame(Visitor::atAddress('203.0.113.7')->key, Visitor::atAddress('203.0.113.7')->key);
         self::assertNotSame(Visitor::atAddress('203.0.113.7')->key, Visitor::atAddress('203.0.113.8')->key);
+        // written the IPv6 way, as some proxies pass it on, it is the same visitor and not everybody's
+        self::assertSame(Visitor::atAddress('203.0.113.7')->key, Visitor::atAddress('::ffff:203.0.113.7')->key);
+        self::assertNotSame(Visitor::atAddress('::ffff:203.0.113.7')->key, Visitor::atAddress('::ffff:203.0.113.8')->key);
     }
 
     public function testWhatIsNoAddressIsOneVisitorAndNeverAnError(): void

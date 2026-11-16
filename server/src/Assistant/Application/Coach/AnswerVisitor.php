@@ -36,12 +36,18 @@ final readonly class AnswerVisitor
         $this->allowance->pace($visitor);
         // a deal the rules do not allow, or an engine that is down, costs the visitor none of their questions
         ($this->summarise)($record, $seat);
-        $this->allowance->day();
 
         // the deal as the server read it, so the same deal written otherwise is still the same deal
         $deal = hash('sha256', json_encode([$record->toArray(), $seat->value], \JSON_THROW_ON_ERROR));
         $thread = $visitor->key.'|'.$deal;
         $left = $this->allowance->take($visitor, $deal);
+        try {
+            // counted last: a question refused for its deal must not use up the day of everybody else
+            $this->allowance->day();
+        } catch (CoachResting $e) {
+            $this->allowance->giveBack($visitor, $deal);
+            throw $e;
+        }
         try {
             // what was already said about this deal is the server's own memory of it, never the caller's word
             $answer = ($this->askCoach)(new CoachBrief($record, $seat, $lang, $brief->question, $this->memory->earlier($thread)));
