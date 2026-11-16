@@ -4,6 +4,7 @@ dist/
 .DS_Store
 .env
 .env.*
+!.env.example
 # Capacitor native builds (added later)
 android/app/build/
 ios/App/Pods/

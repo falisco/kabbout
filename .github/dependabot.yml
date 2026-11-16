@@ -26,3 +26,14 @@ updates:
     target-branch: develop
     schedule:
       interval: weekly
+  # the base images of the two services of compose.yaml, and of the PHP checks
+  - package-ecosystem: docker
+    directory: /bridge
+    target-branch: develop
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /server/docker
+    target-branch: develop
+    schedule:
+      interval: weekly
