@@ -10,6 +10,11 @@
          failOnNotice="true"
          displayDetailsOnTestsThatTriggerWarnings="true"
          displayDetailsOnTestsThatTriggerDeprecations="true">
+    <php>
+        <server name="APP_ENV" value="test" force="true"/>
+        <server name="APP_DEBUG" value="0" force="true"/>
+        <server name="KERNEL_CLASS" value="Kabbout\Kernel"/>
+    </php>
     <testsuites>
         <testsuite name="server">
             <directory>tests</directory>

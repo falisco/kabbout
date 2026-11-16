@@ -1,0 +1,7 @@
+# The platform is fixed when the container is built; its key and its provider come from the one variable
+# at run time, read by Kabbout\Assistant\Infrastructure\AiSettingsEnvVarProcessor.
+ai:
+  platform:
+    huggingface:
+      api_key: '%env(kabbout_ai:api_key:KABBOUT_AI)%'
+      provider: '%env(kabbout_ai:provider:KABBOUT_AI)%'

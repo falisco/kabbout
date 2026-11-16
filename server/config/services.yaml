@@ -1,0 +1,36 @@
+# The server is cut by bounded context (src/Game, src/Assistant), then by layer.
+# Domain code holds no service: it is built by the layers around it.
+parameters:
+  # Nothing written: the AI is off and the bridge is where the compose file puts it.
+  env(KABBOUT_AI): ''
+  env(BRIDGE_URL): 'http://bridge:8787'
+
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  Kabbout\:
+    resource: '../src/'
+    exclude:
+      - '../src/Kernel.php'
+      - '../src/*/Domain/'
+
+  # Ports of the domains, and the adapter each one gets here.
+  Kabbout\Game\Domain\Engine: '@Kabbout\Game\Infrastructure\Bridge\BridgeEngine'
+  Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport: '@Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport'
+  Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport:
+    arguments:
+      $baseUrl: '%env(BRIDGE_URL)%'
+
+  Kabbout\Assistant\Domain\AiConfiguration: '@Kabbout\Assistant\Infrastructure\EnvAiConfiguration'
+  Kabbout\Assistant\Infrastructure\EnvAiConfiguration:
+    arguments:
+      $dsn: '%env(KABBOUT_AI)%'
+
+when@test:
+  services:
+    # No use case asks for the engine yet (the coach does, next); the tests check that it is wired all the same.
+    Kabbout\Game\Domain\Engine:
+      alias: Kabbout\Game\Infrastructure\Bridge\BridgeEngine
+      public: true

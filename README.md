@@ -142,7 +142,7 @@ npm run test:coverage       # unit and browser tests together; fails under 80% o
 npm run lint                # ESLint: shadowed names, unused code, functions over 60 lines
 npm run check               # everything: types, format, lint, conformity, unit, browser, coverage
 npm run bridge              # starts the bridge on http://127.0.0.1:8787 (BRIDGE_HOST, BRIDGE_PORT)
-npm run check:php           # PHP side: coding standard, PHPStan at its strictest, PHPUnit against a running bridge; fails under 80% of lines run (PHP 8.4 with pcov, or Docker)
+npm run check:php           # PHP side: coding standard, PHPStan at its strictest, PHPUnit against a running bridge; fails under 80% of lines run (PHP 8.5 with pcov, or Docker)
 npm run contract:record     # after an intended change of the bridge: records bridge/contract/cases.json again
 npm run bench:robots        # measures the robots' levels against each other (add `-- --scoring tunisian` for the other count)
 npm run test:golden:update  # after an intended change of rules or robots: records the reference games again

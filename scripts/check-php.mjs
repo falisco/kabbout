@@ -1,11 +1,11 @@
 // `npm run check:php`: the checks of the PHP side (server/), with the bridge running for the tests that ask it.
 // Coding standard, static analysis at the strictest level, then the tests; a skipped test fails the run.
-// PHP 8.4 is used from this machine when it is there with a coverage driver (pcov or Xdebug); otherwise from an image
+// PHP 8.5 is used from this machine when it is there with a coverage driver (pcov or Xdebug); otherwise from an image
 // built from server/docker/checks.Dockerfile. The run fails under 80% of the lines of server/src run by the tests.
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { once } from 'node:events';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -20,7 +20,7 @@ const MINIMUM = 80;
 const CLOVER = 'var/coverage/clover.xml';
 
 const local =
-  spawnSync('php', ['-r', 'exit(PHP_VERSION_ID >= 80401 && (extension_loaded("pcov") || extension_loaded("xdebug")) ? 0 : 1);']).status === 0;
+  spawnSync('php', ['-r', 'exit(PHP_VERSION_ID >= 80500 && (extension_loaded("pcov") || extension_loaded("xdebug")) ? 0 : 1);']).status === 0;
 const uid = `${process.getuid()}:${process.getgid()}`;
 /** runs a PHP tool of server/vendor/bin; in the container, the repository is mounted where it is on this machine */
 function php(args, env = {}) {
@@ -93,7 +93,7 @@ async function startBridge() {
   return { child, url };
 }
 
-/** the image of the checks, built once: PHP 8.4 and pcov */
+/** the image of the checks, built once: PHP 8.5 and pcov */
 const imageReady = () =>
   local ||
   spawnSync('docker', ['image', 'inspect', IMAGE], { stdio: 'ignore' }).status === 0 ||
@@ -122,6 +122,8 @@ const checks = (bridgeUrl) =>
   coverageIsEnough();
 
 if (!imageReady() || !installed()) process.exit(1);
+// The tests build the container without debug, which never looks again at the configuration: start from none.
+rmSync(`${ROOT}server/var/cache/test`, { recursive: true, force: true });
 const bridge = await startBridge();
 try {
   process.exitCode = checks(bridge.url) ? 0 : 1;

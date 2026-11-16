@@ -2,11 +2,19 @@
     "name": "kabbout/server",
     "description": "The server side of Kabbout: the game and its API, with the rules engine reached through the bridge.",
     "type": "project",
-    "license": "proprietary",
+    "license": "MIT",
     "require": {
-        "php": ">=8.4.1",
+        "php": ">=8.5",
         "ext-json": "*",
-        "symfony/http-client": "8.1.*"
+        "symfony/ai-bundle": "1.0.0-BETA1",
+        "symfony/ai-generic-platform": "1.0.0-BETA1",
+        "symfony/ai-hugging-face-platform": "1.0.0-BETA1",
+        "symfony/ai-platform": "1.0.0-BETA1",
+        "symfony/console": "8.1.*",
+        "symfony/framework-bundle": "8.1.*",
+        "symfony/http-client": "8.1.*",
+        "symfony/runtime": "8.1.*",
+        "symfony/yaml": "8.1.*"
     },
     "autoload": {
         "psr-4": {
@@ -21,7 +29,10 @@
     "config": {
         "sort-packages": true,
         "platform": {
-            "php": "8.4.1"
+            "php": "8.5.0"
+        },
+        "allow-plugins": {
+            "symfony/runtime": true
         }
     },
     "require-dev": {
@@ -29,6 +40,15 @@
         "phpstan/phpstan": "^2.3",
         "phpstan/phpstan-phpunit": "^2.1",
         "phpstan/phpstan-strict-rules": "^2.1",
-        "phpunit/phpunit": "^12.5"
+        "phpunit/phpunit": "^12.5",
+        "symfony/browser-kit": "8.1.*"
+    },
+    "conflict": {
+        "symfony/symfony": "*"
+    },
+    "extra": {
+        "runtime": {
+            "disable_dotenv": true
+        }
     }
 }
