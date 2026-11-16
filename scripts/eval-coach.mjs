@@ -1,6 +1,6 @@
 // `npm run eval:coach`: asks the coach about the fifteen deals of eval/coach/ and prints how often it
 // names the expected mistake, with the model and the date. It runs in the server's own image, with the
-// AI settings of .env (KABBOUT_AI): the coach measured is the one players get. Each deal is one or two
+// AI settings of .env (ANTHROPIC_API_KEY, KABBOUT_AI_MODEL): the coach measured is the one players get. Each deal is one or two
 // calls to the model, on your key.
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

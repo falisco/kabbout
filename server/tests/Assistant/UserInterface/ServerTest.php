@@ -14,11 +14,11 @@ use Symfony\Component\Console\Tester\CommandTester;
 /** The server as it is put together: its container, its one route and its start-up check. */
 final class ServerTest extends WebTestCase
 {
-    private const string KEY = 'hf_a-secret-key';
+    private const string KEY = 'sk-ant-a-secret-key';
 
     protected function tearDown(): void
     {
-        unset($_SERVER['KABBOUT_AI']);
+        unset($_SERVER['ANTHROPIC_API_KEY'], $_SERVER['KABBOUT_AI_MODEL']);
         parent::tearDown();
     }
 
@@ -27,7 +27,7 @@ final class ServerTest extends WebTestCase
         $answer = self::capabilities();
 
         self::assertSame(1, $answer['version']);
-        self::assertSame(['configured' => false, 'platform' => null, 'model' => null, 'variable' => 'KABBOUT_AI'], $answer['ai']);
+        self::assertSame(['configured' => false, 'platform' => null, 'model' => null, 'variable' => 'ANTHROPIC_API_KEY'], $answer['ai']);
         self::assertIsArray($answer['features']);
         self::assertSame(array_column(Feature::cases(), 'value'), array_keys($answer['features']));
         foreach ($answer['features'] as $name => $feature) {
@@ -35,13 +35,13 @@ final class ServerTest extends WebTestCase
             // the coach is built and waits for a key; the others wait for their version
             self::assertSame('coach' === $name ? 'off' : 'planned', $feature['state']);
             self::assertIsString($feature['hint']);
-            self::assertStringContainsString('KABBOUT_AI', $feature['hint']);
+            self::assertStringContainsString('ANTHROPIC_API_KEY', $feature['hint']);
         }
     }
 
     public function testWithAKeyTheCoachIsOnAndTheRestStillPlanned(): void
     {
-        $_SERVER['KABBOUT_AI'] = 'huggingface://'.self::KEY.'@auto/openai/gpt-oss-120b';
+        $_SERVER['ANTHROPIC_API_KEY'] = self::KEY;
         $features = self::capabilities()['features'];
 
         self::assertIsArray($features);
@@ -51,7 +51,7 @@ final class ServerTest extends WebTestCase
 
     public function testWithAKeyTheAnswerNamesThePlatformAndTheModelAndNeverTheKey(): void
     {
-        $_SERVER['KABBOUT_AI'] = 'huggingface://'.self::KEY.'@auto/openai/gpt-oss-120b';
+        $_SERVER['ANTHROPIC_API_KEY'] = self::KEY;
         $client = self::createClient();
         $client->request('GET', '/api/capabilities');
 
@@ -59,12 +59,13 @@ final class ServerTest extends WebTestCase
         self::assertResponseHeaderSame('Cache-Control', 'no-store, private');
         $body = (string) $client->getResponse()->getContent();
         self::assertStringNotContainsString(self::KEY, $body);
-        self::assertStringContainsString('"configured":true,"platform":"huggingface","model":"openai\/gpt-oss-120b"', $body);
+        self::assertStringContainsString('"configured":true,"platform":"anthropic","model":"claude-opus-5-5"', $body);
     }
 
     public function testSettingsThatCannotWorkAreAnsweredInJsonWithoutTheKey(): void
     {
-        $_SERVER['KABBOUT_AI'] = 'nope://'.self::KEY.'@auto/a-model';
+        $_SERVER['ANTHROPIC_API_KEY'] = self::KEY;
+        $_SERVER['KABBOUT_AI_MODEL'] = ' ';
         $client = self::createClient();
         $client->request('GET', '/api/capabilities');
 
@@ -72,7 +73,6 @@ final class ServerTest extends WebTestCase
         $body = (string) $client->getResponse()->getContent();
         self::assertStringContainsString('"code":"invalid_ai_settings"', $body);
         self::assertStringNotContainsString(self::KEY, $body);
-        self::assertStringNotContainsString('nope', $body);
     }
 
     public function testTheCheckPassesWithTheAiOffAndWithGoodSettings(): void
@@ -80,19 +80,20 @@ final class ServerTest extends WebTestCase
         self::assertStringContainsString('AI: off', self::check(0));
 
         self::ensureKernelShutdown();
-        $_SERVER['KABBOUT_AI'] = 'huggingface://'.self::KEY.'@auto/a-model';
+        $_SERVER['ANTHROPIC_API_KEY'] = self::KEY;
+        $_SERVER['KABBOUT_AI_MODEL'] = 'claude-haiku-5-5';
         $output = self::check(0);
-        self::assertStringContainsString('AI: on, huggingface with a-model, run by the provider the platform picks.', $output);
+        self::assertStringContainsString('AI: on, anthropic with claude-haiku-5-5.', $output);
         self::assertStringNotContainsString(self::KEY, $output);
     }
 
     public function testTheCheckStopsTheStartOnAnUnknownPlatformWithoutRepeatingTheKey(): void
     {
-        $_SERVER['KABBOUT_AI'] = 'nope://'.self::KEY.'@auto/a-model';
+        $_SERVER['ANTHROPIC_API_KEY'] = self::KEY;
+        $_SERVER['KABBOUT_AI_MODEL'] = ' ';
         $output = self::check(1);
 
-        self::assertStringContainsString('Kabbout cannot start: The AI platform is not known. Known: huggingface.', $output);
-        self::assertStringNotContainsString('nope', $output);
+        self::assertStringContainsString('Kabbout cannot start: The AI settings name no model.', $output);
         self::assertStringNotContainsString(self::KEY, $output);
     }
 

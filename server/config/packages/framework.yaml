@@ -6,6 +6,14 @@ framework:
   php_errors:
     log: true
 
+  http_client:
+    scoped_clients:
+      # a player is waiting: seconds without a byte from the platform, then seconds for a whole call
+      anthropic.client:
+        scope: 'https://api\.anthropic\.com'
+        timeout: 20
+        max_duration: 60
+
   # Questions to the coach, per visitor. The count is kept in the application cache; steps that open
   # other doors to the model (MCP, the hosted demo) take the same limiter.
   rate_limiter:

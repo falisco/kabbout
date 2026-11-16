@@ -34,7 +34,7 @@ final readonly class EvalCoachCommand
         $settings = $this->configuration->settings();
         $files = glob(rtrim($directory, '/').'/*.json');
         if (null === $settings || false === $files || [] === $files) {
-            $io->getErrorStyle()->writeln(null === $settings ? 'The AI is off: set KABBOUT_AI to measure the coach.' : 'No deal in '.$directory.'.');
+            $io->getErrorStyle()->writeln(null === $settings ? 'The AI is off: set ANTHROPIC_API_KEY to measure the coach.' : 'No deal in '.$directory.'.');
 
             return Command::FAILURE;
         }

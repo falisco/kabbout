@@ -28,7 +28,7 @@ async function openAndAsk(page: Page, options: Parameters<typeof openGame>[1] = 
 async function serverAnswers(page: Page, state: 'planned' | 'off' | 'on') {
   const features = Object.fromEntries(FEATURES.map((name) => [name, { state, hint: null }]));
   await page.route('**/api/capabilities', (route) =>
-    route.fulfill({ json: { version: 1, ai: { configured: state === 'on', platform: null, model: null, variable: 'KABBOUT_AI' }, features } }),
+    route.fulfill({ json: { version: 1, ai: { configured: state === 'on', platform: null, model: null, variable: 'ANTHROPIC_API_KEY' }, features } }),
   );
 }
 
@@ -44,7 +44,7 @@ test('served by Kabbout with no key, the menu says the AI is asleep', async ({ p
   const errors = await openGame(page, { lang: 'en' });
   // the coach is built and waits for its key
   await expect(page.locator(NOTICE)).toContainText(WORDS.en.off);
-  await expect(page.locator(`${NOTICE} code`)).toHaveText('KABBOUT_AI');
+  await expect(page.locator(`${NOTICE} code`)).toHaveText('ANTHROPIC_API_KEY');
   expect(errors).toEqual([]);
 });
 
@@ -55,7 +55,7 @@ for (const lang of ['fr', 'en', 'ar'] as const) {
       const errors = await openGame(page, { lang });
       const notice = page.locator(NOTICE);
       await expect(notice).toContainText(WORDS[lang][state]);
-      await expect(notice.locator('code')).toHaveText('KABBOUT_AI');
+      await expect(notice.locator('code')).toHaveText('ANTHROPIC_API_KEY');
       const report = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
       expect(report.violations.map((v) => `${v.impact} ${v.id}`)).toEqual([]);
       expect(errors).toEqual([]);

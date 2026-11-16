@@ -24,13 +24,13 @@ final class CoachEndpointTest extends WebTestCase
 
     protected function setUp(): void
     {
-        $_SERVER['KABBOUT_AI'] = 'huggingface://hf_a-secret-key@auto/openai/gpt-oss-120b';
+        $_SERVER['ANTHROPIC_API_KEY'] = 'sk-ant-a-secret-key';
         self::$visitor = '2001:db8::'.bin2hex(random_bytes(2)).':'.bin2hex(random_bytes(2));
     }
 
     protected function tearDown(): void
     {
-        unset($_SERVER['KABBOUT_AI'], $_SERVER['KABBOUT_COACH_LIMIT']);
+        unset($_SERVER['ANTHROPIC_API_KEY'], $_SERVER['KABBOUT_AI_MODEL'], $_SERVER['KABBOUT_COACH_LIMIT']);
         parent::tearDown();
     }
 
@@ -114,26 +114,26 @@ final class CoachEndpointTest extends WebTestCase
 
     public function testWithoutAKeyTheCoachSaysItIsOffAndHowToSwitchItOn(): void
     {
-        unset($_SERVER['KABBOUT_AI']);
+        unset($_SERVER['ANTHROPIC_API_KEY']);
         $model = new ScriptedCoachModel([]);
 
         $answer = self::ask(self::client($model), self::question());
 
         self::assertResponseStatusCodeSame(503);
-        self::assertSame(['error' => ['code' => 'ai_off', 'message' => 'The coach is off: set KABBOUT_AI in .env and start again.']], $answer);
+        self::assertSame(['error' => ['code' => 'ai_off', 'message' => 'The coach is off: set ANTHROPIC_API_KEY in .env and start again.']], $answer);
         self::assertSame([], $model->calls);
     }
 
     public function testSettingsThatCannotWorkAreSaidWithoutTheKey(): void
     {
-        $_SERVER['KABBOUT_AI'] = 'nope://hf_a-secret-key@auto/a-model';
+        $_SERVER['KABBOUT_AI_MODEL'] = ' ';
 
         $answer = self::ask(self::client(new ScriptedCoachModel([])), self::question());
 
         self::assertResponseStatusCodeSame(503);
         self::assertIsArray($answer['error']);
         self::assertSame('invalid_ai_settings', $answer['error']['code']);
-        self::assertStringNotContainsString('hf_a-secret-key', (string) json_encode($answer));
+        self::assertStringNotContainsString('sk-ant-a-secret-key', (string) json_encode($answer));
     }
 
     public function testAVisitorIsStoppedPastTheLimitAndToldWhenToComeBack(): void

@@ -29,7 +29,7 @@ final readonly class CheckCommand
         }
         $io->writeln(null === $settings
             ? 'AI: off. The game is complete without it.'
-            : \sprintf('AI: on, %s with %s, run by %s.', $settings->platform->value, $settings->model, $settings->provider ?? 'the provider the platform picks'));
+            : \sprintf('AI: on, %s with %s.', $settings->platform->value, $settings->model));
 
         return Command::SUCCESS;
     }

@@ -33,12 +33,12 @@ final class EvalCoachCommandTest extends KernelTestCase
         if (false === $url || '' === $url) {
             self::markTestSkipped('No bridge to ask: BRIDGE_URL is not set.');
         }
-        $_SERVER['KABBOUT_AI'] = 'huggingface://hf_a-secret-key@auto/a-model';
+        $_SERVER['ANTHROPIC_API_KEY'] = 'sk-ant-a-secret-key';
     }
 
     protected function tearDown(): void
     {
-        unset($_SERVER['KABBOUT_AI']);
+        unset($_SERVER['ANTHROPIC_API_KEY']);
         parent::tearDown();
     }
 
@@ -70,14 +70,14 @@ final class EvalCoachCommandTest extends KernelTestCase
         self::assertSame(0, $tester->execute(['directory' => self::DEALS], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]));
 
         $output = $tester->getDisplay();
-        self::assertStringContainsString('Coach evaluation: 15 deals, a-model on huggingface, '.date('Y-m-d').'.', $output);
+        self::assertStringContainsString('Coach evaluation: 15 deals, claude-opus-5-5 on anthropic, '.date('Y-m-d').'.', $output);
         self::assertStringContainsString('Named the expected mistake: 5/15 (fr 5/5, en 0/5, ar 0/5). Answers written by the model: 10/15.', $output);
         self::assertSame(5, substr_count($output, ': named'));
         self::assertSame(5, substr_count($output, ': missed'));
         self::assertSame(5, substr_count($output, 'no answer from the model (plain summary shown)'));
         // with -v, what the player would have read
         self::assertStringContainsString('Well played, on the whole.', $output);
-        self::assertStringNotContainsString('hf_a-secret-key', $output);
+        self::assertStringNotContainsString('sk-ant-a-secret-key', $output);
     }
 
     public function testWithoutAKeyOrWithoutDealsThereIsNothingToMeasure(): void
@@ -87,10 +87,10 @@ final class EvalCoachCommandTest extends KernelTestCase
         self::assertStringContainsString('No deal in', $tester->getDisplay());
 
         self::ensureKernelShutdown();
-        unset($_SERVER['KABBOUT_AI']);
+        unset($_SERVER['ANTHROPIC_API_KEY']);
         $tester = self::command();
         self::assertSame(1, $tester->execute(['directory' => self::DEALS]));
-        self::assertStringContainsString('The AI is off: set KABBOUT_AI to measure the coach.', $tester->getDisplay());
+        self::assertStringContainsString('The AI is off: set ANTHROPIC_API_KEY to measure the coach.', $tester->getDisplay());
     }
 
     private static function command(): CommandTester

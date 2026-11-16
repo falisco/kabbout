@@ -8,7 +8,6 @@ use Kabbout\Assistant\Domain\AiSettings;
 use Kabbout\Assistant\Domain\Feature;
 use Kabbout\Assistant\Domain\FeatureState;
 use Kabbout\Assistant\Domain\InvalidAiSettings;
-use Kabbout\Assistant\Domain\Platform;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -16,33 +15,31 @@ final class AiSettingsTest extends TestCase
 {
     public function testSettingsThatExistAreComplete(): void
     {
-        $settings = new AiSettings(Platform::HuggingFace, 'a-key', 'openai/gpt-oss-120b', 'groq');
+        $settings = new AiSettings('a-key', 'claude-opus-5-5');
 
         self::assertSame('a-key', $settings->apiKey());
-        self::assertSame('openai/gpt-oss-120b', $settings->model);
-        self::assertSame('groq', $settings->provider);
+        self::assertSame('claude-opus-5-5', $settings->model);
     }
 
-    /** @return iterable<string, array{string, string, ?string}> */
+    /** @return iterable<string, array{string, string}> */
     public static function holes(): iterable
     {
-        yield 'no key' => ['', 'a-model', null];
-        yield 'a key of spaces' => ['  ', 'a-model', null];
-        yield 'no model' => ['a-key', '', null];
-        yield 'an empty provider' => ['a-key', 'a-model', ''];
-        yield 'a provider of spaces' => ['a-key', 'a-model', ' '];
+        yield 'no key' => ['', 'a-model'];
+        yield 'a key of spaces' => ['  ', 'a-model'];
+        yield 'no model' => ['a-key', ''];
+        yield 'a model of spaces' => ['a-key', ' '];
     }
 
     #[DataProvider('holes')]
-    public function testSettingsWithAHoleCannotExist(string $key, string $model, ?string $provider): void
+    public function testSettingsWithAHoleCannotExist(string $key, string $model): void
     {
         $this->expectException(InvalidAiSettings::class);
-        new AiSettings(Platform::HuggingFace, $key, $model, $provider);
+        new AiSettings($key, $model);
     }
 
     public function testADumpOfTheSettingsHidesTheKey(): void
     {
-        $dump = print_r(new AiSettings(Platform::HuggingFace, 'a-secret-key', 'a-model'), true);
+        $dump = print_r(new AiSettings('a-secret-key', 'a-model'), true);
 
         self::assertStringNotContainsString('a-secret-key', $dump);
         self::assertStringContainsString('a-model', $dump);
@@ -51,7 +48,7 @@ final class AiSettingsTest extends TestCase
     public function testSettingsAreNotSerialised(): void
     {
         $this->expectException(\LogicException::class);
-        serialize(new AiSettings(Platform::HuggingFace, 'a-secret-key', 'a-model'));
+        serialize(new AiSettings('a-secret-key', 'a-model'));
     }
 
     public function testAFeatureIsPlannedUntilItShipsThenFollowsTheSettings(): void
@@ -64,7 +61,7 @@ final class AiSettingsTest extends TestCase
 
     public function testAKeySwitchesOnTheFeaturesThatHaveShippedAndOnlyThose(): void
     {
-        $settings = new AiSettings(Platform::HuggingFace, 'a-key', 'a-model');
+        $settings = new AiSettings('a-key', 'a-model');
         self::assertSame(FeatureState::On, Feature::Coach->stateWith($settings));
         self::assertSame(FeatureState::Off, Feature::Coach->stateWith(null));
         foreach ([Feature::SpokenBids, Feature::Referee, Feature::AgentSeat] as $feature) {

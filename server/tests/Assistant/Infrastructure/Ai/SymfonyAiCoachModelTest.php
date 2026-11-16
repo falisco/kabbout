@@ -5,110 +5,134 @@ declare(strict_types=1);
 namespace Kabbout\Tests\Assistant\Infrastructure\Ai;
 
 use Kabbout\Assistant\Application\Coach\CoachBrief;
+use Kabbout\Assistant\Application\Coach\CoachModel;
 use Kabbout\Assistant\Application\Coach\CoachModelFailed;
 use Kabbout\Assistant\Application\Coach\Rejected;
-use Kabbout\Assistant\Domain\AiConfiguration;
-use Kabbout\Assistant\Domain\AiSettings;
 use Kabbout\Assistant\Domain\Grounding\Facts;
-use Kabbout\Assistant\Domain\Platform;
-use Kabbout\Assistant\Infrastructure\Ai\AiPlatformFactory;
+use Kabbout\Assistant\Infrastructure\Ai\CoachConversation;
 use Kabbout\Assistant\Infrastructure\Ai\CoachPrompt;
-use Kabbout\Assistant\Infrastructure\Ai\CoachToolsFactory;
-use Kabbout\Assistant\Infrastructure\Ai\HuggingFacePlatformFactory;
 use Kabbout\Assistant\Infrastructure\Ai\SymfonyAiCoachModel;
-use Kabbout\Game\Application\AskExpertChoice;
-use Kabbout\Game\Application\ReviewTrick;
-use Kabbout\Game\Application\TryWhatIf;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\Json;
+use Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport;
+use Kabbout\Tests\Support\AnthropicMock;
 use Kabbout\Tests\Support\RecordedDeal;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
-use Symfony\AI\Platform\PlatformInterface;
-use Symfony\AI\Platform\Result\ResultInterface;
-use Symfony\AI\Platform\Result\ToolCall;
-use Symfony\AI\Platform\Result\ToolCallResult;
-use Symfony\AI\Platform\Test\MockPlatformFactory;
-use Symfony\AI\Platform\Tool\Tool;
-use Symfony\Component\HttpClient\MockHttpClient;
-use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
- * The agent with a scripted platform in place of the model: what is checked is the loop around it.
- * The tools answer from the deal of the contract, analysed for seat 0.
+ * The coach's model as the server runs it: the agent of the Symfony AI bundle, its Anthropic platform
+ * and its five tools, taken from the container. Only two things are not the real ones: Anthropic's API,
+ * which answers from a script in its own format, and the bridge, which answers from the recorded contract
+ * (the deal analysed for seat 0).
  */
-final class SymfonyAiCoachModelTest extends TestCase
+final class SymfonyAiCoachModelTest extends KernelTestCase
 {
-    /** @var list<array{payload: string, tools: list<string>}> what the platform was sent, call by call */
-    private array $sent = [];
+    private const string KEY = 'sk-ant-a-secret-key';
+
+    protected function setUp(): void
+    {
+        $_SERVER['ANTHROPIC_API_KEY'] = self::KEY;
+    }
+
+    protected function tearDown(): void
+    {
+        unset($_SERVER['ANTHROPIC_API_KEY'], $_SERVER['KABBOUT_AI_MODEL']);
+        parent::tearDown();
+    }
 
     public function testTheModelLooksAtTheDealThroughItsToolsAndEveryResultBecomesAFact(): void
     {
+        AnthropicMock::willAnswer(
+            AnthropicMock::toolUse(['biggest_swings', []], ['deal_summary', []]),
+            AnthropicMock::toolUse(['trick', ['n' => 1]], ['expert_choice', ['n' => 4]]),
+            AnthropicMock::text('Au pli 4, le 10 de trèfle.'),
+        );
         $facts = new Facts();
-        $model = $this->model([
-            self::calls(['biggest_swings', []], ['deal_summary', []]),
-            self::calls(['trick', ['n' => 1]], ['expert_choice', ['n' => 4]]),
-            'Au pli 4, le 10 de trèfle.',
-        ]);
 
-        self::assertSame('Au pli 4, le 10 de trèfle.', $model->answer(self::brief(), $facts));
+        self::assertSame('Au pli 4, le 10 de trèfle.', self::model()->answer(self::brief(), $facts));
 
-        self::assertCount(3, $this->sent);
-        self::assertSame(['deal_summary', 'trick', 'expert_choice', 'what_if', 'biggest_swings'], $this->sent[0]['tools']);
+        $requests = AnthropicMock::requests();
+        self::assertCount(3, $requests);
+        // what leaves the server: Anthropic's Messages API, the key in its header, the model of the settings
+        self::assertSame('POST https://api.anthropic.com/v1/messages', $requests[0]['url']);
+        self::assertContains('x-api-key: '.self::KEY, $requests[0]['headers']);
+        self::assertSame('claude-opus-5-5', $requests[0]['body']['model']);
+        self::assertSame(['deal_summary', 'trick', 'expert_choice', 'what_if', 'biggest_swings'], array_column(Json::objects($requests[0]['body']['tools'] ?? null, 'tools'), 'name'));
         // the first request is the rules and the question; the next ones carry what the tools returned
-        self::assertStringContainsString('You are the coach of Kabbout', $this->sent[0]['payload']);
-        self::assertStringContainsString('Qu’ai-je mal joué ?', $this->sent[0]['payload']);
-        self::assertStringContainsString('swings', $this->sent[1]['payload']);
-        self::assertStringContainsString('onTable', $this->sent[2]['payload']);
+        $sent = array_map(static fn (array $request): string => (string) json_encode($request['body'], \JSON_UNESCAPED_UNICODE), $requests);
+        self::assertStringContainsString('You are the coach of Kabbout', $sent[0]);
+        self::assertStringContainsString('Qu’ai-je mal joué ?', $sent[0]);
+        self::assertStringNotContainsString(self::KEY, $sent[0]);
+        self::assertStringContainsString('tool_result', $sent[1]);
+        self::assertStringContainsString('swings', $sent[1]);
+        self::assertStringContainsString('onTable', $sent[2]);
         self::assertTrue($facts->hasTrick(4) && $facts->hasTrick(1) && $facts->hasCard('TC') && $facts->hasCard('AD'));
         self::assertTrue($facts->hasNumber(Json::int(Json::object(RecordedDeal::call('/analysis/summary')['response']['us'] ?? null, 'side')['gained'] ?? null, 'score')));
+    }
+
+    public function testAToolSaysWhatItsArgumentsAre(): void
+    {
+        AnthropicMock::willAnswer(AnthropicMock::text('Vu.'));
+
+        self::model()->answer(self::brief(), new Facts());
+
+        $tools = array_column(Json::objects(AnthropicMock::requests()[0]['body']['tools'] ?? null, 'tools'), 'input_schema', 'name');
+        $whatIf = Json::object($tools['what_if'] ?? null, 'schema');
+        self::assertSame(['n', 'card'], $whatIf['required'] ?? null);
+        $properties = Json::object($whatIf['properties'] ?? null, 'properties');
+        self::assertSame('integer', Json::object($properties['n'] ?? null, 'n')['type'] ?? null);
+        self::assertStringContainsString('from 1 to 8', (string) json_encode($properties['n'] ?? null));
+        self::assertStringContainsString('for example QH', (string) json_encode($properties['card'] ?? null));
     }
 
     public function testAQuestionTheModelAsksWronglyIsAnsweredInWordsAndEstablishesNothing(): void
     {
         $refused = RecordedDeal::call('/analysis/what-if', 422)['request'];
+        AnthropicMock::willAnswer(
+            AnthropicMock::toolUse(['trick', ['n' => 9]], ['expert_choice', ['n' => 0]], ['what_if', ['n' => 12, 'card' => 'QH']], ['what_if', ['n' => 1, 'card' => 'queen']]),
+            AnthropicMock::toolUse(['what_if', ['n' => $refused['trick'], 'card' => $refused['card']]], ['no_such_tool', []]),
+            AnthropicMock::text('Rien.'),
+        );
         $facts = new Facts();
-        $model = $this->model([
-            self::calls(['trick', ['n' => 9]], ['expert_choice', ['n' => 0]], ['what_if', ['n' => 12, 'card' => 'QH']], ['what_if', ['n' => 1, 'card' => 'queen']]),
-            self::calls(['what_if', ['n' => $refused['trick'], 'card' => $refused['card']]], ['no_such_tool', []]),
-            'Rien.',
-        ]);
 
-        self::assertSame('Rien.', $model->answer(self::brief(), $facts));
+        self::assertSame('Rien.', self::model()->answer(self::brief(), $facts));
 
         self::assertTrue($facts->isEmpty());
-        self::assertStringContainsString('No trick 9: a deal has tricks 1 to 8.', $this->sent[1]['payload']);
-        self::assertStringContainsString('No trick 0', $this->sent[1]['payload']);
-        self::assertStringContainsString('No trick 12', $this->sent[1]['payload']);
-        self::assertStringContainsString('No such card', $this->sent[1]['payload']);
-        self::assertStringContainsString('The engine refused: illegal card', $this->sent[2]['payload']);
-        self::assertStringContainsString('was not found', $this->sent[2]['payload']);
+        $second = (string) json_encode(AnthropicMock::requests()[1]['body']);
+        $third = (string) json_encode(AnthropicMock::requests()[2]['body']);
+        self::assertStringContainsString('No trick 9: a deal has tricks 1 to 8.', $second);
+        self::assertStringContainsString('No trick 0', $second);
+        self::assertStringContainsString('No trick 12', $second);
+        self::assertStringContainsString('No such card', $second);
+        self::assertStringContainsString('The engine refused: illegal card', $third);
+        self::assertStringContainsString('was not found', $third);
     }
 
     public function testAWhatIfGivesBothEndings(): void
     {
         $asked = RecordedDeal::call('/analysis/what-if')['request'];
+        AnthropicMock::willAnswer(AnthropicMock::toolUse(['what_if', ['n' => $asked['trick'], 'card' => ' '.strtolower(\is_string($asked['card']) ? $asked['card'] : '').' ']]), AnthropicMock::text('Vu.'));
         $facts = new Facts();
-        $model = $this->model([self::calls(['what_if', ['n' => $asked['trick'], 'card' => ' '.strtolower(\is_string($asked['card']) ? $asked['card'] : '').' ']]), 'Vu.']);
 
-        $model->answer(self::brief(), $facts);
+        self::model()->answer(self::brief(), $facts);
 
-        self::assertStringContainsString('asPlayed', $this->sent[1]['payload']);
+        self::assertStringContainsString('asPlayed', (string) json_encode(AnthropicMock::requests()[1]['body']));
         self::assertFalse($facts->isEmpty());
     }
 
     public function testACorrectionGoesOnWithTheSameConversation(): void
     {
+        AnthropicMock::willAnswer(AnthropicMock::toolUse(['biggest_swings', []]), AnthropicMock::text('Le pli 4 coûte 999 points.'), AnthropicMock::text('Le pli 4.'));
         $facts = new Facts();
         $brief = self::brief();
-        $model = $this->model([self::calls(['biggest_swings', []]), 'Le pli 4 coûte 999 points.', 'Le pli 4.']);
+        $model = self::model();
 
         $first = $model->answer($brief, $facts);
         self::assertSame('Le pli 4.', $model->answer($brief, $facts, new Rejected($first, ['999'])));
 
-        $again = $this->sent[2]['payload'];
+        $again = (string) json_encode(AnthropicMock::requests()[2]['body'], \JSON_UNESCAPED_UNICODE);
         self::assertStringContainsString('it states 999, which no tool result', $again);
         self::assertStringContainsString('Le pli 4 coûte 999 points.', $again);
         // what the tools returned the first time is still there: the model need not ask again
@@ -118,32 +142,57 @@ final class SymfonyAiCoachModelTest extends TestCase
 
     public function testACorrectionWithNoConversationKeptStartsFromTheRejectedAnswer(): void
     {
-        $model = $this->model(['Le pli 4.']);
+        AnthropicMock::willAnswer(AnthropicMock::text('Trick 4.'));
 
-        $model->answer(self::brief(Lang::En), new Facts(), new Rejected('Trick 4 costs 999.', ['999', 'KS']));
+        self::model()->answer(self::brief(Lang::En), new Facts(), new Rejected('Trick 4 costs 999.', ['999', 'KS']));
 
-        self::assertStringContainsString('Trick 4 costs 999.', $this->sent[0]['payload']);
-        self::assertStringContainsString('it states 999, KS, which no tool result', $this->sent[0]['payload']);
-        self::assertStringContainsString('Answer in English', $this->sent[0]['payload']);
+        $sent = (string) json_encode(AnthropicMock::requests()[0]['body']);
+        self::assertStringContainsString('Trick 4 costs 999.', $sent);
+        self::assertStringContainsString('it states 999, KS, which no tool result', $sent);
+        self::assertStringContainsString('Answer in English', $sent);
     }
 
-    /** @param list<ResultInterface|string|\Throwable> $script */
-    #[DataProvider('failures')]
-    public function testWhateverGoesWrongWithTheModelIsOneFailure(array $script, ?AiSettings $settings): void
+    public function testTheModelAskedIsTheOneOfTheSettings(): void
     {
-        $model = $this->model($script, $settings);
+        $_SERVER['KABBOUT_AI_MODEL'] = 'claude-haiku-5-5';
+        AnthropicMock::willAnswer(AnthropicMock::text('Vu.'));
 
-        $this->expectException(CoachModelFailed::class);
-        $model->answer(self::brief(), new Facts());
+        self::model()->answer(self::brief(), new Facts());
+
+        self::assertSame('claude-haiku-5-5', AnthropicMock::requests()[0]['body']['model']);
     }
 
-    /** @return iterable<string, array{list<ResultInterface|string|\Throwable>, ?AiSettings}> */
+    /** @param list<array<string, mixed>|int> $script */
+    #[DataProvider('failures')]
+    public function testWhateverGoesWrongWithTheModelIsOneFailureAndTheConversationIsClosed(array $script, bool $key, int $asked): void
+    {
+        if (!$key) {
+            unset($_SERVER['ANTHROPIC_API_KEY']);
+        }
+        AnthropicMock::willAnswer(...$script);
+        $model = self::model();
+
+        try {
+            $model->answer(self::brief(), new Facts());
+            self::fail('The model should have failed.');
+        } catch (CoachModelFailed $failed) {
+            self::assertStringNotContainsString(self::KEY, $failed->getMessage());
+        }
+        self::assertCount($asked, AnthropicMock::requests());
+        // no deal is left behind for a tool to read
+        $conversation = self::getContainer()->get(CoachConversation::class);
+        self::assertInstanceOf(CoachConversation::class, $conversation);
+        $this->expectException(\LogicException::class);
+        $conversation->record();
+    }
+
+    /** @return iterable<string, array{list<array<string, mixed>|int>, bool, int}> */
     public static function failures(): iterable
     {
-        $on = self::settings();
-        yield 'the platform fails' => [[new \RuntimeException('401 Unauthorized, key hf_secret')], $on];
-        yield 'the model calls tools without end' => [array_fill(0, SymfonyAiCoachModel::MAX_TOOL_CALLS + 2, self::calls(['biggest_swings', []])), $on];
-        yield 'the AI is off' => [['never asked'], null];
+        yield 'the platform refuses the key' => [[401], true, 1];
+        yield 'the platform is down' => [[529], true, 1];
+        yield 'the model calls tools without end' => [array_fill(0, 12, AnthropicMock::toolUse(['biggest_swings', []])), true, 9];
+        yield 'the AI is off' => [[], false, 0];
     }
 
     public function testTheModelIsToldItsJobTheSeatsAndTheLanguage(): void
@@ -159,108 +208,18 @@ final class SymfonyAiCoachModelTest extends TestCase
         }
     }
 
-    public function testTheHuggingFacePlatformIsAskedWithTheKeyTheProviderAndTheModelOfTheSettings(): void
+    private static function model(): CoachModel
     {
-        $requests = [];
-        $http = new MockHttpClient(static function (string $method, string $url, array $options) use (&$requests): MockResponse {
-            $requests[] = [$method, $url, $options['headers'] ?? [], $options['body'] ?? '', $options['timeout'] ?? null, $options['max_duration'] ?? null];
+        self::bootKernel();
+        self::getContainer()->set(BridgeTransport::class, RecordedDeal::transport());
+        $model = self::getContainer()->get(CoachModel::class);
+        self::assertInstanceOf(SymfonyAiCoachModel::class, $model);
 
-            return new MockResponse(json_encode(['choices' => [['message' => ['role' => 'assistant', 'content' => 'Bien joué.'], 'finish_reason' => 'stop']]], \JSON_THROW_ON_ERROR), ['response_headers' => ['content-type' => 'application/json']]);
-        });
-        $factory = new HuggingFacePlatformFactory($http);
-
-        // a model of the bundled list, then one published since
-        foreach (['openai/gpt-oss-120b', 'someone/a-model-of-tomorrow'] as $name) {
-            $settings = new AiSettings(Platform::HuggingFace, 'hf_secret', $name, 'groq');
-            $coach = new SymfonyAiCoachModel(self::configuration($settings), $factory, self::tools(), new NullLogger());
-            self::assertSame('Bien joué.', $coach->answer(self::brief(), new Facts()));
-        }
-
-        self::assertCount(2, $requests);
-        foreach ($requests as $i => [$method, $url, $headers, $body, $timeout, $maxDuration]) {
-            self::assertSame('POST', $method);
-            self::assertStringStartsWith('https://router.huggingface.co/', $url);
-            self::assertContains('Authorization: Bearer hf_secret', \is_array($headers) ? $headers : []);
-            $sent = Json::object(json_decode(\is_string($body) ? $body : '', true, flags: \JSON_THROW_ON_ERROR), 'request');
-            self::assertSame(['openai/gpt-oss-120b:groq', 'someone/a-model-of-tomorrow:groq'][$i], $sent['model']);
-            self::assertCount(5, Json::list($sent['tools'] ?? null, 'tools'));
-            self::assertSame([20.0, 45.0], [$timeout, $maxDuration]);
-        }
-    }
-
-    /**
-     * @param list<ResultInterface|string|\Throwable> $script what the platform answers, call by call
-     */
-    private function model(array $script, ?AiSettings $settings = null): SymfonyAiCoachModel
-    {
-        $settings = \func_num_args() >= 2 ? $settings : self::settings();
-        $platform = MockPlatformFactory::createPlatform(function (object $model, array|string|object $payload, array $options) use (&$script): ResultInterface|string {
-            $tools = array_map(self::toolName(...), \is_array($options['tools'] ?? null) ? array_values($options['tools']) : []);
-            $this->sent[] = ['payload' => (string) json_encode($payload, \JSON_UNESCAPED_UNICODE | \JSON_PARTIAL_OUTPUT_ON_ERROR), 'tools' => $tools];
-            $next = array_shift($script) ?? throw new \LogicException('The platform was asked more often than scripted.');
-
-            return $next instanceof \Throwable ? throw $next : $next;
-        });
-        $platforms = new readonly class($platform) implements AiPlatformFactory {
-            public function __construct(private PlatformInterface $platform)
-            {
-            }
-
-            public function create(AiSettings $settings): PlatformInterface
-            {
-                return $this->platform;
-            }
-        };
-
-        return new SymfonyAiCoachModel(self::configuration($settings), $platforms, self::tools(), new NullLogger());
-    }
-
-    /** the name of a tool as the platform is given it: the object, or its description once the contract has written it out */
-    private static function toolName(mixed $tool): string
-    {
-        if ($tool instanceof Tool) {
-            return $tool->getName();
-        }
-        $described = \is_array($tool) && \is_array($tool['function'] ?? null) ? $tool['function'] : $tool;
-        $name = \is_array($described) ? ($described['name'] ?? null) : null;
-
-        return \is_string($name) ? $name : '?';
-    }
-
-    private static function configuration(?AiSettings $settings): AiConfiguration
-    {
-        return new readonly class($settings) implements AiConfiguration {
-            public function __construct(private ?AiSettings $settings)
-            {
-            }
-
-            public function settings(): ?AiSettings
-            {
-                return $this->settings;
-            }
-        };
-    }
-
-    private static function tools(): CoachToolsFactory
-    {
-        $analysis = RecordedDeal::analysis();
-
-        return new CoachToolsFactory(RecordedDeal::summarise(), new ReviewTrick($analysis), new AskExpertChoice($analysis), new TryWhatIf($analysis), RecordedDeal::rankSwings());
-    }
-
-    private static function settings(): AiSettings
-    {
-        return new AiSettings(Platform::HuggingFace, 'hf_secret', 'openai/gpt-oss-120b');
+        return $model;
     }
 
     private static function brief(Lang $lang = Lang::Fr): CoachBrief
     {
         return new CoachBrief(RecordedDeal::record(), Seat::First, $lang, 'Qu’ai-je mal joué ?');
-    }
-
-    /** @param array{string, array<string, mixed>} ...$calls */
-    private static function calls(array ...$calls): ToolCallResult
-    {
-        return new ToolCallResult(array_map(static fn (array $call, int $i): ToolCall => new ToolCall('call_'.$i, $call[0], $call[1]), array_values($calls), array_keys(array_values($calls))));
     }
 }

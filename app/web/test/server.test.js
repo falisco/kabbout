@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { NO_SERVER, aiNotice, askCoach, loadCapabilities } from '../src/server.js';
 
-const answer = (features, ai = { variable: 'KABBOUT_AI' }) => ({ version: 1, ai, features });
+const answer = (features, ai = { variable: 'ANTHROPIC_API_KEY' }) => ({ version: 1, ai, features });
 /** a fetch that answers once with the given status and body */
 const answering = (status, body) => /** @type {any} */ (async () => ({ status, json: async () => body }));
 
@@ -16,7 +16,7 @@ test('a server answer gives the state of each feature and the variable to set', 
   const body = answer({ coach: { state: 'off', hint: 'x' }, referee: { state: 'planned', hint: 'y' }, agent_seat: { state: 'on', hint: null } });
   assert.deepEqual(await loadCapabilities(answering(200, body)), {
     server: true,
-    variable: 'KABBOUT_AI',
+    variable: 'ANTHROPIC_API_KEY',
     features: { coach: 'off', referee: 'planned', agent_seat: 'on' },
   });
 });
@@ -41,7 +41,7 @@ test('anything else means no server, and never an error', async () => {
 });
 
 test('the menu says one thing about the AI, or nothing', () => {
-  const having = (features) => ({ server: true, variable: 'KABBOUT_AI', features });
+  const having = (features) => ({ server: true, variable: 'ANTHROPIC_API_KEY', features });
   assert.equal(aiNotice(NO_SERVER), null);
   assert.equal(aiNotice(having({})), null);
   assert.equal(aiNotice(having({ coach: 'planned', referee: 'planned' })), 'planned');

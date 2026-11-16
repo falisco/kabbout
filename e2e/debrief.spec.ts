@@ -45,7 +45,7 @@ async function serverWithCoach(page: Page, state: 'on' | 'off') {
   const planned = { state: 'planned', hint: null };
   const features = { coach: { state, hint: null }, spoken_bids: planned, referee: planned, agent_seat: planned };
   await page.route('**/api/capabilities', (route) =>
-    route.fulfill({ json: { version: 1, ai: { configured: state === 'on', platform: null, model: null, variable: 'KABBOUT_AI' }, features } }),
+    route.fulfill({ json: { version: 1, ai: { configured: state === 'on', platform: null, model: null, variable: 'ANTHROPIC_API_KEY' }, features } }),
   );
 }
 
@@ -131,7 +131,7 @@ for (const lang of ['fr', 'en', 'ar'] as const) {
     const errors = await dealPlayed(page, 'off', lang);
     const hint = page.locator('#coachOff');
     await expect(hint).toContainText(WORDS[lang].off);
-    await expect(hint.locator('code')).toHaveText('KABBOUT_AI');
+    await expect(hint.locator('code')).toHaveText('ANTHROPIC_API_KEY');
     await expect(page.locator(ENTRY)).toHaveCount(0);
     expect(await axe(page)).toEqual([]);
     expect(errors).toEqual([]);

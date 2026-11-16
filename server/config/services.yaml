@@ -2,7 +2,8 @@
 # Domain code holds no service: it is built by the layers around it.
 parameters:
   # Nothing written: the AI is off and the bridge is where the compose file puts it.
-  env(KABBOUT_AI): ''
+  env(ANTHROPIC_API_KEY): ''
+  env(KABBOUT_AI_MODEL): 'claude-opus-5-5'
   env(BRIDGE_URL): 'http://bridge:8787'
   # questions to the coach one visitor may ask in a minute
   env(KABBOUT_COACH_LIMIT): '6'
@@ -17,8 +18,6 @@ services:
     exclude:
       - '../src/Kernel.php'
       - '../src/*/Domain/'
-      # built for one conversation, by CoachToolsFactory
-      - '../src/Assistant/Infrastructure/Ai/CoachTools.php'
       # values and exceptions of the application layer
       - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary}.php'
 
@@ -31,11 +30,11 @@ services:
       $baseUrl: '%env(BRIDGE_URL)%'
 
   Kabbout\Assistant\Application\Coach\CoachModel: '@Kabbout\Assistant\Infrastructure\Ai\SymfonyAiCoachModel'
-  Kabbout\Assistant\Infrastructure\Ai\AiPlatformFactory: '@Kabbout\Assistant\Infrastructure\Ai\HuggingFacePlatformFactory'
   Kabbout\Assistant\Domain\AiConfiguration: '@Kabbout\Assistant\Infrastructure\EnvAiConfiguration'
   Kabbout\Assistant\Infrastructure\EnvAiConfiguration:
     arguments:
-      $dsn: '%env(KABBOUT_AI)%'
+      $apiKey: '%env(ANTHROPIC_API_KEY)%'
+      $model: '%env(KABBOUT_AI_MODEL)%'
 
 when@test:
   services:
@@ -51,4 +50,13 @@ when@test:
       public: true
     Kabbout\Game\Application\RankSwings:
       autowire: true
+      public: true
+    # Anthropic's API, scripted: the bundle, its platform and its agent are the real ones.
+    Kabbout\Tests\Support\AnthropicMock: ~
+    test.anthropic_client:
+      class: Symfony\Component\HttpClient\MockHttpClient
+      arguments: ['@Kabbout\Tests\Support\AnthropicMock']
+    Kabbout\Assistant\Infrastructure\Ai\CoachConversation:
+      autowire: true
+      autoconfigure: true
       public: true
