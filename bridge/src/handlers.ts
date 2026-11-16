@@ -98,7 +98,7 @@ function readSeat(v: unknown): Seat {
 
 /** a hand in the order of the deck, which says nothing of the order the cards were dealt in */
 const deckOrder = (card: Card): number => SUITS.indexOf(suitOf(card)) * RANKS.length + RANKS.indexOf(rankOf(card));
-const sorted = (hand: readonly Card[]): Card[] => [...hand].sort((a, b) => deckOrder(a) - deckOrder(b));
+export const sorted = (hand: readonly Card[]): Card[] => [...hand].sort((a, b) => deckOrder(a) - deckOrder(b));
 
 /** Whether the engine would deal the next round now. It is asked, not guessed: the draw is thrown away. */
 function mayAskNext(state: GameState, seat: Seat): boolean {

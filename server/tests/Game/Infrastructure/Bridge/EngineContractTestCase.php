@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Game\Infrastructure\Bridge;
 
+use Kabbout\Game\Domain\Analysis\TrickNumber;
+use Kabbout\Game\Domain\Card;
+use Kabbout\Game\Domain\DealAnalysis;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Domain\Exception\EngineRefused;
@@ -30,6 +33,8 @@ abstract class EngineContractTestCase extends TestCase
     public const string CASES = __DIR__.'/../../../../../bridge/contract/cases.json';
 
     abstract protected function engine(): Engine;
+
+    abstract protected function analysis(): DealAnalysis;
 
     /** @return iterable<string, array{string, array<string, mixed>, int, array<string, mixed>}> */
     public static function calls(): iterable
@@ -81,6 +86,20 @@ abstract class EngineContractTestCase extends TestCase
         $seat = static fn (string $field): Seat => Seat::from(Json::int($r[$field], $field));
         $string = static fn (string $field): string => \is_string($r[$field]) ? $r[$field] : self::fail($field);
         $seed = static fn (): Seed => Seed::fromHex($string('seed'));
+        $record = static fn (): DealRecord => DealRecord::fromArray(Json::object($r['record'], 'record'));
+        $trick = static fn (): TrickNumber => TrickNumber::of(Json::int($r['trick'], 'trick'));
+        if (str_starts_with($path, '/analysis/')) {
+            $analysis = $this->analysis();
+
+            return match ($path) {
+                '/analysis/summary' => $analysis->summary($record(), $seat('seat'))->toArray(),
+                '/analysis/trick' => $analysis->trick($record(), $seat('seat'), $trick())->toArray(),
+                '/analysis/expert-choice' => $analysis->expertChoice($record(), $seat('seat'), $trick())->toArray(),
+                '/analysis/what-if' => $analysis->whatIf($record(), $seat('seat'), $trick(), Card::fromCode($string('card')))->toArray(),
+                '/analysis/swings' => $analysis->swings($record(), $seat('seat'))->toArray(),
+                default => self::fail('The contract holds an analysis this test does not know: '.$path),
+            };
+        }
 
         return match ($path) {
             '/games' => $engine->newGame($seed(), Scoring::from($string('scoring')), isset($r['target']) ? Json::int($r['target'], 'target') : null, isset($r['dealer']) ? $seat('dealer') : null)->toEngineArray(),
@@ -88,7 +107,7 @@ abstract class EngineContractTestCase extends TestCase
             '/games/view' => ['view' => $engine->view($state(), $seat('seat'))->toArray()],
             '/games/legal' => $engine->legalMoves($state(), $seat('seat'))->toArray(),
             '/games/robot' => self::robotMove($engine->robotMove($state(), Level::from($string('level')), $seed(), Lang::from($string('lang')))),
-            '/deals/replay' => $engine->replay(DealRecord::fromArray(Json::object($r['record'], 'record')))->toArray(),
+            '/deals/replay' => $engine->replay($record())->toArray(),
             default => self::fail('The contract holds a call this test does not know: '.$path),
         };
     }

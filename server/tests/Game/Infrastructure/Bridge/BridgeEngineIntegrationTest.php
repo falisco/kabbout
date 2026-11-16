@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kabbout\Tests\Game\Infrastructure\Bridge;
 
 use Kabbout\Game\Domain\Action;
+use Kabbout\Game\Domain\DealAnalysis;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Domain\GameState;
@@ -13,6 +14,7 @@ use Kabbout\Game\Domain\Phase;
 use Kabbout\Game\Domain\Scoring;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Domain\Seed;
+use Kabbout\Game\Infrastructure\Bridge\BridgeDealAnalysis;
 use Kabbout\Game\Infrastructure\Bridge\BridgeEngine;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\Json;
 use Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport;
@@ -28,12 +30,22 @@ final class BridgeEngineIntegrationTest extends EngineContractTestCase
 {
     protected function engine(): Engine
     {
+        return new BridgeEngine(self::transport());
+    }
+
+    protected function analysis(): DealAnalysis
+    {
+        return new BridgeDealAnalysis(self::transport());
+    }
+
+    private static function transport(): HttpBridgeTransport
+    {
         $url = getenv('BRIDGE_URL');
         if (false === $url || '' === $url) {
             self::markTestSkipped('No bridge to ask: BRIDGE_URL is not set.');
         }
 
-        return new BridgeEngine(new HttpBridgeTransport(HttpClient::create(), $url));
+        return new HttpBridgeTransport(HttpClient::create(), $url);
     }
 
     public function testADealPlayedByRobotsNeverShowsASeatACardItMayNotKnow(): void

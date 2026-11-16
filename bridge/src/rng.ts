@@ -3,7 +3,7 @@
 // other three. Here a seed is at least 128 bits and the draws are an HMAC-SHA256 stream, which cannot be
 // run backwards from what a seat sees. The same seed still gives the same draws: answers stay reproducible.
 
-import { createHmac } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import type { Rng } from '../../engine/src/index.ts';
 import { BadRequest } from './errors.ts';
 
@@ -35,4 +35,26 @@ export function seededStream(seed: string): Rng {
     offset += BYTES_PER_DRAW;
     return draw / UINT32;
   };
+}
+
+/** A JSON value written with the fields of every object in order: two writings of the same value give the same text. */
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
+  if (value && typeof value === 'object') {
+    const fields = Object.entries(value)
+      .filter(([, v]) => v !== undefined)
+      .sort(([a], [b]) => (a < b ? -1 : 1));
+    return `{${fields.map(([k, v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
+/**
+ * The draws of an analysis: they come from what is analysed (`subject`, any JSON value) and from the
+ * question asked of it (`purpose`), so the same question about the same deal always gets the same answer
+ * and nobody has a seed to choose. The order in which a caller wrote the fields does not count.
+ */
+export function streamOf(subject: unknown, purpose: string): Rng {
+  const digest = createHash('sha256').update(canonical(subject)).digest('hex');
+  return seededStream(createHmac('sha256', digest).update(purpose).digest('hex'));
 }

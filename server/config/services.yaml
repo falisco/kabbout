@@ -18,6 +18,7 @@ services:
 
   # Ports of the domains, and the adapter each one gets here.
   Kabbout\Game\Domain\Engine: '@Kabbout\Game\Infrastructure\Bridge\BridgeEngine'
+  Kabbout\Game\Domain\DealAnalysis: '@Kabbout\Game\Infrastructure\Bridge\BridgeDealAnalysis'
   Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport: '@Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport'
   Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport:
     arguments:

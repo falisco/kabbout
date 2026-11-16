@@ -7,10 +7,12 @@ import { readFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import { after, before, test } from 'node:test';
 import type { Action, Card, GameState, PlayerView, PublicEvent, RoundResult, Seat } from '../../engine/src/index.ts';
-import { SEATS, legalPlays, nextSeat } from '../../engine/src/index.ts';
+import { SEATS, aiBid, aiPlay, apply, legalPlays, newGame as dealGame, nextSeat, seededRng, suitOf, team, viewFor } from '../../engine/src/index.ts';
 import type { Case } from '../contract/build.ts';
 import { buildCases, recordOf, seedOf, serialize } from '../contract/build.ts';
-import { seededStream } from '../src/rng.ts';
+import type { ExpertChoice, Summary, Swings, TrickReview, WhatIf } from '../src/analysis.ts';
+import { expertChoiceFrom, seatView } from '../src/analysis.ts';
+import { seededStream, streamOf } from '../src/rng.ts';
 import { MAX_BODY_BYTES, createBridge } from '../src/server.ts';
 
 const server = createBridge();
@@ -380,6 +382,225 @@ test('a recorded deal the rules do not allow is refused, with the place where it
   ])
     await badRequest('/deals/replay', { record: broken });
   await badRequest('/deals/replay', { record: { ...record, tricks: record.tricks.map((plays) => plays.slice(1)) } });
+});
+
+/* ---------- the analysis of a recorded deal ---------- */
+
+type Recorded = { scoring: string; dealer: Seat; bids: object[]; tricks: { seat: Seat; card: Card }[][] };
+const TRICK_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8];
+
+/** a deal played by the normal robots, as recorded */
+async function recordedDeal(seed: number, more: object = {}): Promise<{ over: GameState; record: Recorded }> {
+  const over = await play((await newGame(seed, more)).state, (s) => s.phase === 'roundEnd');
+  return { over, record: recordOf(over) as Recorded };
+}
+
+test('the summary and the tricks of an analysis are the engine’s own', async () => {
+  for (const scoring of ['ffb', 'tunisian']) {
+    const { over, record } = await recordedDeal(11, { scoring });
+    const result = over.result as RoundResult;
+    for (const seat of SEATS) {
+      const us = team(seat);
+      const them = team(nextSeat(seat));
+      const summary = await ok<Summary>('/analysis/summary', { record, seat });
+      assert.deepEqual(summary.contract, over.contract);
+      assert.equal(summary.taking, team(result.contract.seat) === us);
+      assert.equal(summary.made, result.made);
+      assert.deepEqual(
+        [summary.us, summary.them],
+        [us, them].map((t) => ({ tricks: result.tricksWon[t], cardPoints: result.cardPoints[t], gained: result.gained[t] })),
+      );
+      assert.equal(summary.bids.length, over.bids.length);
+      assert.doesNotMatch(JSON.stringify(summary), /"why"/);
+    }
+    let points = 0;
+    for (const trick of TRICK_NUMBERS) {
+      const review = await ok<TrickReview>('/analysis/trick', { record, seat: 0, trick });
+      const played = over.tricks[trick - 1];
+      assert.deepEqual([review.leader, review.plays, review.winner], [played.leader, played.plays, played.winner]);
+      assert.equal(review.won, team(played.winner) === 0);
+      assert.equal(review.played, played.plays.find((p) => p.seat === 0)?.card);
+      points += review.points;
+    }
+    // the cards of a deal are worth 152; the ten of the last trick is counted apart
+    assert.equal(points, 152);
+  }
+});
+
+test('the same question about the same deal gets the same analysis, byte for byte', async () => {
+  const { record } = await recordedDeal(12);
+  const asked = { record, seat: 2 };
+  const free = (await ok<Swings>('/analysis/swings', asked)).swings[0];
+  for (const [path, body] of [
+    ['/analysis/summary', asked],
+    ['/analysis/trick', { ...asked, trick: 3 }],
+    ['/analysis/expert-choice', { ...asked, trick: 2 }],
+    ['/analysis/swings', asked],
+    ['/analysis/what-if', { ...asked, trick: free.trick, card: free.choice }],
+  ] as const) {
+    const [first, second] = [await post(path, body), await post(path, body)];
+    assert.equal(first.status, 200, `${path}: ${first.text}`);
+    assert.equal(second.text, first.text, path);
+  }
+});
+
+test('the swings are the expert’s choices trick by trick: only the cards it would not have played, the costliest first', async () => {
+  let seen = 0;
+  for (const seed of [11, 12, 13]) {
+    const { record } = await recordedDeal(seed);
+    for (const seat of [0, 1] as Seat[]) {
+      const { swings, choices } = await ok<Swings>('/analysis/swings', { record, seat });
+      const all: ExpertChoice[] = [];
+      for (const trick of TRICK_NUMBERS) all.push(await ok<ExpertChoice>('/analysis/expert-choice', { record, seat, trick }));
+      for (const c of all) {
+        assert.equal(c.forced, c.cards.length === 1);
+        assert.equal(c.worlds, c.forced ? 0 : 50);
+        assert.equal(c.hand.length, 9 - c.trick);
+        assert.ok(c.hand.includes(c.played) && c.cards.some((x) => x.card === c.choice));
+        const average = (card: Card) => c.cards.find((x) => x.card === card)?.average;
+        assert.equal(average(c.choice), Math.max(...c.cards.map((x) => x.average)));
+        assert.equal(c.loss, (average(c.choice) ?? 0) - (average(c.played) ?? 0));
+        if (c.played === c.choice) assert.equal(c.loss, 0);
+        for (const x of c.cards) assert.ok(Number.isInteger(x.average));
+      }
+      assert.equal(choices, all.filter((c) => !c.forced).length);
+      const expected = all.filter((c) => c.loss > 0).map(({ trick, played, choice, loss }) => ({ trick, played, choice, loss }));
+      assert.deepEqual(
+        [...swings].sort((a, b) => a.trick - b.trick),
+        expected,
+      );
+      for (let i = 1; i < swings.length; i++) assert.ok(swings[i - 1].loss >= swings[i].loss);
+      seen += swings.length;
+    }
+  }
+  assert.ok(seen > 0, 'the normal robots do not always play the expert’s card');
+});
+
+test('a card the expert would also have played is never a swing, even when it lost the trick', async () => {
+  // seat 0 plays the card the analysis will name; the others are the normal robots
+  let lostWithTheExpertsCard = 0;
+  for (const seed of [21, 22, 23]) {
+    const rng = seededRng(seed);
+    let state = dealGame(rng, { dealer: 3 }).state;
+    while (state.phase !== 'roundEnd') {
+      const seat = state.turn;
+      const view = viewFor(state, seat);
+      let action: Action;
+      if (state.phase === 'bidding') action = { kind: 'bid', bid: aiBid(view).bid };
+      else if (seat === 0) action = { kind: 'play', card: expertChoiceFrom(seatView(state, 0), state.tricks.length + 1, view.hand[0]).choice };
+      else action = { kind: 'play', card: aiPlay(view, rng, 'normal') };
+      state = apply(state, seat, action, rng).state;
+    }
+    if (state.round !== 1) continue;
+    const record = recordOf(state);
+    const { swings } = await ok<Swings>('/analysis/swings', { record, seat: 0 });
+    assert.deepEqual(swings, [], `deal ${seed}`);
+    lostWithTheExpertsCard += state.tricks.filter((t) => team(t.winner) === 1).length;
+  }
+  assert.ok(lostWithTheExpertsCard > 0, 'the expert’s card lost a trick somewhere');
+});
+
+test('the expert’s choice comes from what the seat could know: other hidden hands, same answer', async () => {
+  const { record } = await recordedDeal(11);
+  const seat: Seat = 0;
+  let compared = 0;
+  for (const trick of [1, 2, 3]) {
+    // the cards the seat has not seen when it plays in this trick: those the others play after it
+    const mine = record.tricks[trick - 1].findIndex((p) => p.seat === seat);
+    const hidden = record.tricks.flatMap((plays, t) =>
+      plays.map((p, i) => ({ p, t, i })).filter(({ p, t: at, i }) => p.seat !== seat && (at > trick - 1 || (at === trick - 1 && i > mine))),
+    );
+    const known: ExpertChoice = await ok('/analysis/expert-choice', { record, seat, trick });
+    let swapped = 0;
+    for (const a of hidden) {
+      for (const b of hidden) {
+        if (swapped >= 2 || a.p.seat >= b.p.seat || suitOf(a.p.card) !== suitOf(b.p.card)) continue;
+        const tricks = structuredClone(record.tricks);
+        [tricks[a.t][a.i].card, tricks[b.t][b.i].card] = [b.p.card, a.p.card];
+        const other = { ...record, tricks };
+        // most exchanges change who wins a trick, and the record is then no deal at all
+        if ((await post('/deals/replay', { record: other })).status !== 200) continue;
+        assert.deepEqual(await ok<ExpertChoice>('/analysis/expert-choice', { record: other, seat, trick }), known);
+        swapped++;
+      }
+    }
+    compared += swapped;
+  }
+  assert.ok(compared >= 2, `${compared} deals with other hidden hands`);
+  // and the draws do come from the view: another view, other draws
+  assert.notEqual(streamOf({ hand: ['7S'] }, 'expert-choice')(), streamOf({ hand: ['8S'] }, 'expert-choice')());
+  assert.notEqual(streamOf({ hand: ['7S'] }, 'expert-choice')(), streamOf({ hand: ['7S'] }, 'what-if:1')());
+});
+
+test('a record means the same whatever the order its fields are written in', async () => {
+  const { record } = await recordedDeal(12);
+  // as another client would write it: every object with its fields the other way round
+  const reversed = (v: unknown): unknown =>
+    Array.isArray(v)
+      ? v.map(reversed)
+      : v && typeof v === 'object'
+        ? Object.fromEntries(
+            Object.entries(v)
+              .reverse()
+              .map(([k, x]) => [k, reversed(x)]),
+          )
+        : v;
+  const other = reversed(record);
+  assert.notEqual(JSON.stringify(other), JSON.stringify(record));
+  const { swings } = await ok<Swings>('/analysis/swings', { record, seat: 0 });
+  assert.deepEqual(await ok<Swings>('/analysis/swings', { record: other, seat: 0 }), {
+    swings,
+    choices: (await ok<Swings>('/analysis/swings', { record, seat: 0 })).choices,
+  });
+  const asked = { seat: 0, trick: swings[0].trick, card: swings[0].choice };
+  assert.deepEqual(await ok<WhatIf>('/analysis/what-if', { record: other, ...asked }), await ok<WhatIf>('/analysis/what-if', { record, ...asked }));
+  assert.equal(streamOf({ a: 1, b: [{ c: 2, d: null }] }, 'x')(), streamOf({ b: [{ d: null, c: 2 }], a: 1 }, 'x')());
+  assert.notEqual(streamOf({ a: 1, b: 2 }, 'x')(), streamOf({ a: 2, b: 1 }, 'x')());
+});
+
+test('a what-if finishes the deal twice with the same experts: the card played changes nothing, another card is the only difference', async () => {
+  const { record } = await recordedDeal(12);
+  const asked = { record, seat: 0 };
+  const { swings } = await ok<Swings>('/analysis/swings', asked);
+  assert.ok(swings.length > 0);
+  const { trick, played, choice } = swings[0];
+  const same = await ok<WhatIf>('/analysis/what-if', { ...asked, trick, card: played });
+  assert.deepEqual(same.instead, same.asPlayed);
+  assert.equal(same.difference, 0);
+  const other = await ok<WhatIf>('/analysis/what-if', { ...asked, trick, card: choice });
+  assert.deepEqual([other.played, other.card], [played, choice]);
+  assert.deepEqual(other.asPlayed, same.asPlayed);
+  const margin = (e: WhatIf['instead']) => e.us.gained - e.them.gained;
+  assert.equal(other.difference, margin(other.instead) - margin(other.asPlayed));
+  for (const end of [other.asPlayed, other.instead]) assert.equal(end.us.tricks + end.them.tricks, 8);
+});
+
+test('an analysis refuses what the replay refuses, and says where', async () => {
+  const { record } = await recordedDeal(11);
+  const tricks = structuredClone(record.tricks);
+  tricks[4][2].card = tricks[0][0].card;
+  const tampered = { ...record, tricks };
+  const revoked = structuredClone(record.tricks);
+  revoked[3].reverse();
+  for (const [path, more] of [
+    ['/analysis/summary', {}],
+    ['/analysis/trick', { trick: 1 }],
+    ['/analysis/expert-choice', { trick: 1 }],
+    ['/analysis/what-if', { trick: 1, card: record.tricks[0][0].card }],
+    ['/analysis/swings', {}],
+  ] as const) {
+    const twice = await refused(path, { record: tampered, seat: 0, ...more });
+    assert.deepEqual(twice.at, { trick: 5, seat: record.tricks[4][2].seat }, path);
+    assert.equal((await refused(path, { record: { ...record, tricks: revoked }, seat: 0, ...more })).at?.trick, 4, path);
+    assert.match((await refused(path, { record, seat: 4, ...more })).message, /unknown seat/);
+    await badRequest(path, { seat: 0, ...more });
+  }
+  for (const path of ['/analysis/trick', '/analysis/expert-choice', '/analysis/what-if'])
+    for (const trick of [0, 9, 1.5, '1', undefined]) await badRequest(path, { record, seat: 0, trick, card: '7S' });
+  await badRequest('/analysis/what-if', { record, seat: 0, trick: 1, card: '1S' });
+  // a card of another seat: the player could not have played it
+  const notMine = record.tricks[7].find((p) => p.seat !== 0)?.card;
+  assert.match((await refused('/analysis/what-if', { record, seat: 0, trick: 1, card: notMine })).message, /illegal card/);
 });
 
 test('the contract file is what the bridge answers today', async () => {

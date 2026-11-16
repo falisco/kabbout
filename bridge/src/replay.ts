@@ -64,11 +64,22 @@ function handsOf(tricks: Play[][]): GameState['hands'] {
   return hands;
 }
 
+/** One card of the record, with the deal as it stood just before it was played. */
+export interface Decision {
+  /** from 1 */
+  trick: number;
+  seat: Seat;
+  card: Card;
+  before: GameState;
+}
+
 export interface Replay {
   /** the deal before the first bid, with the hands rebuilt */
   start: GameState;
   /** the deal once scored (phase `roundEnd`) */
   end: GameState;
+  /** the thirty-two cards in the order they were played */
+  decisions: Decision[];
 }
 
 /** Plays the record through the engine, or throws DealRefused where the engine stops it. */
@@ -92,14 +103,17 @@ export function replayDeal(record: DealRecord): Replay {
   });
   if (state.phase !== 'playing') throw new DealRefused('the auction does not end in a contract', { bid: record.bids.length });
 
+  const decisions: Decision[] = [];
   record.tricks.forEach((plays, index) => {
     for (const { seat, card } of plays) {
       try {
+        // `apply` works on a copy: the state kept here is not touched by what follows
+        decisions.push({ trick: index + 1, seat, card, before: state });
         state = apply(state, seat, { kind: 'play', card }, rng).state;
       } catch (e) {
         throw e instanceof EngineError ? new DealRefused(e.message, { trick: index + 1, seat }) : e;
       }
     }
   });
-  return { start, end: state };
+  return { start, end: state, decisions };
 }
