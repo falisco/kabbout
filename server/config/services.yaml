@@ -49,3 +49,6 @@ when@test:
     Kabbout\Assistant\Application\Coach\CoachModel:
       alias: Kabbout\Assistant\Infrastructure\Ai\SymfonyAiCoachModel
       public: true
+    Kabbout\Game\Application\RankSwings:
+      autowire: true
+      public: true

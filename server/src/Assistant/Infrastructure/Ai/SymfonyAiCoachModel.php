@@ -62,7 +62,8 @@ final class SymfonyAiCoachModel implements CoachModel
             throw $failed;
         } catch (\Throwable $e) {
             // the platform's words may quote the request: they go to the log, not to the player
-            $this->logger->warning('The coach\'s model gave no answer: {error}', ['error' => $e->getMessage(), 'exception' => $e::class]);
+            // an error, not a warning: with a wrong key or a model the platform does not run, every answer ends here
+            $this->logger->error('The coach\'s model gave no answer: {error}', ['error' => $e->getMessage(), 'exception' => $e::class]);
 
             throw new CoachModelFailed('The model gave no answer.', previous: $e);
         }

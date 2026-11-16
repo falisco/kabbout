@@ -12,6 +12,8 @@ app/web/styles.css
 # generated bundle and embedded sound data
 app/web/app.js
 app/web/sounds.js
+# written by `npm run eval:coach:build`
+eval/coach/
 # recorded by `npm run contract:record`
 bridge/contract/cases.json
 # PHP: formatted by php-cs-fixer, dependencies and their lock file

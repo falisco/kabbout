@@ -1,0 +1,192 @@
+{
+ "name": "deal 39, tunisian: TC for TD in trick 4",
+ "lang": "fr",
+ "seat": 0,
+ "question": "Qu’est-ce que j’ai mal joué ?",
+ "expected": {
+  "trick": 4,
+  "played": "TC",
+  "choice": "TD",
+  "loss": 49
+ },
+ "record": {
+  "scoring": "tunisian",
+  "dealer": 3,
+  "bids": [
+   {
+    "type": "bid",
+    "value": 90,
+    "suit": "C",
+    "seat": 0
+   },
+   {
+    "type": "pass",
+    "seat": 1
+   },
+   {
+    "type": "bid",
+    "value": 120,
+    "suit": "C",
+    "seat": 2
+   },
+   {
+    "type": "pass",
+    "seat": 3
+   },
+   {
+    "type": "pass",
+    "seat": 0
+   },
+   {
+    "type": "pass",
+    "seat": 1
+   }
+  ],
+  "tricks": [
+   [
+    {
+     "seat": 0,
+     "card": "JC"
+    },
+    {
+     "seat": 1,
+     "card": "8C"
+    },
+    {
+     "seat": 2,
+     "card": "7C"
+    },
+    {
+     "seat": 3,
+     "card": "JD"
+    }
+   ],
+   [
+    {
+     "seat": 0,
+     "card": "8D"
+    },
+    {
+     "seat": 1,
+     "card": "KD"
+    },
+    {
+     "seat": 2,
+     "card": "QD"
+    },
+    {
+     "seat": 3,
+     "card": "AD"
+    }
+   ],
+   [
+    {
+     "seat": 3,
+     "card": "9S"
+    },
+    {
+     "seat": 0,
+     "card": "9C"
+    },
+    {
+     "seat": 1,
+     "card": "7S"
+    },
+    {
+     "seat": 2,
+     "card": "KS"
+    }
+   ],
+   [
+    {
+     "seat": 0,
+     "card": "TC"
+    },
+    {
+     "seat": 1,
+     "card": "AC"
+    },
+    {
+     "seat": 2,
+     "card": "QC"
+    },
+    {
+     "seat": 3,
+     "card": "TH"
+    }
+   ],
+   [
+    {
+     "seat": 1,
+     "card": "AS"
+    },
+    {
+     "seat": 2,
+     "card": "8S"
+    },
+    {
+     "seat": 3,
+     "card": "KH"
+    },
+    {
+     "seat": 0,
+     "card": "JH"
+    }
+   ],
+   [
+    {
+     "seat": 1,
+     "card": "TS"
+    },
+    {
+     "seat": 2,
+     "card": "JS"
+    },
+    {
+     "seat": 3,
+     "card": "7D"
+    },
+    {
+     "seat": 0,
+     "card": "QH"
+    }
+   ],
+   [
+    {
+     "seat": 1,
+     "card": "7H"
+    },
+    {
+     "seat": 2,
+     "card": "KC"
+    },
+    {
+     "seat": 3,
+     "card": "9H"
+    },
+    {
+     "seat": 0,
+     "card": "AH"
+    }
+   ],
+   [
+    {
+     "seat": 2,
+     "card": "QS"
+    },
+    {
+     "seat": 3,
+     "card": "9D"
+    },
+    {
+     "seat": 0,
+     "card": "TD"
+    },
+    {
+     "seat": 1,
+     "card": "8H"
+    }
+   ]
+  ]
+ }
+}
