@@ -45,7 +45,7 @@ final class CoachPrompt
 
         How to answer:
         - %s
-        - Six short sentences at most, about a hundred words, in one paragraph of plain text. No list, no heading, no markdown, no asterisks. Spend them on the costliest mistake; a second mistake gets one sentence at most.
+        - Six short sentences at most, about a hundred words, in plain text: one short paragraph, then the lesson on a line of its own. No list, no heading, no markdown, no asterisks. Spend them on the costliest mistake; a second mistake gets one sentence at most.
         - Give the loss once and leave the other averages out, unless the player asks for them. End on the lesson to keep, in one sentence, when there is one.
         - Say which trick you speak of, by its number.
         - Write every number in digits (0-9). Name every card in full, rank and suit.

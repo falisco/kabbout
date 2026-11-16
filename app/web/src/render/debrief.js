@@ -28,18 +28,25 @@ function outcome() {
   const links = tricks.map((number) => button('trick', 'pass', t('debriefSeeTrick', number), String(number))).join('');
   return `<p class="answer" id="debriefAnswer">${esc(text)}</p>
     ${source === 'summary' ? `<p class="sub" id="debriefPlain">${t('debriefPlain')}</p>` : ''}
-    ${links ? `<div class="links">${links}</div>` : ''}`;
+    ${links ? `<div class="chips">${links}</div>` : ''}`;
 }
 
+/**
+ * The coach as a conversation: its name and the way out at the top, the answer in the middle, the
+ * question at the bottom. Only the middle scrolls, so on a phone the way out and the question never
+ * leave the screen however long the answer is.
+ */
 export function debriefDialog() {
   const asking = debrief.status === 'asking';
-  const question = `<div class="ask"><label class="sec" for="debriefQ">${t('debriefLabel')}</label>
-    <input id="debriefQ" type="text" maxlength="300" autocomplete="off" enterkeyhint="send" value="${esc(debrief.question || t('debriefDefault'))}"></div>`;
-  return `<h2>${t('debriefTitle')}</h2>
-    <p class="sub">${t('debriefIntro')}</p>
+  const label = esc(t('debriefLabel'));
+  const question = `<div class="ask"><input id="debriefQ" type="text" maxlength="300" autocomplete="off" enterkeyhint="send" aria-label="${label}" value="${esc(debrief.question || t('debriefDefault'))}">
+    <button class="btn take send" data-action="ask" aria-label="${esc(t('debriefAsk'))}" title="${esc(t('debriefAsk'))}"><span aria-hidden="true">↑</span></button></div>`;
+  const close = `<button class="icon-x" data-action="close" aria-label="${esc(t('debriefBack'))}" title="${esc(t('debriefBack'))}"><span aria-hidden="true">×</span></button>`;
+  return `<div class="dbf">
+    <div class="dbf-head"><h2>${t('debriefTitle')}</h2>${close}</div>
+    <div class="dbf-body">${debrief.status === 'idle' || debrief.status === 'failed' ? `<p class="sub">${t('debriefIntro')}</p>` : ''}${outcome()}</div>
     ${asking ? '' : question}
-    ${outcome()}
-    <div class="menu-acts">${asking ? '' : button('ask', 'take', t('debriefAsk'))}${button('close', 'pass', t('debriefBack'))}</div>`;
+  </div>`;
 }
 
 /** One trick of the deal just played, as the answer named it. The deal is over: every trick may be looked at. */
