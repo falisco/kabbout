@@ -1,7 +1,7 @@
 // Kabbout, a belote contrée table. Rules, scoring and robots come from the engine (engine/src);
 // the modules here only draw, pace and listen. Bundled into app.js by `npm run build:web`.
 import { initAudio } from './audio.js';
-import { advance } from './flow.js';
+import { advance, askServer } from './flow.js';
 import { detectLang, setLang } from './i18n/index.js';
 import { initInput } from './input.js';
 import { preloadCards } from './labels.js';
@@ -18,3 +18,4 @@ initInput();
 initAudio({ soundOn: () => prefs.sound, musicOn: () => prefs.music });
 overlay.modal = 'menu';
 advance();
+askServer();

@@ -132,6 +132,8 @@ export default {
   },
 
   // menu
+  aiPlanned: (variable) => `On its way: a coach that explains your deal, and bids you can say out loud. Both will wake up with ${variable}.`,
+  aiOff: (variable) => `The AI is asleep on this server: write ${variable} in .env and start it again.`,
   menuSub: (partner, o1, o2, target) =>
     `You and <b>${partner}</b> against <b>${o1}</b> and <b>${o2}</b>. First to <b>${target} points</b>, belote-rebelote included.`,
   resume: 'Back to the game',

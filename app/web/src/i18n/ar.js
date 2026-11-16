@@ -133,6 +133,8 @@ export default {
   },
 
   // menu
+  aiPlanned: (variable) => `في الثنية: كوتش يفسّرلك الدونة، وطلبات تقولها بصوتك. يفيقو بـ ${variable}.`,
+  aiOff: (variable) => `الذكاء الاصطناعي راقد في السرفور هذا: اكتب ${variable} في .env وعاود شعّلو.`,
   menuSub: (partner, o1, o2, target) =>
     `إنت و<b>${partner}</b> ضد <b>${o1}</b> و<b>${o2}</b>. البارتية بـ <b>${target} نقطة</b>، والبلوط-روبلوط محسوبة.`,
   resume: 'كمّل البارتية',

@@ -202,6 +202,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .sheet p{margin:0;line-height:1.5}
 .sub{text-align:center;color:var(--muted);font-size:14px;text-wrap:balance}
 .sub b{color:var(--ink)}
+.sub code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;color:var(--ink);direction:ltr;unicode-bidi:isolate}
 .logo{font-family:var(--f-brand);font-weight:600;font-size:clamp(46px,13vw,66px);line-height:1;margin:0;display:grid;justify-items:center;text-align:center;color:var(--gold);letter-spacing:.01em;text-shadow:0 3px 0 #0006}
 .logo .star{width:clamp(76px,22vw,104px);margin-bottom:2px;filter:drop-shadow(0 6px 14px #0008)}
 .logo .ar{font-size:.44em;line-height:1.5;color:var(--ink);text-shadow:none}

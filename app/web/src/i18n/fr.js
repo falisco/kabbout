@@ -134,6 +134,8 @@ export default {
   },
 
   // menu
+  aiPlanned: (variable) => `En chemin : un coach qui explique votre donne, et des annonces dites à voix haute. Ils se réveilleront avec ${variable}.`,
+  aiOff: (variable) => `L’IA dort sur ce serveur : renseignez ${variable} dans .env, puis relancez-le.`,
   menuSub: (partner, o1, o2, target) =>
     `Vous et <b>${partner}</b> contre <b>${o1}</b> et <b>${o2}</b>. Partie en <b>${target} points</b>, belote-rebelote comprise.`,
   resume: 'Reprendre la partie',
