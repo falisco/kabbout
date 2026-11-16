@@ -19,3 +19,9 @@ coverage/
 
 # the game bundled for the web page (npm run build:web)
 app/web/app.js
+
+# PHP dependencies and tool caches
+server/vendor/
+server/var/
+.phpunit.cache/
+.php-cs-fixer.cache

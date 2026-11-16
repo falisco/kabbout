@@ -3,19 +3,20 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "engine"
+    "engine",
+    "bridge"
   ],
   "engines": {
     "node": ">=22.18"
   },
   "scripts": {
-    "test": "node --test \"engine/test/*.test.ts\" \"app/web/test/*.test.js\"",
+    "test": "node --test \"engine/test/*.test.ts\" \"bridge/test/*.test.ts\" \"app/web/test/*.test.js\"",
     "test:golden:update": "UPDATE_GOLDEN=1 node --test engine/test/golden.test.ts",
     "build:web": "esbuild app/web/src/main.js --bundle --format=iife --target=es2020 --outfile=app/web/app.js --log-level=warning",
     "pretest:e2e": "npm run build:web",
     "test:coverage": "node scripts/run-coverage.mjs",
     "test:e2e": "playwright test",
-    "typecheck": "tsc -p engine && tsc -p app/web && tsc -p .",
+    "typecheck": "tsc -p engine && tsc -p bridge && tsc -p app/web && tsc -p .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "conformity": "node scripts/check-conformity.mjs",
@@ -23,7 +24,10 @@
     "serve": "node scripts/serve.mjs app/web 4173",
     "check": "npm run typecheck && npm run format:check && npm run lint && npm run conformity && npm run test:coverage",
     "bench:robots": "node scripts/bench-robots.ts",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "bridge": "node bridge/src/main.ts",
+    "contract:record": "node bridge/scripts/record-contract.ts",
+    "check:php": "node scripts/check-php.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

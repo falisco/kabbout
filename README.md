@@ -10,13 +10,15 @@ Belote contrée for four: you and your partner against two opponents, at a quiet
 
 ## Layout
 
-| Folder     | Content                                                                                                                                                                                                                                                                                                                                                                              |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `engine/`  | The game engine in TypeScript: rules, bidding, scoring, robots. A pure state machine (`apply(state, seat, action)`) with no DOM and no timers, usable in the app and on a server. Each player only receives a `PlayerView`, which does not hold the others' cards.                                                                                                                   |
-| `app/web/` | The game: `index.html` (layout), `styles.css`, `src/` (the interface in modules, see below), `test/` (tests of the game session and of the texts), `sounds.js` (CC0 sounds), `cards/`, `fonts/` (embedded: the page loads nothing from another site), `brand/` (app icons, share image). `npm run build:web` bundles `src/` and the engine into `app.js` (generated, not versioned). |
-| `e2e/`     | Functional tests in a real browser (Playwright): games played through the interface (taking a contract, contre, advice, quick phrases, tutorial), keyboard, undo, the three languages, layout on five phone formats, sounds, accessibility audit of every screen and dialog (axe, WCAG 2.2 AA).                                                                                      |
-| `scripts/` | `serve.mjs` (local server with no dependency), `check-conformity.mjs` (the conformity checks of the CI) and `run-coverage.mjs` (what `npm run test:coverage` runs).                                                                                                                                                                                                                  |
-| `tools/`   | `frcards.py` builds the cards from the CC0 deck (French indices, and the English court cards); `brand.mjs` draws the icon, the app icons, the card back and the share image from the star of the game (see `CREDITS.md`).                                                                                                                                                            |
+| Folder     | Content                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `engine/`  | The game engine in TypeScript: rules, bidding, scoring, robots. A pure state machine (`apply(state, seat, action)`) with no DOM and no timers, usable in the app and on a server. Each player only receives a `PlayerView`, which does not hold the others' cards.                                                                                                                                                                                                                                                             |
+| `bridge/`  | The engine behind a small HTTP service, for the server side only: new game, action, view of a seat, legal moves, robot's move, replay of a recorded deal. It keeps nothing between two calls (the game travels in the request), draws from a seed sent by the caller, and has no dependency beyond Node. `contract/cases.json` records what it answers; both sides are tested against it.                                                                                                                                      |
+| `server/`  | The server side, in PHP 8.4. `Domain/Engine` holds the `Engine` interface, with `Enum/` (seat, suit, count, level, language, phase), `Model/` (game state, seat view, action, seed, recorded deal) and `Exception/`. `Infrastructure/Engine/Bridge` holds `BridgeEngine`, which only says which call each question becomes, with `Transport/` (how a call travels: the interface and its HTTP implementation) and `Mapping/` (how an answer is read into the domain's models). The rules are not written a second time in PHP. |
+| `app/web/` | The game: `index.html` (layout), `styles.css`, `src/` (the interface in modules, see below), `test/` (tests of the game session and of the texts), `sounds.js` (CC0 sounds), `cards/`, `fonts/` (embedded: the page loads nothing from another site), `brand/` (app icons, share image). `npm run build:web` bundles `src/` and the engine into `app.js` (generated, not versioned).                                                                                                                                           |
+| `e2e/`     | Functional tests in a real browser (Playwright): games played through the interface (taking a contract, contre, advice, quick phrases, tutorial), keyboard, undo, the three languages, layout on five phone formats, sounds, accessibility audit of every screen and dialog (axe, WCAG 2.2 AA).                                                                                                                                                                                                                                |
+| `scripts/` | `serve.mjs` (local server with no dependency), `check-conformity.mjs` (the conformity checks of the CI) and `run-coverage.mjs` (what `npm run test:coverage` runs).                                                                                                                                                                                                                                                                                                                                                            |
+| `tools/`   | `frcards.py` builds the cards from the CC0 deck (French indices, and the English court cards); `brand.mjs` draws the icon, the app icons, the card back and the share image from the star of the game (see `CREDITS.md`).                                                                                                                                                                                                                                                                                                      |
 
 ## Languages
 
@@ -106,6 +108,27 @@ The engine is made to run on a server too, facing clients it does not take at th
 - **What the engine accepts**: `apply(state, seat, action, rng)` refuses with an `EngineError` any unknown seat, any action that is malformed, out of turn or against the rules, and only copies the known fields of an action into the state.
 - **No saved game**: a game lives as long as the page. Only the settings, the language, the robots' level and the statistics are stored on the device.
 
+## Bridge between the engine and the server
+
+The rules stay in TypeScript, shared by the game in the browser and the server: a PHP copy would be a second rule book to keep in step. The server asks them through `bridge/`, which answers JSON over HTTP on the internal network only, since it hands out full game states.
+
+| Call                 | Answer                                                                                                                 |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `POST /games`        | A new game dealt from `seed` (32 to 64 hexadecimal digits; `scoring`, `target` and `dealer` as the engine takes them). |
+| `POST /games/apply`  | The game after one `action` of one `seat`, and the public events.                                                      |
+| `POST /games/view`   | What one seat may know: its hand and everything public.                                                                |
+| `POST /games/legal`  | The bids and cards open to a seat now; nothing out of turn.                                                            |
+| `POST /games/robot`  | What a robot of a given `level` does for the seat to act, from that seat's view alone.                                 |
+| `POST /deals/replay` | A recorded deal (count, dealer, auction, eight tricks) played again: hands, contract, tricks, score sheet.             |
+| `GET /health`        | `{ "ok": true }`                                                                                                       |
+
+- What the engine refuses, the bridge refuses: `422` with the engine's own message, and for a recorded deal the bid or the trick and seat where it goes wrong. A request it does not understand is a `400`.
+- A seat's view never holds another hand, a belote not yet announced or a robot's reasoning; `bridge/test/bridge.test.ts` checks every view of a whole game.
+- Every call that draws at random takes a seed, so the same question always gets the same answer, byte for byte. A seed is 128 to 256 bits and the draws are an HMAC-SHA256 stream: the engine's own generator takes 32 bits, few enough to try them all against the eight cards of a hand and find the three others. A view gives the hand sorted, not in the order it was dealt.
+- A seed serves one call. On the PHP side a game keeps one secret `Seed` and derives a new one for each call (`$secret->derive('move 17')`); a seed used twice deals the same cards twice.
+- On the PHP side, `Engine` is the only door. The full state, a robot's move with its reason and a step only come out through methods named `toEngineArray()`; what may be sent to a player is a `SeatView`, or `toPublicArray()`. A recorded deal sent by a client is checked for its shape and stripped to its known fields by `DealRecord::fromArray()` before the engine judges it.
+- `bridge/contract/cases.json` is recorded from the bridge (`npm run contract:record`) and checked against it by its tests; the PHP tests then make the same calls through `BridgeEngine`, against the running bridge and against a transport that replays the recording (`tests/Support`).
+
 ## Commands
 
 Node 22.18+ (TypeScript run natively, no compilation).
@@ -113,11 +136,14 @@ Node 22.18+ (TypeScript run natively, no compilation).
 ```bash
 npm install                 # development tools
 npm run serve               # builds app.js and serves the game on http://127.0.0.1:4173
-npm test                    # engine (FFB rules, contract, non-regression on 33 games replayed card for card), game session, texts
+npm test                    # engine (FFB rules, contract, non-regression on 33 games replayed card for card), bridge, game session, texts
 npm run test:e2e            # functional browser tests (installed Chrome locally, Chromium in CI)
 npm run test:coverage       # unit and browser tests together; fails under 80% of lines or branches run (report in coverage/)
 npm run lint                # ESLint: shadowed names, unused code, functions over 60 lines
 npm run check               # everything: types, format, lint, conformity, unit, browser, coverage
+npm run bridge              # starts the bridge on http://127.0.0.1:8787 (BRIDGE_HOST, BRIDGE_PORT)
+npm run check:php           # PHP side: coding standard, PHPStan at its strictest, PHPUnit against a running bridge; fails under 80% of lines run (PHP 8.4 with pcov, or Docker)
+npm run contract:record     # after an intended change of the bridge: records bridge/contract/cases.json again
 npm run bench:robots        # measures the robots' levels against each other (add `-- --scoring tunisian` for the other count)
 npm run test:golden:update  # after an intended change of rules or robots: records the reference games again
 node tools/brand.mjs        # after a change of the emblem: draws the icons, the card back and the share image again
@@ -131,7 +157,8 @@ URL parameters for tests: `?seed=42` makes the deal and the robots' choices repr
 
 1. **Quality**: type checking, format (Prettier), lint (ESLint), conformity (expected cards, CC0 and font credits, nothing loaded from another site, a Content-Security-Policy and no inline script or style, no `eval`, no third-party brand name, no secret in the repository), `npm audit` at moderate level.
 2. **Unit and non-regression tests**: rules, scoring, bidding, robots, 160 simulated games, 33 reference games replayed card for card (both counts, the three robot levels), the three dictionaries, settings and storage, the screen's questions about a game.
-3. **Browser tests and coverage** (after the first two): Chromium, desktop and one phone (375 wide) for every test, four more phone formats for the layout (portrait 360 and 320 wide, landscape 812 and 667), and WebKit as an iPhone 13 (Safari's engine) for the layout, the sounds and whole games; fails under 80% of lines or branches run by unit and browser tests together; coverage report attached, Playwright report and traces on failure.
+3. **PHP side**: coding standard (php-cs-fixer, Symfony rules), static analysis (PHPStan at its strictest), `composer audit`, and the PHPUnit tests with the bridge running; fails under 80% of the lines of `server/src` run.
+4. **Browser tests and coverage** (after the first two): Chromium, desktop and one phone (375 wide) for every test, four more phone formats for the layout (portrait 360 and 320 wide, landscape 812 and 667), and WebKit as an iPhone 13 (Safari's engine) for the layout, the sounds and whole games; fails under 80% of lines or branches run by unit and browser tests together; coverage report attached, Playwright report and traces on failure.
 
 ## Branches
 

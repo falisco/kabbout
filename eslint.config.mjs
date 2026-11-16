@@ -7,7 +7,18 @@ import tseslint from 'typescript-eslint';
 const MAX_FUNCTION_LINES = 60;
 
 export default tseslint.config(
-  { ignores: ['node_modules/', 'coverage/', 'playwright-report/', 'test-results/', 'app/web/app.js', 'app/web/sounds.js'] },
+  {
+    ignores: [
+      'node_modules/',
+      'coverage/',
+      'playwright-report/',
+      'test-results/',
+      'app/web/app.js',
+      'app/web/sounds.js',
+      'server/vendor/',
+      'server/var/',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
