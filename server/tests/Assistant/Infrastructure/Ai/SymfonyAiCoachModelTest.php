@@ -7,6 +7,7 @@ namespace Kabbout\Tests\Assistant\Infrastructure\Ai;
 use Kabbout\Assistant\Application\Coach\CoachBrief;
 use Kabbout\Assistant\Application\Coach\CoachModel;
 use Kabbout\Assistant\Application\Coach\CoachModelFailed;
+use Kabbout\Assistant\Application\Coach\Exchange;
 use Kabbout\Assistant\Application\Coach\Rejected;
 use Kabbout\Assistant\Domain\Grounding\Facts;
 use Kabbout\Assistant\Infrastructure\Ai\CoachConversation;
@@ -40,6 +41,21 @@ final class SymfonyAiCoachModelTest extends KernelTestCase
     {
         unset($_SERVER['ANTHROPIC_API_KEY'], $_SERVER['KABBOUT_AI_MODEL']);
         parent::tearDown();
+    }
+
+    public function testWhatWasAlreadySaidAboutTheDealComesBeforeTheQuestion(): void
+    {
+        AnthropicMock::willAnswer(AnthropicMock::text('Parce que l’as était maître.'));
+        $earlier = [new Exchange('Qu’ai-je mal joué ?', 'Au pli 4, le 10 de trèfle.')];
+        $brief = new CoachBrief(RecordedDeal::record(), Seat::First, Lang::Fr, 'Et pourquoi ?', $earlier);
+
+        self::model()->answer($brief, new Facts());
+
+        $messages = Json::objects(AnthropicMock::requests()[0]['body']['messages'] ?? null, 'messages');
+        self::assertSame(['user', 'assistant', 'user'], array_column($messages, 'role'));
+        $sent = (string) json_encode($messages, \JSON_UNESCAPED_UNICODE);
+        self::assertTrue(strpos($sent, 'Qu’ai-je mal joué ?') < strpos($sent, 'Au pli 4, le 10 de trèfle.'));
+        self::assertTrue(strpos($sent, 'Au pli 4, le 10 de trèfle.') < strpos($sent, 'Et pourquoi ?'));
     }
 
     public function testTheModelLooksAtTheDealThroughItsToolsAndEveryResultBecomesAFact(): void

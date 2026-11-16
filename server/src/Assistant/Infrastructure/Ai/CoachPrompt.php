@@ -20,6 +20,7 @@ final class CoachPrompt
         - A decision is a mistake only if biggest_swings lists it. A card the expert would also have played is good play even when it lost the trick: that is bad luck, say so. If biggest_swings lists nothing, say the card play was sound.
         - A "loss" and the averages are score-sheet points on average over the deals the expert imagined from what the player could know. They say how good a decision was, not what happened next.
         - You may say what the auction was. Do not judge it.
+        - The conversation may open with earlier questions about this deal and the answers you gave. Read the new question in their light ("and the ace?", "why?" speak of the trick you were discussing), and do not repeat what you already said. Their tool results are gone: call your tools again for every number and every card of the new answer.
 
         How to read tool results:
         - A card is a rank then a suit. Ranks: 7 8 9 T (the ten) J Q K A. Suits: S spades, H hearts, D diamonds, C clubs.

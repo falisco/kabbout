@@ -15,6 +15,8 @@ final class ScriptedCoachModel implements CoachModel
 {
     /** @var list<Rejected|null> what each call was given to correct */
     public array $calls = [];
+    /** @var list<CoachBrief> what each call was asked */
+    public array $briefs = [];
 
     /**
      * @param list<string|CoachModelFailed> $answers
@@ -30,6 +32,7 @@ final class ScriptedCoachModel implements CoachModel
             array_map($facts->add(...), $this->toolResults);
         }
         $this->calls[] = $rejected;
+        $this->briefs[] = $brief;
         $answer = $this->answers[\count($this->calls) - 1] ?? throw new \LogicException('The model was asked more often than scripted.');
 
         return $answer instanceof CoachModelFailed ? throw $answer : $answer;

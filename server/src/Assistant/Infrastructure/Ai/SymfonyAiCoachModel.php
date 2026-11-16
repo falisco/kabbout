@@ -67,13 +67,24 @@ final class SymfonyAiCoachModel implements CoachModel
     private function messagesFor(CoachBrief $brief, ?Rejected $rejected): MessageBag
     {
         if (null === $rejected) {
-            return new MessageBag(Message::forSystem(CoachPrompt::system($brief)), Message::ofUser($brief->question));
+            return self::opening($brief);
         }
         $correction = Message::ofUser(CoachPrompt::correction($rejected, $brief->lang));
         $before = $this->messages[$brief] ?? null;
 
         return null !== $before
             ? $before->with($correction)
-            : new MessageBag(Message::forSystem(CoachPrompt::system($brief)), Message::ofUser($brief->question), Message::ofAssistant($rejected->answer), $correction);
+            : self::opening($brief)->with(Message::ofAssistant($rejected->answer))->with($correction);
+    }
+
+    /** the rules, what was already said about the deal, and the question */
+    private static function opening(CoachBrief $brief): MessageBag
+    {
+        $messages = new MessageBag(Message::forSystem(CoachPrompt::system($brief)));
+        foreach ($brief->earlier as $exchange) {
+            $messages = $messages->with(Message::ofUser($exchange->question))->with(Message::ofAssistant($exchange->answer));
+        }
+
+        return $messages->with(Message::ofUser($brief->question));
     }
 }

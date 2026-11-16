@@ -6,6 +6,8 @@ namespace Kabbout\Assistant\UserInterface\Http;
 
 use Kabbout\Assistant\Application\Coach\AskCoach;
 use Kabbout\Assistant\Application\Coach\CoachBrief;
+use Kabbout\Assistant\Application\Coach\CoachMemory;
+use Kabbout\Assistant\Application\Coach\Exchange;
 use Kabbout\Assistant\Domain\AiConfiguration;
 use Kabbout\Assistant\Domain\InvalidAiSettings;
 use Kabbout\Assistant\Infrastructure\EnvAiConfiguration;
@@ -30,7 +32,8 @@ use Symfony\Component\Routing\Attribute\Route;
  *
  * Two limits, both counted here and not by the page: questions a minute per visitor, and questions per
  * deal per visitor. The answer says how many are left on the deal (`left`). Until players have accounts
- * a visitor is an address; the count will be the account's then.
+ * a visitor is an address; the count will be the account's then. The conversation about a deal is kept
+ * here too, so a second question is read after the first one and its answer.
  */
 final readonly class CoachController
 {
@@ -39,7 +42,7 @@ final readonly class CoachController
     private const int MAX_BODY_BYTES = 16 * 1024;
     private const int JSON_DEPTH = 8;
 
-    public function __construct(private AskCoach $askCoach, private AiConfiguration $configuration, private RateLimiterFactoryInterface $coachLimiter, private RateLimiterFactoryInterface $coachDealLimiter)
+    public function __construct(private AskCoach $askCoach, private AiConfiguration $configuration, private RateLimiterFactoryInterface $coachLimiter, private RateLimiterFactoryInterface $coachDealLimiter, private CoachMemory $memory)
     {
     }
 
@@ -66,18 +69,22 @@ final readonly class CoachController
         $visitor = $request->getClientIp() ?? 'unknown';
         // the deal as the server read it, so the same deal written otherwise is still the same deal
         $deal = hash('sha256', json_encode([$brief->record->toArray(), $brief->seat->value], \JSON_THROW_ON_ERROR));
-        $onDeal = $this->coachDealLimiter->create($visitor.'|'.$deal)->consume();
+        $thread = $visitor.'|'.$deal;
+        $onDeal = $this->coachDealLimiter->create($thread)->consume();
         if (!$onDeal->isAccepted()) {
             return self::error(Response::HTTP_TOO_MANY_REQUESTS, 'deal_quota', 'No question left about this deal.', ['left' => 0]);
         }
 
         try {
-            $answer = ($this->askCoach)($brief);
+            // what was already said about this deal is the server's own memory of it, not the page's word
+            $answer = ($this->askCoach)(new CoachBrief($brief->record, $brief->seat, $brief->lang, $brief->question, $this->memory->earlier($thread)));
         } catch (EngineRefused $refused) {
             return self::error(Response::HTTP_UNPROCESSABLE_ENTITY, 'refused', $refused->getMessage(), null === $refused->at ? [] : ['at' => $refused->at]);
         } catch (EngineUnavailable) {
             return self::error(Response::HTTP_SERVICE_UNAVAILABLE, 'engine_unavailable', 'The rules engine cannot be asked right now.');
         }
+
+        $this->memory->remember($thread, new Exchange($brief->question, $answer->text));
 
         return new JsonResponse(
             [
