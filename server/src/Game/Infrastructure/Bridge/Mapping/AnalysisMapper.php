@@ -111,6 +111,8 @@ final class AnalysisMapper
                 self::card($s['played'] ?? null),
                 self::card($s['choice'] ?? null),
                 Json::int($s['loss'] ?? null, 'loss'),
+                Json::bool($s['clear'] ?? null, 'word on the loss'),
+                self::asDealt($s['inThisDeal'] ?? null),
             ),
             Json::objects($a['swings'] ?? null, 'swings'),
         );
@@ -225,6 +227,21 @@ final class AnalysisMapper
     private static function suit(mixed $value): Suit
     {
         return Suit::tryFrom(self::string($value, 'suit')) ?? throw new EngineUnavailable('The bridge answered a suit that is not one.');
+    }
+
+    /** @return array{better: 'expert'|'played'|'same', by: int}|null */
+    private static function asDealt(mixed $value): ?array
+    {
+        if (null === $value) {
+            return null;
+        }
+        $dealt = Json::object($value, 'deal as dealt');
+        $better = $dealt['better'] ?? null;
+        if ('expert' !== $better && 'played' !== $better && 'same' !== $better) {
+            throw new EngineUnavailable('The bridge answered no better card.');
+        }
+
+        return ['better' => $better, 'by' => Json::int($dealt['by'] ?? null, 'difference')];
     }
 
     private static function ending(mixed $value): Ending

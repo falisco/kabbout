@@ -551,10 +551,20 @@ test('the swings are the expert’s choices trick by trick: only the cards it wo
       assert.equal(choices, all.filter((c) => !c.forced).length);
       const expected = all.filter((c) => c.loss > 0).map(({ trick, played, choice, loss }) => ({ trick, played, choice, loss }));
       assert.deepEqual(
-        [...swings].sort((a, b) => a.trick - b.trick),
+        [...swings].sort((a, b) => a.trick - b.trick).map(({ trick, played, choice, loss }) => ({ trick, played, choice, loss })),
         expected,
       );
       for (let i = 1; i < swings.length; i++) assert.ok(swings[i - 1].loss >= swings[i].loss);
+      // a swing is a mistake only from a clear loss; the two costliest of those are also played out in the deal as dealt
+      const clear = swings.filter((s) => s.clear);
+      for (const s of swings) assert.equal(s.clear, s.loss >= 30);
+      for (const [i, s] of swings.entries()) {
+        if (!s.clear || clear.indexOf(s) >= 2) assert.equal(s.inThisDeal, null, `swing ${i}`);
+        else {
+          const { difference } = await ok<WhatIf>('/analysis/what-if', { record, seat, trick: s.trick, card: s.choice });
+          assert.deepEqual(s.inThisDeal, { better: difference > 0 ? 'expert' : difference < 0 ? 'played' : 'same', by: Math.abs(difference) });
+        }
+      }
       seen += swings.length;
     }
   }

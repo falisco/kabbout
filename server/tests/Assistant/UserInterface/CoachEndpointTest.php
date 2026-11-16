@@ -61,7 +61,7 @@ final class CoachEndpointTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertIsArray($answer['answer']);
         self::assertSame('summary', $answer['answer']['source']);
-        self::assertSame([4, 6], $answer['answer']['tricks']);
+        self::assertSame([4], $answer['answer']['tricks']);
         self::assertIsString($answer['answer']['text']);
         self::assertStringStartsWith('In trick 4 you played the 10 of clubs', $answer['answer']['text']);
         self::assertStringNotContainsString('99', $answer['answer']['text']);

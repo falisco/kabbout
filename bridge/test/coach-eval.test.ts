@@ -30,7 +30,10 @@ test('in every deal of the set, the expected mistake is the engine’s first swi
     const { status, body } = dispatch('/analysis/swings', { record, seat });
     assert.equal(status, 200, `${file}: ${JSON.stringify(body)}`);
     const [first, second] = (body as Swings).swings;
-    assert.deepEqual(first, expected, file);
+    const { trick, played, choice, loss } = first;
+    assert.deepEqual({ trick, played, choice, loss }, expected, file);
+    // a planted mistake is a clear one: the coach is asked to name it as such
+    assert.ok(first.clear, file);
     assert.ok(expected.loss >= 40, file);
     assert.ok(!second || first.loss - second.loss >= 20, file);
   }

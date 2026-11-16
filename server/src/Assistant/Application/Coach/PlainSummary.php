@@ -21,8 +21,10 @@ final class PlainSummary
 
     public static function of(DealSummary $summary, Swings $swings, Lang $lang): CoachAnswer
     {
-        $worst = $swings->worst();
-        $others = \array_slice($swings->swings, 1, self::OTHERS);
+        // only clear losses are mistakes: a card the expert merely leans away from is not blamed here
+        $mistakes = $swings->mistakes();
+        $worst = $mistakes[0] ?? null;
+        $others = \array_slice($mistakes, 1, self::OTHERS);
         $sentences = [null === $worst ? self::nothing($lang) : self::worst($worst, $lang)];
         if ([] !== $others) {
             $sentences[] = self::others($others, $lang);
@@ -72,9 +74,9 @@ final class PlainSummary
     private static function nothing(Lang $lang): string
     {
         return match ($lang) {
-            Lang::Fr => 'À chaque pli, vous avez joué une carte aussi bonne que celle de l’expert : rien à reprocher à votre jeu de la carte.',
-            Lang::En => 'In every trick you played a card as good as the expert’s: nothing to blame in your card play.',
-            Lang::Ar => 'في كل بلي لعبت كارطة قد كارطة الخبير: ما فمّا حتى غلطة في لعبك.',
+            Lang::Fr => 'À chaque pli, vous avez joué une carte aussi bonne que celle de l’expert, ou presque : rien à reprocher à votre jeu de la carte.',
+            Lang::En => 'In every trick you played a card as good as the expert’s, or nearly: nothing to blame in your card play.',
+            Lang::Ar => 'في كل بلي لعبت كارطة قد كارطة الخبير ولا تقريب: ما فمّا حتى غلطة في لعبك.',
         };
     }
 

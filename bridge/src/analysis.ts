@@ -223,7 +223,33 @@ export interface Swing {
   played: Card;
   choice: Card;
   loss: number;
+  /**
+   * Whether the loss is large enough to call the card a mistake. Below CLEAR_LOSS the expert only
+   * leans to another card: its averages come from a few dozen imagined deals and from what the seat
+   * saw, not from what a player may read in a lead or in the auction.
+   */
+  clear: boolean;
+  /**
+   * For the costliest clear swings: the deal as it was really dealt, finished by four experts from the
+   * card played and from the expert's card. `better` says which of the two cards ended better for the
+   * player's team there, and `by` by how many score-sheet points (0 for `same`). null when not worked out.
+   */
+  inThisDeal: AsDealt | null;
 }
+
+export interface AsDealt {
+  better: 'expert' | 'played' | 'same';
+  by: number;
+}
+const asDealt = (difference: number): AsDealt => ({
+  better: difference > 0 ? 'expert' : difference < 0 ? 'played' : 'same',
+  by: Math.abs(difference),
+});
+
+/** a loss from which a decision is called a mistake, in score-sheet points on average */
+export const CLEAR_LOSS = 30;
+/** how many clear swings are also played out in the deal as dealt: each one finishes the deal twice */
+const PLAYED_OUT = 2;
 
 export interface Swings {
   /** the player's decisions the expert would have made otherwise, the costliest first */
@@ -238,12 +264,14 @@ export interface Swings {
  * have played is not in the list, whatever became of it.
  */
 export const swingsHandler: Handler = (body): Swings => {
-  const { replay, seat } = read(body);
+  const { record, replay, seat } = read(body);
   const all = Array.from({ length: TRICKS_PER_DEAL }, (_, i) => expertChoice(replay, seat, i + 1));
   const swings = all
     .filter((c) => c.loss > 0)
-    .map(({ trick, played, choice, loss }) => ({ trick, played, choice, loss }))
+    .map(({ trick, played, choice, loss }): Swing => ({ trick, played, choice, loss, clear: loss >= CLEAR_LOSS, inThisDeal: null }))
     .sort((a, b) => b.loss - a.loss || a.trick - b.trick);
+  for (const swing of swings.filter((s) => s.clear).slice(0, PLAYED_OUT))
+    swing.inThisDeal = asDealt(whatIf(record, replay, seat, swing.trick, swing.choice).difference);
   return { swings, choices: all.filter((c) => !c.forced).length };
 };
 
@@ -285,7 +313,10 @@ export const whatIfHandler: Handler = (body): WhatIf => {
   const { record, replay, seat } = read(body);
   const trick = readTrick(body.trick);
   if (!isCard(body.card)) throw new BadRequest('card: a card expected');
-  const card = body.card;
+  return whatIf(record, replay, seat, trick, body.card);
+};
+
+function whatIf(record: DealRecord, replay: Replay, seat: Seat, trick: number, card: Card): WhatIf {
   const { before, card: played } = decisionOf(replay, seat, trick);
   if (!legalPlays(before, seat).includes(card)) throw new EngineError(`illegal card ${card} by seat ${seat}`);
   const purpose = `what-if:${trick}`;
@@ -294,7 +325,7 @@ export const whatIfHandler: Handler = (body): WhatIf => {
   const instead = line(card);
   const margin = (e: Ending): number => e.us.gained - e.them.gained;
   return { trick, played, card, asPlayed, instead, difference: margin(instead) - margin(asPlayed) };
-};
+}
 
 /** one of the player's turns to speak in the auction */
 export interface BidTurn {

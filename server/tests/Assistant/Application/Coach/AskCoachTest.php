@@ -12,7 +12,10 @@ use Kabbout\Assistant\Application\Coach\CoachModelFailed;
 use Kabbout\Assistant\Application\Coach\PlainSummary;
 use Kabbout\Assistant\Domain\Grounding\Facts;
 use Kabbout\Assistant\Domain\Grounding\GroundingGuard;
+use Kabbout\Game\Domain\Analysis\Swing;
 use Kabbout\Game\Domain\Analysis\Swings;
+use Kabbout\Game\Domain\Analysis\TrickNumber;
+use Kabbout\Game\Domain\Card;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\Lang;
@@ -24,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * The coach over the deal of the contract, where seat 0's costliest decision is the ten of clubs in
- * trick 4 (the expert plays the ace of diamonds), then the seven of spades in trick 6.
+ * trick 4 (the expert plays the ace of diamonds), then the seven of spades in trick 6, by too little to be called a mistake.
  */
 final class AskCoachTest extends TestCase
 {
@@ -77,7 +80,7 @@ final class AskCoachTest extends TestCase
         $answer = $this->ask($model);
 
         self::assertSame(AnswerSource::Summary, $answer->source);
-        self::assertSame([4, 6], $answer->tricks);
+        self::assertSame([4], $answer->tricks);
         self::assertSame(['TC', 'AD'], $answer->cards);
         self::assertCount(1, $model->calls);
     }
@@ -119,12 +122,25 @@ final class AskCoachTest extends TestCase
         $answer = PlainSummary::of($summary, $swings, $lang);
 
         self::assertStringStartsWith($start, $answer->text);
-        self::assertSame([4, 6], $answer->tricks);
+        self::assertSame([4], $answer->tricks);
         $facts = new Facts();
         $facts->add($summary->toArray());
         $facts->add($swings->toArray());
         // the summary is held to the rule it stands in for
         self::assertSame([], GroundingGuard::ungrounded($answer->text, $facts));
+
+        // a card the expert only leans away from is not blamed: with nothing but those, the play was sound
+        $slight = new Swings([new Swing(TrickNumber::of(6), Card::fromCode('7S'), Card::fromCode('KC'), 29, false, null)], 6);
+        self::assertSame(PlainSummary::of($summary, new Swings([], 6), $lang)->text, PlainSummary::of($summary, $slight, $lang)->text);
+        // several mistakes: the costliest in full, the next ones by their trick
+        $several = new Swings([...$swings->mistakes(), new Swing(TrickNumber::of(6), Card::fromCode('7S'), Card::fromCode('KC'), 31, true, null), ...$slight->swings], 6);
+        $listed = PlainSummary::of($summary, $several, $lang);
+        self::assertSame([4, 6], $listed->tricks);
+        self::assertStringContainsString(match ($lang) {
+            Lang::Fr => 'Autres décisions coûteuses : pli 6.',
+            Lang::En => 'Other costly decisions: trick 6.',
+            Lang::Ar => 'قرارات أخرى غالية: البلي 6.',
+        }, $listed->text);
 
         $clean = PlainSummary::of($summary, new Swings([], 6), $lang);
         self::assertSame([[], []], [$clean->tricks, $clean->cards]);
@@ -135,9 +151,9 @@ final class AskCoachTest extends TestCase
     /** @return iterable<string, array{Lang, non-empty-string}> */
     public static function languages(): iterable
     {
-        yield 'fr' => [Lang::Fr, 'Au pli 4, vous avez joué le 10 de trèfle ; l’expert aurait joué l’as de carreau, qui rapporte en moyenne '.self::loss().' points de plus. Autres décisions coûteuses : pli 6. Contrat de 80 à carreau réussi'];
-        yield 'en' => [Lang::En, 'In trick 4 you played the 10 of clubs; the expert would have played the ace of diamonds, worth '.self::loss().' more points on average. Other costly decisions: trick 6. Contract of 80 in diamonds, made'];
-        yield 'ar' => [Lang::Ar, 'في البلي 4 لعبت 10 سباتة؛ الخبير كان يلعب اللاص كارو، وهي تجيب '.self::loss().' نقطة أكثر في المعدّل. قرارات أخرى غالية: البلي 6.'];
+        yield 'fr' => [Lang::Fr, 'Au pli 4, vous avez joué le 10 de trèfle ; l’expert aurait joué l’as de carreau, qui rapporte en moyenne '.self::loss().' points de plus. Contrat de 80 à carreau réussi'];
+        yield 'en' => [Lang::En, 'In trick 4 you played the 10 of clubs; the expert would have played the ace of diamonds, worth '.self::loss().' more points on average. Contract of 80 in diamonds, made'];
+        yield 'ar' => [Lang::Ar, 'في البلي 4 لعبت 10 سباتة؛ الخبير كان يلعب اللاص كارو، وهي تجيب '.self::loss().' نقطة أكثر في المعدّل. الكونترا 80 كارو'];
     }
 
     public function testAQuestionIsOneLineOfPlainTextOfAReasonableLength(): void

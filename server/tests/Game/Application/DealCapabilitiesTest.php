@@ -160,6 +160,8 @@ final class DealCapabilitiesTest extends TestCase
         yield 'a turn of an auction without its reason' => [AnalysisMapper::bids(...), ['turns' => [['turn' => 1, 'heard' => [], 'bid' => ['type' => 'pass'], 'expert' => ['type' => 'pass'], 'same' => true]]] + $bids];
         yield 'a bid standing at no seat' => [AnalysisMapper::bids(...), ['turns' => [['turn' => 1, 'heard' => [], 'standing' => ['value' => 80, 'suit' => 'H'], 'bid' => ['type' => 'pass'], 'expert' => ['type' => 'pass'], 'why' => 'x', 'same' => true]]] + $bids];
         yield 'a hand worth something in a fifth suit' => [AnalysisMapper::bids(...), ['suits' => [['suit' => 'X', 'value' => 80, 'why' => '']]] + $bids];
+        yield 'a swing that does not say whether it is clear' => [AnalysisMapper::swings(...), ['swings' => [['trick' => 4, 'played' => 'TC', 'choice' => 'AD', 'loss' => 54]]] + $swings];
+        yield 'a swing better for nobody in the deal as dealt' => [AnalysisMapper::swings(...), ['swings' => [['trick' => 4, 'played' => 'TC', 'choice' => 'AD', 'loss' => 54, 'clear' => true, 'inThisDeal' => ['better' => 'nobody', 'by' => 40]]]] + $swings];
         yield 'swings without their count' => [AnalysisMapper::swings(...), ['choices' => null] + $swings];
         yield 'an empty what-if' => [AnalysisMapper::whatIf(...), []];
         yield 'an empty trick' => [AnalysisMapper::trick(...), []];
