@@ -31,6 +31,7 @@ final readonly class AskCoach
     {
         $summary = ($this->summarise)($brief->record, $brief->seat);
         $facts = new Facts();
+        $refused = [];
         try {
             $rejected = null;
             // the first answer, then one more if the guard rejects it
@@ -43,14 +44,16 @@ final readonly class AskCoach
                 if ([] === $ungrounded) {
                     $reading = Reading::of($text);
 
-                    return new CoachAnswer($text, AnswerSource::Model, array_values(array_filter($reading->tricks, $facts->hasTrick(...))), $reading->cards);
+                    return new CoachAnswer($text, AnswerSource::Model, array_values(array_filter($reading->tricks, $facts->hasTrick(...))), $reading->cards, $refused);
                 }
-                $rejected = new Rejected($text, $ungrounded);
+                $refused[] = $rejected = new Rejected($text, $ungrounded);
             }
         } catch (CoachModelFailed) {
             // the plain summary below is the answer
         }
 
-        return PlainSummary::of($summary, ($this->rankSwings)($brief->record, $brief->seat), $brief->lang);
+        $plain = PlainSummary::of($summary, ($this->rankSwings)($brief->record, $brief->seat), $brief->lang);
+
+        return new CoachAnswer($plain->text, $plain->source, $plain->tricks, $plain->cards, $refused);
     }
 }

@@ -25,6 +25,7 @@ final class CoachPrompt
         - A card is a rank then a suit. Ranks: 7 8 9 T (the ten) J Q K A. Suits: S spades, H hearts, D diamonds, C clubs.
         - Seats are numbered 0 to 3 in the order of play. The player is seat %d, the partner is seat %d, the opponents are seat %d (who plays after the player) and seat %d (who plays before). "us" is the player's team, "them" the other.
         - Never give a seat number: say you, your partner, the opponent after you, the opponent before you.
+        - Every tool result ends with `names`: the name of each of its cards in the player's language. Write a card with exactly that name, never with its two-letter code, and never translate a code yourself.
 
         How to answer:
         - %s
@@ -36,9 +37,9 @@ final class CoachPrompt
         TEXT;
 
     private const array LANGUAGE = [
-        'fr' => 'Answer in French, saying "vous" to the player. A trick is "pli" ("pli 4"). Cards: 7, 8, 9, 10, valet, dame, roi, as, then "de" and pique, cœur, carreau or trèfle ("dame de cœur", "10 de pique").',
-        'en' => 'Answer in English. A trick is "trick" ("trick 4"). Cards: 7, 8, 9, 10, jack, queen, king, ace, then "of" and spades, hearts, diamonds or clubs ("queen of hearts", "10 of spades").',
-        'ar' => 'Answer in Tunisian Arabic (derja), in Arabic script, as players speak at the café. A trick is "البلي" ("البلي 4"). Cards: 7, 8, 9, 10, الفالي, الدامة, الروا, اللاص, then بيك, كور, كارو or سباتة ("الدامة كور", "10 بيك"). The expert is "الخبير", trump is "أتو".',
+        'fr' => 'Answer in French, saying "vous" to the player. A trick is "pli" ("pli 4"). Suits: S = pique, H = cœur, D = carreau, C = trèfle. Ranks: 7, 8, 9, T = 10, J = valet, Q = dame, K = roi, A = as. A card is the rank, "de", the suit ("dame de cœur", "10 de pique"). Trump is "atout".',
+        'en' => 'Answer in English. A trick is "trick" ("trick 4"). Suits: S = spades, H = hearts, D = diamonds, C = clubs. Ranks: 7, 8, 9, T = 10, J = jack, Q = queen, K = king, A = ace. A card is the rank, "of", the suit ("queen of hearts", "10 of spades").',
+        'ar' => 'Answer in Tunisian Arabic (derja), in Arabic script, as players speak at the café. A trick is "البلي" ("البلي 4"). Suits: S = بيك, H = كور, D = كارو, C = سباتة (mind the letters: S is بيك, C is سباتة, H is كور). Ranks: 7, 8, 9, T = 10, J = الفالي, Q = الدامة, K = الروا, A = اللاص. A card is the rank then the suit ("الدامة كور", "10 بيك"). The expert is "الخبير", trump is "أتو", the contract is "الكونترا".',
     ];
 
     public static function system(CoachBrief $brief): string

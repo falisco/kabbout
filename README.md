@@ -21,12 +21,12 @@ Open the address it prints, `http://localhost:8080`. That is the whole game: no 
 
 Two services start: `app`, a Symfony application that serves the built game and `/api` on that one port, and `bridge`, the rules engine, which only `app` can reach. To change the port or to switch the AI on, copy `.env.example` to `.env`:
 
-| Variable              | What it does                                                                                                                                                                                           |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ANTHROPIC_API_KEY`   | Switches the AI on: an Anthropic API key. Empty: the AI is off. The key is in no answer and no log.                                                                                                    |
-| `KABBOUT_AI_MODEL`    | The Claude model the coach asks, `claude-opus-5-5` unless set (`claude-sonnet-5-5` and `claude-haiku-5-5` cost less). A key with an empty model stops `app` at the start, with one line that says why. |
-| `KABBOUT_PORT`        | The port the game is opened on, 8080 unless set.                                                                                                                                                       |
-| `KABBOUT_COACH_LIMIT` | Questions to the coach one visitor may ask in a minute, 6 unless set. Each one is a call to the model, on your key.                                                                                    |
+| Variable              | What it does                                                                                                                                                                                                                                                                  |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ANTHROPIC_API_KEY`   | Switches the AI on: an Anthropic API key. Empty: the AI is off. The key is in no answer and no log.                                                                                                                                                                           |
+| `KABBOUT_AI_MODEL`    | The Claude model the coach asks, `claude-haiku-5-5` unless set: on the evaluation below it names the mistake as often as `claude-sonnet-5-5` and `claude-opus-5-5`, faster and for far less. A key with an empty model stops `app` at the start, with one line that says why. |
+| `KABBOUT_PORT`        | The port the game is opened on, 8080 unless set.                                                                                                                                                                                                                              |
+| `KABBOUT_COACH_LIMIT` | Questions to the coach one visitor may ask in a minute, 6 unless set. Each one is a call to the model, on your key.                                                                                                                                                           |
 
 `GET /api/capabilities` says what the server can do with the AI: for each feature (`coach`, `spoken_bids`, `referee`, `agent_seat`) a `state`, `planned`, `off` or `on`, and a `hint` when it is not on. The coach is in this version: `off` without a key, `on` with one. The others are `planned`, and the menu of the game says so in one line. The key is never part of an answer. An address or a method the API does not know is answered in JSON too (`404`, `405`), in the shape `{ "error": { "code", "message" } }`.
 
@@ -199,9 +199,13 @@ After a deal, the end-of-deal screen offers "Ask the coach": the player asks "wh
 
 **Measured, not claimed.** `eval/coach/` holds fifteen deals played by the expert robots, each with one card planted that the expert likes least; a deal is in the set only when the engine's analysis puts that card first among the swings, well ahead of the next. `npm run eval:coach` asks the coach "what did I do wrong?" about each, five in each language, and counts the answers written by the model that name the trick and the card. A plain summary always names them, so it is counted apart, as an answer the model did not give.
 
-| Date        | Model                              | Named the expected mistake | Answers written by the model |
-| ----------- | ---------------------------------- | -------------------------- | ---------------------------- |
-| not run yet | needs a key in `ANTHROPIC_API_KEY` |                            |                              |
+| Date       | Model               | Named the expected mistake     | Answers written by the model | Time for the 15 |
+| ---------- | ------------------- | ------------------------------ | ---------------------------- | --------------- |
+| 2026-11-16 | `claude-haiku-5-5`  | 15/15 (fr 5/5, en 5/5, ar 5/5) | 15/15                        | 79 s            |
+| 2026-11-16 | `claude-sonnet-5-5` | 15/15 (fr 5/5, en 5/5, ar 5/5) | 15/15                        | 76 s            |
+| 2026-11-16 | `claude-opus-5-5`   | 15/15 (fr 5/5, en 5/5, ar 5/5) | 15/15                        | 137 s           |
+
+One run each, and a model does not answer twice the same way: read these as "all three find the planted mistake", not as a ranking. What the measure did find is in the first runs, before two corrections. With card codes left for the model to translate, the answers in Tunisian Arabic named the wrong suit ("9 كور" for the 9 of clubs) and the guard sent them back: 12/15 for Haiku and 11/15 for Sonnet, 2/5 and 1/5 in Arabic. Each tool result now carries the name of its cards in the player's language. And the guard read a rank cited alone ("your 10", "the 7, 8 and 9 of clubs") as an invented number, and missed a card joined to an Arabic particle ("و9 سباتة"); it now reads both, and holds a trick the answer points at to the tricks a tool looked at. The measure counts whether the mistake is named, not how well it is explained: the larger models illustrate more (a what-if, the next best card).
 
 ## Commands
 

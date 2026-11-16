@@ -38,6 +38,7 @@ final class GroundingGuardTest extends TestCase
         yield 'English, a trick by its number' => ['Trick number 5 went to them, trick #6 too.', [], [5, 6], [5, 6]];
         yield 'Tunisian Arabic, digits of the script' => ['في البلي ٤ لعبت 10 سباتة والخبير كان يلعب اللاص كارو: ٤٦ نقطة.', ['TC', 'AD'], [4, 46], [4]];
         yield 'Tunisian Arabic, an ordinal and the article' => ['البلي الثالث: الدامة الكور خير من فالي بيك.', ['QH', 'JS'], [3], [3]];
+        yield 'Tunisian Arabic, particles joined to the card' => ['و9 سباتة كانت خير، والدامة بيك زادة، مقابل 45 للـ9 سباتة وبالروا كارو.', ['9C', 'QS', 'KD'], [45], []];
         yield 'Persian digits' => ['۱۲۰', [], [120], []];
         yield 'cards drawn with their suit' => ['Q♥ puis D♥, le 10♠, R♦ et V ♣.', ['QH', 'TS', 'KD', 'JC'], [], []];
         yield 'cards as the engine writes them' => ['You held KS and 9D, not TC.', ['KS', '9D', 'TC'], [], []];
@@ -58,9 +59,17 @@ final class GroundingGuardTest extends TestCase
         self::assertSame([], GroundingGuard::ungrounded('Au pli 4, le 10 de trèfle coûte 46 points ; l’as de carreau était meilleur. 80 points de moins, 12 en moyenne sur 6 choix.', $facts));
         self::assertSame(['47'], GroundingGuard::ungrounded('Au pli 4, le 10 de trèfle coûte 47 points.', $facts));
         self::assertSame(['KS'], GroundingGuard::ungrounded('In trick 4 the king of spades was the card.', $facts));
-        self::assertSame(['5', '90', 'QH'], GroundingGuard::ungrounded('في البلي ٥ الدامة كور تجيب ٩٠، و٩٠ أخرى.', $facts));
+        self::assertSame(['5', '90', 'trick 5', 'QH'], GroundingGuard::ungrounded('في البلي ٥ الدامة كور تجيب ٩٠، و٩٠ أخرى.', $facts));
+        // the number printed on a card of the results is no invention: "your 10", "the 7, 8 and 9 of clubs"
+        $facts->add(['hand' => ['7C', '8C', '9C']]);
+        self::assertSame([], GroundingGuard::ungrounded('Your 10 was the card; you still held the 7, 8 and 9 of clubs.', $facts));
+        self::assertSame(['QC'], GroundingGuard::ungrounded('You still held the 7, 8, 9 and queen of clubs.', $facts));
         // said in letters, an invented trick is still an invented trick
-        self::assertSame(['7'], GroundingGuard::ungrounded('Au septième pli, tout était joué.', $facts));
+        self::assertSame(['trick 7'], GroundingGuard::ungrounded('Au septième pli, tout était joué.', $facts));
+        self::assertSame(['trick 8'], GroundingGuard::ungrounded('Trick 8 was yours.', $facts));
+        // counting tricks is not pointing at one
+        $facts->add(['us' => ['tricks' => 6]]);
+        self::assertSame([], GroundingGuard::ungrounded('Vous avez fait 6 plis, dont le pli 4.', $facts));
     }
 
     public function testATrickIsOnlyKnownByTheToolThatLookedAtIt(): void

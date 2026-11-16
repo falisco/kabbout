@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\Infrastructure\Ai;
 
+use Kabbout\Assistant\Domain\Grounding\CardVocabulary;
 use Kabbout\Game\Application\AskExpertChoice;
 use Kabbout\Game\Application\RankSwings;
 use Kabbout\Game\Application\ReviewTrick;
@@ -38,18 +39,15 @@ final readonly class CoachTools
     ) {
     }
 
-    /** @return array<string, mixed> */
-    public function dealSummary(): array
+    public function dealSummary(): string
     {
         return $this->established(($this->summarise)($this->conversation->record(), $this->conversation->seat())->toArray());
     }
 
     /**
      * @param int $n the trick, from 1 to 8
-     *
-     * @return array<string, mixed>|string
      */
-    public function trick(int $n): array|string
+    public function trick(int $n): string
     {
         $trick = TrickNumber::tryFrom($n);
 
@@ -58,10 +56,8 @@ final readonly class CoachTools
 
     /**
      * @param int $n the trick, from 1 to 8
-     *
-     * @return array<string, mixed>|string
      */
-    public function expertChoice(int $n): array|string
+    public function expertChoice(int $n): string
     {
         $trick = TrickNumber::tryFrom($n);
 
@@ -71,10 +67,8 @@ final readonly class CoachTools
     /**
      * @param int    $n    the trick, from 1 to 8
      * @param string $card the card to play instead, rank then suit as in the other results, for example QH
-     *
-     * @return array<string, mixed>|string
      */
-    public function whatIf(int $n, string $card): array|string
+    public function whatIf(int $n, string $card): string
     {
         $trick = TrickNumber::tryFrom($n);
         if (null === $trick) {
@@ -92,22 +86,31 @@ final readonly class CoachTools
         }
     }
 
-    /** @return array<string, mixed> */
-    public function biggestSwings(): array
+    public function biggestSwings(): string
     {
         return $this->established(($this->rankSwings)($this->conversation->record(), $this->conversation->seat())->toArray());
     }
 
     /**
-     * @param array<string, mixed> $result
+     * The result as the model reads it: itself, and the name of each of its cards in the player's
+     * language. The engine writes "QC"; a player reads "dame de trèfle", and the model is not left
+     * to translate one into the other. The facts of the conversation are the result alone.
      *
-     * @return array<string, mixed>
+     * It is written here as JSON, with every letter as it is: left to the agent, the names would
+     * reach the model as escape codes.
+     *
+     * @param array<string, mixed> $result
      */
-    private function established(array $result): array
+    private function established(array $result): string
     {
         $this->conversation->establish($result);
+        preg_match_all('/"([789TJQKA][SHDC])"/', json_encode($result, \JSON_THROW_ON_ERROR), $found);
+        $names = [];
+        foreach (array_unique($found[1]) as $card) {
+            $names[$card] = CardVocabulary::name($card, $this->conversation->lang()->value);
+        }
 
-        return $result;
+        return json_encode([] === $names ? $result : [...$result, 'names' => $names], \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES);
     }
 
     private static function noSuchTrick(int $n): string

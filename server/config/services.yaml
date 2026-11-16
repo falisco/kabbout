@@ -3,7 +3,7 @@
 parameters:
   # Nothing written: the AI is off and the bridge is where the compose file puts it.
   env(ANTHROPIC_API_KEY): ''
-  env(KABBOUT_AI_MODEL): 'claude-opus-5-5'
+  env(KABBOUT_AI_MODEL): 'claude-haiku-5-5'
   env(BRIDGE_URL): 'http://bridge:8787'
   # questions to the coach one visitor may ask in a minute
   env(KABBOUT_COACH_LIMIT): '6'

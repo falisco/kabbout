@@ -96,10 +96,13 @@ final class CardVocabulary
         };
         $text = (string) preg_replace_callback(self::CODE, static fn (array $m): string => $keep($m[1], $m[2]), $text);
         $text = mb_strtolower($text);
+        // Arabic joins a word to what follows it: "و9 سباتة" (and the 9 of clubs), "للـ9" (for the 9). The link is cut before reading.
+        $text = (string) preg_replace(['/ـ/u', '/(?<=[\x{0621}-\x{064A}])(?=\p{Nd})/u'], ['', ' '], $text);
 
         $ranks = self::alternation(array_keys(self::RANK_WORDS));
         $suits = self::alternation(array_keys(self::SUIT_WORDS));
-        $named = '/(?<![\p{L}\p{N}])('.$ranks.')\s+(?:de\s+|d[\'’]\s*|of\s+)?('.$suits.')(?![\p{L}\p{N}])/u';
+        // one or two joined particles may come before an Arabic rank: "والدامة", "بالروا"
+        $named = '/(?<![\p{L}\p{N}])(?:[وبفكل]{1,2}(?=\p{Arabic}))?('.$ranks.')\s+(?:de\s+|d[\'’]\s*|of\s+)?('.$suits.')(?![\p{L}\p{N}])/u';
         $text = (string) preg_replace_callback($named, static fn (array $m): string => $keep(self::RANK_WORDS[$m[1]], self::SUIT_WORDS[$m[2]]), $text);
 
         $letters = implode('', array_keys(self::INDEX_LETTERS));

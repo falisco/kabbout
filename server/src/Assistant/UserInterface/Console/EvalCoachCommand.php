@@ -59,6 +59,9 @@ final readonly class EvalCoachCommand
                 $hit ? 'named' : ($byModel ? 'missed' : 'no answer from the model (plain summary shown)'),
             ));
             if ($io->isVerbose()) {
+                foreach ($answer->rejected as $rejected) {
+                    $io->writeln('      sent back by the guard for '.implode(', ', $rejected->ungrounded).': '.$rejected->answer);
+                }
                 $io->writeln('      '.$answer->text);
             }
         }

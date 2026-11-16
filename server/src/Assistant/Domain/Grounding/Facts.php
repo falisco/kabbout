@@ -7,7 +7,7 @@ namespace Kabbout\Assistant\Domain\Grounding;
 /**
  * What the tools established in one conversation: every number and every card found anywhere in their
  * results. An answer may state these and nothing else. A number counts whatever its sign: "-80" in a
- * result lets the answer say "80 points less".
+ * result lets the answer say "80 points less". The number printed on a card counts too: the 9 of "9C".
  */
 final class Facts
 {
@@ -67,6 +67,11 @@ final class Facts
         }
         if (\is_string($value) && 1 === preg_match('/^[789TJQKA][SHDC]$/', $value)) {
             $this->cards[$value] = true;
+            // the number printed on a card is a number of the result: "your 10", "the 7, 8 and 9 of clubs"
+            $rank = 'T' === $value[0] ? 10 : (int) $value[0];
+            if ($rank > 0) {
+                $this->numbers[$rank] = true;
+            }
         }
     }
 }

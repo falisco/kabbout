@@ -58,7 +58,8 @@ final class SymfonyAiCoachModelTest extends KernelTestCase
         // what leaves the server: Anthropic's Messages API, the key in its header, the model of the settings
         self::assertSame('POST https://api.anthropic.com/v1/messages', $requests[0]['url']);
         self::assertContains('x-api-key: '.self::KEY, $requests[0]['headers']);
-        self::assertSame('claude-opus-5-5', $requests[0]['body']['model']);
+        self::assertSame('claude-haiku-5-5', $requests[0]['body']['model']);
+        self::assertSame(4096, $requests[0]['body']['max_tokens']);
         self::assertSame(['deal_summary', 'trick', 'expert_choice', 'what_if', 'biggest_swings'], array_column(Json::objects($requests[0]['body']['tools'] ?? null, 'tools'), 'name'));
         // the first request is the rules and the question; the next ones carry what the tools returned
         $sent = array_map(static fn (array $request): string => (string) json_encode($request['body'], \JSON_UNESCAPED_UNICODE), $requests);
@@ -68,6 +69,9 @@ final class SymfonyAiCoachModelTest extends KernelTestCase
         self::assertStringContainsString('tool_result', $sent[1]);
         self::assertStringContainsString('swings', $sent[1]);
         self::assertStringContainsString('onTable', $sent[2]);
+        // each result names its cards in the player's language: the model translates no code
+        self::assertStringContainsString('10 de trèfle', $sent[1]);
+        self::assertStringContainsString('as de carreau', $sent[1]);
         self::assertTrue($facts->hasTrick(4) && $facts->hasTrick(1) && $facts->hasCard('TC') && $facts->hasCard('AD'));
         self::assertTrue($facts->hasNumber(Json::int(Json::object(RecordedDeal::call('/analysis/summary')['response']['us'] ?? null, 'side')['gained'] ?? null, 'score')));
     }
@@ -154,12 +158,12 @@ final class SymfonyAiCoachModelTest extends KernelTestCase
 
     public function testTheModelAskedIsTheOneOfTheSettings(): void
     {
-        $_SERVER['KABBOUT_AI_MODEL'] = 'claude-haiku-5-5';
+        $_SERVER['KABBOUT_AI_MODEL'] = 'claude-sonnet-5-5';
         AnthropicMock::willAnswer(AnthropicMock::text('Vu.'));
 
         self::model()->answer(self::brief(), new Facts());
 
-        self::assertSame('claude-haiku-5-5', AnthropicMock::requests()[0]['body']['model']);
+        self::assertSame('claude-sonnet-5-5', AnthropicMock::requests()[0]['body']['model']);
     }
 
     /** @param list<array<string, mixed>|int> $script */

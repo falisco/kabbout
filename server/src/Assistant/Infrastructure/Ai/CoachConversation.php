@@ -7,6 +7,7 @@ namespace Kabbout\Assistant\Infrastructure\Ai;
 use Kabbout\Assistant\Application\Coach\CoachBrief;
 use Kabbout\Assistant\Domain\Grounding\Facts;
 use Kabbout\Game\Domain\DealRecord;
+use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
 use Symfony\Contracts\Service\ResetInterface;
 
@@ -45,6 +46,11 @@ final class CoachConversation implements ResetInterface
     public function seat(): Seat
     {
         return $this->brief()->seat;
+    }
+
+    public function lang(): Lang
+    {
+        return $this->brief()->lang;
     }
 
     /** One more tool result, as the data it returned: what the answer will be checked against. */

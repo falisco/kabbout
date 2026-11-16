@@ -11,7 +11,11 @@ ai:
     # Its system prompt is written for each question (the player's seat and language): Infrastructure\Ai\CoachPrompt.
     coach:
       platform: 'ai.platform.anthropic'
-      model: '%env(KABBOUT_AI_MODEL)%'
+      model:
+        name: '%env(KABBOUT_AI_MODEL)%'
+        # the models think before they answer: the bridge's default of 1000 tokens can leave no room for the answer
+        options:
+          max_tokens: 4096
       tools:
         - 'Kabbout\Assistant\Infrastructure\Ai\CoachTools'
       # rounds of tool calls in one answer: the five tools, and a few closer looks

@@ -59,7 +59,7 @@ final class ServerTest extends WebTestCase
         self::assertResponseHeaderSame('Cache-Control', 'no-store, private');
         $body = (string) $client->getResponse()->getContent();
         self::assertStringNotContainsString(self::KEY, $body);
-        self::assertStringContainsString('"configured":true,"platform":"anthropic","model":"claude-opus-5-5"', $body);
+        self::assertStringContainsString('"configured":true,"platform":"anthropic","model":"claude-haiku-5-5"', $body);
     }
 
     public function testSettingsThatCannotWorkAreAnsweredInJsonWithoutTheKey(): void
@@ -81,9 +81,9 @@ final class ServerTest extends WebTestCase
 
         self::ensureKernelShutdown();
         $_SERVER['ANTHROPIC_API_KEY'] = self::KEY;
-        $_SERVER['KABBOUT_AI_MODEL'] = 'claude-haiku-5-5';
+        $_SERVER['KABBOUT_AI_MODEL'] = 'claude-sonnet-5-5';
         $output = self::check(0);
-        self::assertStringContainsString('AI: on, anthropic with claude-haiku-5-5.', $output);
+        self::assertStringContainsString('AI: on, anthropic with claude-sonnet-5-5.', $output);
         self::assertStringNotContainsString(self::KEY, $output);
     }
 

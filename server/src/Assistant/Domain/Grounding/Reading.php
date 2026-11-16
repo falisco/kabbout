@@ -28,7 +28,8 @@ final readonly class Reading
 
         $tricks = [];
         $after = '/'.self::TRICK.'\s*(?:n[°o]\.?\s*|numéro\s+|number\s+|رقم\s+|#\s*)?(\d+)/u';
-        $before = '/(\d+)\s*(?:ère|ere|er|re|ème|eme|e|st|nd|rd|th)?\s+'.self::TRICK.'/u';
+        // "the 4th trick" points at a trick; "4 tricks" counts them
+        $before = '/(\d+)\s*(?:ère|ere|er|re|ème|eme|e|st|nd|rd|th)?\s+(?:pli|trick|البلي|بلي)(?![\p{L}])/u';
         foreach ([$after, $before] as $pattern) {
             preg_match_all($pattern, $rest, $found);
             foreach ($found[1] as $number) {
