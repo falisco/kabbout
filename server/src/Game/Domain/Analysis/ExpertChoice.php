@@ -20,6 +20,7 @@ final readonly class ExpertChoice
      * @param int                                     $worlds  deals imagined; 0 when forced
      * @param list<array{card: string, average: int}> $cards   every legal card with its average
      * @param int                                     $loss    the expert's average minus the played card's; 0 for the same card
+     * @param TableReading                            $reading the table as the seat could read it then
      */
     public function __construct(
         public TrickNumber $trick,
@@ -31,6 +32,7 @@ final readonly class ExpertChoice
         public int $worlds,
         public array $cards,
         public int $loss,
+        public TableReading $reading,
     ) {
     }
 
@@ -47,6 +49,7 @@ final readonly class ExpertChoice
             'worlds' => $this->worlds,
             'cards' => $this->cards,
             'loss' => $this->loss,
+            'reading' => $this->reading->toArray(),
         ];
     }
 }

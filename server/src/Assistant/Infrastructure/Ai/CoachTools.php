@@ -24,7 +24,7 @@ use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
  */
 #[AsTool('deal_summary', 'The deal in short: the auction, the contract, whether it was made, and what each team made (tricks, card points, score-sheet points).', 'dealSummary')]
 #[AsTool('trick', 'One trick as it was played: the four cards in order, who led, who won, the card points in it, and the card the player put in it.', 'trick')]
-#[AsTool('expert_choice', 'What the expert would have played at the player\'s turn in one trick, knowing only what the player could know then: the player\'s hand, the cards on the table, every legal card with its average result, and the loss of the card played against the expert\'s.', 'expertChoice')]
+#[AsTool('expert_choice', 'What the expert would have played at the player\'s turn in one trick, knowing only what the player could know then: the player\'s hand, the cards on the table, every legal card with its average result, the loss of the card played against the expert\'s, and the table reading that explains it: cards fallen, cards and trumps still out, master cards, seats void in a suit, who held the trick, the points made so far.', 'expertChoice')]
 #[AsTool('what_if', 'How the deal ends if the player plays another card in one trick, next to how it ends from the card really played; both finished by the same four experts.', 'whatIf')]
 #[AsTool('biggest_swings', 'The player\'s decisions the expert would have made otherwise, the costliest first, each with its trick, the card played, the expert\'s card and the loss on average. A decision that is not in this list is not a mistake.', 'biggestSwings')]
 final readonly class CoachTools

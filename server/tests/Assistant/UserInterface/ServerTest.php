@@ -59,7 +59,7 @@ final class ServerTest extends WebTestCase
         self::assertResponseHeaderSame('Cache-Control', 'no-store, private');
         $body = (string) $client->getResponse()->getContent();
         self::assertStringNotContainsString(self::KEY, $body);
-        self::assertStringContainsString('"configured":true,"platform":"anthropic","model":"claude-haiku-5-5"', $body);
+        self::assertStringContainsString('"configured":true,"platform":"anthropic","model":"claude-sonnet-5-5"', $body);
     }
 
     public function testSettingsThatCannotWorkAreAnsweredInJsonWithoutTheKey(): void

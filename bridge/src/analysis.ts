@@ -34,6 +34,8 @@ import { BadRequest } from './errors.ts';
 import type { Body, Handler } from './handlers.ts';
 import { sorted } from './handlers.ts';
 import type { DealRecord, Decision, Replay } from './replay.ts';
+import type { Reading } from './reading.ts';
+import { readingOf } from './reading.ts';
 import { readRecord, replayDeal } from './replay.ts';
 import { streamOf } from './rng.ts';
 import { unknownSeat } from './shape.ts';
@@ -155,6 +157,8 @@ export interface ExpertChoice {
   cards: CardAverage[];
   /** the average of the expert's card minus the average of the card played; 0 when they are the same card */
   loss: number;
+  /** the table as the player could read it then: what explains the choice */
+  reading: Reading;
 }
 
 /** the player's own card in a trick, with the deal as it stood before it */
@@ -182,6 +186,7 @@ export function expertChoiceFrom(view: PlayerView, trick: number, played: Card):
     worlds: found.worlds,
     cards,
     loss: averageOf(found.choice) - averageOf(played),
+    reading: readingOf(view),
   };
 }
 

@@ -444,6 +444,52 @@ test('the same question about the same deal gets the same analysis, byte for byt
   }
 });
 
+test('the table read at the player’s turn accounts for every card and every point, from what the player saw', async () => {
+  let voids = 0;
+  for (const seed of [11, 12, 13]) {
+    const { record } = await recordedDeal(seed);
+    const seat: Seat = 0;
+    const trumpOf = (await ok<Summary>('/analysis/summary', { record, seat })).contract.suit;
+    for (const trick of TRICK_NUMBERS) {
+      const c: ExpertChoice = await ok('/analysis/expert-choice', { record, seat, trick });
+      const r = c.reading;
+      const table = c.onTable.map((p) => p.card);
+      const earlier = record.tricks.slice(0, trick - 1).flat();
+      const fallen: Card[] = Object.values(r.fallen).flat();
+      const out: Card[] = Object.values(r.out).flat();
+      assert.equal(r.trump, trumpOf);
+      // the thirty-two cards: fallen, on the table, in the hand, or with the others
+      assert.deepEqual([...fallen].sort(), earlier.map((p) => p.card).sort());
+      assert.equal(new Set([...fallen, ...table, ...c.hand, ...out]).size, 32);
+      assert.equal(fallen.length + table.length + c.hand.length + out.length, 32);
+      for (const [suit, cards] of Object.entries(r.out) as [string, Card[]][]) for (const card of cards) assert.equal(suitOf(card), suit);
+      assert.equal(r.trumps.fallen + r.trumps.onTable + r.trumps.inHand + r.trumps.out, 8);
+      assert.equal(r.trumps.out, r.out[r.trump].length);
+      assert.equal(r.points.us + r.points.them + r.points.onTable + r.points.inHands, 152);
+      assert.equal(r.holding === null, table.length === 0);
+      // the cards of the reading are the legal ones, and a master is beaten by nothing still out
+      assert.deepEqual(r.legal.map((l) => l.card).sort(), c.cards.map((x) => x.card).sort());
+      for (const l of r.legal) {
+        assert.equal(l.trump, suitOf(l.card) === r.trump);
+        if (table.length === 0) assert.ok(l.holds);
+        if (l.master && out[0] !== undefined) {
+          const top = r.masters.find((m) => m.suit === suitOf(l.card));
+          assert.ok(top && (top.mine || !r.out[top.suit].includes(top.card)));
+        }
+      }
+      for (const m of r.masters) assert.equal(m.mine, c.hand.includes(m.card));
+      // a seat is void in a suit only after it failed to follow it, and holds none of it afterwards
+      for (const v of r.voids) {
+        assert.notEqual(v.seat, seat);
+        const later = record.tricks.slice(trick).flat();
+        assert.ok(!later.some((p) => p.seat === v.seat && suitOf(p.card) === v.suit), `seat ${v.seat} is void in ${v.suit}`);
+        voids++;
+      }
+    }
+  }
+  assert.ok(voids > 0, 'no deal showed a void: the test would check nothing of them');
+});
+
 test('the swings are the expert’s choices trick by trick: only the cards it would not have played, the costliest first', async () => {
   let seen = 0;
   for (const seed of [11, 12, 13]) {

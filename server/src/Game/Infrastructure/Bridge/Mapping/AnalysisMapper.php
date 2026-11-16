@@ -10,6 +10,7 @@ use Kabbout\Game\Domain\Analysis\ExpertChoice;
 use Kabbout\Game\Domain\Analysis\Side;
 use Kabbout\Game\Domain\Analysis\Swing;
 use Kabbout\Game\Domain\Analysis\Swings;
+use Kabbout\Game\Domain\Analysis\TableReading;
 use Kabbout\Game\Domain\Analysis\TrickNumber;
 use Kabbout\Game\Domain\Analysis\TrickReview;
 use Kabbout\Game\Domain\Analysis\WhatIf;
@@ -17,6 +18,7 @@ use Kabbout\Game\Domain\Card;
 use Kabbout\Game\Domain\Exception\EngineUnavailable;
 use Kabbout\Game\Domain\Scoring;
 use Kabbout\Game\Domain\Seat;
+use Kabbout\Game\Domain\Suit;
 
 /** Reads the bridge's analysis answers into the domain's words; a shape that is not the expected one is EngineUnavailable. */
 final class AnalysisMapper
@@ -82,6 +84,7 @@ final class AnalysisMapper
             Json::int($a['worlds'] ?? null, 'number of deals'),
             $cards,
             Json::int($a['loss'] ?? null, 'loss'),
+            self::reading(Json::object($a['reading'] ?? null, 'table reading')),
         );
     }
 
@@ -112,6 +115,76 @@ final class AnalysisMapper
         );
 
         return new Swings($swings, Json::int($a['choices'] ?? null, 'number of choices'));
+    }
+
+    /** @param array<string, mixed> $r */
+    private static function reading(array $r): TableReading
+    {
+        $trumps = Json::object($r['trumps'] ?? null, 'trumps');
+        $points = Json::object($r['points'] ?? null, 'points');
+        $holding = $r['holding'] ?? null;
+
+        return new TableReading(
+            self::suit($r['trump'] ?? null),
+            Json::bool($r['taking'] ?? null, 'taking side'),
+            self::bySuit($r['fallen'] ?? null),
+            self::bySuit($r['out'] ?? null),
+            [
+                'fallen' => Json::int($trumps['fallen'] ?? null, 'trumps fallen'),
+                'onTable' => Json::int($trumps['onTable'] ?? null, 'trumps on the table'),
+                'inHand' => Json::int($trumps['inHand'] ?? null, 'trumps in hand'),
+                'out' => Json::int($trumps['out'] ?? null, 'trumps out'),
+            ],
+            array_map(
+                static fn (array $m): array => [
+                    'suit' => self::suit($m['suit'] ?? null)->value,
+                    'card' => self::card($m['card'] ?? null)->code(),
+                    'mine' => Json::bool($m['mine'] ?? null, 'master holder'),
+                ],
+                Json::objects($r['masters'] ?? null, 'masters'),
+            ),
+            array_map(
+                static fn (array $v): array => ['seat' => self::seat($v['seat'] ?? null)->value, 'suit' => self::suit($v['suit'] ?? null)->value],
+                Json::objects($r['voids'] ?? null, 'voids'),
+            ),
+            null === $holding ? null : self::seat($holding)->value,
+            [
+                'us' => Json::int($points['us'] ?? null, 'points'),
+                'them' => Json::int($points['them'] ?? null, 'points'),
+                'onTable' => Json::int($points['onTable'] ?? null, 'points'),
+                'inHands' => Json::int($points['inHands'] ?? null, 'points'),
+            ],
+            array_map(
+                static fn (array $l): array => [
+                    'card' => self::card($l['card'] ?? null)->code(),
+                    'trump' => Json::bool($l['trump'] ?? null, 'word on a card'),
+                    'master' => Json::bool($l['master'] ?? null, 'word on a card'),
+                    'holds' => Json::bool($l['holds'] ?? null, 'word on a card'),
+                    'points' => Json::int($l['points'] ?? null, 'points'),
+                ],
+                Json::objects($r['legal'] ?? null, 'legal cards'),
+            ),
+        );
+    }
+
+    /** @return array<string, list<string>> the cards of each of the four suits */
+    private static function bySuit(mixed $value): array
+    {
+        $given = Json::object($value, 'cards by suit');
+        $cards = [];
+        foreach (Suit::cases() as $suit) {
+            $cards[$suit->value] = array_map(
+                static fn (string $code): string => self::card($code)->code(),
+                Json::strings($given[$suit->value] ?? null, 'cards'),
+            );
+        }
+
+        return $cards;
+    }
+
+    private static function suit(mixed $value): Suit
+    {
+        return Suit::tryFrom(self::string($value, 'suit')) ?? throw new EngineUnavailable('The bridge answered a suit that is not one.');
     }
 
     private static function ending(mixed $value): Ending

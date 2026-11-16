@@ -58,7 +58,7 @@ final class SymfonyAiCoachModelTest extends KernelTestCase
         // what leaves the server: Anthropic's Messages API, the key in its header, the model of the settings
         self::assertSame('POST https://api.anthropic.com/v1/messages', $requests[0]['url']);
         self::assertContains('x-api-key: '.self::KEY, $requests[0]['headers']);
-        self::assertSame('claude-haiku-5-5', $requests[0]['body']['model']);
+        self::assertSame('claude-sonnet-5-5', $requests[0]['body']['model']);
         self::assertSame(4096, $requests[0]['body']['max_tokens']);
         self::assertSame(['deal_summary', 'trick', 'expert_choice', 'what_if', 'biggest_swings'], array_column(Json::objects($requests[0]['body']['tools'] ?? null, 'tools'), 'name'));
         // the first request is the rules and the question; the next ones carry what the tools returned

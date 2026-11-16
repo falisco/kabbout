@@ -70,7 +70,7 @@ final class EvalCoachCommandTest extends KernelTestCase
         self::assertSame(0, $tester->execute(['directory' => self::DEALS], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]));
 
         $output = $tester->getDisplay();
-        self::assertStringContainsString('Coach evaluation: 15 deals, claude-haiku-5-5 on anthropic, '.date('Y-m-d').'.', $output);
+        self::assertStringContainsString('Coach evaluation: 15 deals, claude-sonnet-5-5 on anthropic, '.date('Y-m-d').'.', $output);
         self::assertStringContainsString('Named the expected mistake: 5/15 (fr 5/5, en 0/5, ar 0/5). Answers written by the model: 10/15.', $output);
         self::assertSame(5, substr_count($output, ': named'));
         self::assertSame(5, substr_count($output, ': missed'));

@@ -127,6 +127,11 @@ final class DealCapabilitiesTest extends TestCase
         yield 'a bid holding a list' => [AnalysisMapper::summary(...), ['bids' => [['seat' => 0, 'type' => []]]] + $summary];
         yield 'a ninth trick' => [AnalysisMapper::expertChoice(...), ['trick' => 9] + $choice];
         yield 'a card that is none' => [AnalysisMapper::expertChoice(...), ['choice' => '1S'] + $choice];
+        $reading = $choice['reading'];
+        self::assertIsArray($reading);
+        yield 'a table read in a fifth suit' => [AnalysisMapper::expertChoice(...), ['reading' => ['trump' => 'X'] + $reading] + $choice];
+        yield 'a table read without its trumps' => [AnalysisMapper::expertChoice(...), ['reading' => ['trumps' => null] + $reading] + $choice];
+        yield 'a choice without its table' => [AnalysisMapper::expertChoice(...), ['reading' => null] + $choice];
         yield 'swings without their count' => [AnalysisMapper::swings(...), ['choices' => null] + $swings];
         yield 'an empty what-if' => [AnalysisMapper::whatIf(...), []];
         yield 'an empty trick' => [AnalysisMapper::trick(...), []];
