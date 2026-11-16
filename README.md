@@ -21,12 +21,13 @@ Open the address it prints, `http://localhost:8080`. That is the whole game: no 
 
 Two services start: `app`, a Symfony application that serves the built game and `/api` on that one port, and `bridge`, the rules engine, which only `app` can reach. To change the port or to switch the AI on, copy `.env.example` to `.env`:
 
-| Variable       | What it does                                                                                                                                                                                                                                                                                                                                                                                 |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `KABBOUT_AI`   | Switches the AI on, in one line: `<platform>://<key>@<provider>/<model>`, for example `huggingface://hf_xxx@auto/openai/gpt-oss-120b` (`auto` lets Hugging Face choose who runs the model; a key holding `@`, `/` or `%` is written percent-encoded). Empty: the AI is off. A value that cannot work stops `app` at the start, with one line that says why and repeats nothing of the value. |
-| `KABBOUT_PORT` | The port the game is opened on, 8080 unless set.                                                                                                                                                                                                                                                                                                                                             |
+| Variable              | What it does                                                                                                                                                                                                                                                                                                                                                                                 |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `KABBOUT_AI`          | Switches the AI on, in one line: `<platform>://<key>@<provider>/<model>`, for example `huggingface://hf_xxx@auto/openai/gpt-oss-120b` (`auto` lets Hugging Face choose who runs the model; a key holding `@`, `/` or `%` is written percent-encoded). Empty: the AI is off. A value that cannot work stops `app` at the start, with one line that says why and repeats nothing of the value. |
+| `KABBOUT_PORT`        | The port the game is opened on, 8080 unless set.                                                                                                                                                                                                                                                                                                                                             |
+| `KABBOUT_COACH_LIMIT` | Questions to the coach one visitor may ask in a minute, 6 unless set. Each one is a call to the model, on your key.                                                                                                                                                                                                                                                                          |
 
-`GET /api/capabilities` says what the server can do with the AI: for each feature (`coach`, `spoken_bids`, `referee`, `agent_seat`) a `state`, `planned`, `off` or `on`, and a `hint` when it is not on. In this version every feature is `planned`: the AI features arrive with the next ones, and the menu of the game says so in one line. The key is never part of an answer. An address or a method the API does not know is answered in JSON too (`404`, `405`), in the shape `{ "error": { "code", "message" } }`.
+`GET /api/capabilities` says what the server can do with the AI: for each feature (`coach`, `spoken_bids`, `referee`, `agent_seat`) a `state`, `planned`, `off` or `on`, and a `hint` when it is not on. The coach is in this version: `off` without a key, `on` with one. The others are `planned`, and the menu of the game says so in one line. The key is never part of an answer. An address or a method the API does not know is answered in JSON too (`404`, `405`), in the shape `{ "error": { "code", "message" } }`.
 
 ## Layout
 
@@ -132,32 +133,38 @@ The engine is made to run on a server too, facing clients it does not take at th
 
 The rules stay in TypeScript, shared by the game in the browser and the server: a PHP copy would be a second rule book to keep in step. The server asks them through `bridge/`, which answers JSON over HTTP on the internal network only, since it hands out full game states.
 
-| Call                 | Answer                                                                                                                 |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `POST /games`        | A new game dealt from `seed` (32 to 64 hexadecimal digits; `scoring`, `target` and `dealer` as the engine takes them). |
-| `POST /games/apply`  | The game after one `action` of one `seat`, and the public events.                                                      |
-| `POST /games/view`   | What one seat may know: its hand and everything public.                                                                |
-| `POST /games/legal`  | The bids and cards open to a seat now; nothing out of turn.                                                            |
-| `POST /games/robot`  | What a robot of a given `level` does for the seat to act, from that seat's view alone.                                 |
-| `POST /deals/replay` | A recorded deal (count, dealer, auction, eight tricks) played again: hands, contract, tricks, score sheet.             |
-| `GET /health`        | `{ "ok": true }`                                                                                                       |
+| Call                           | Answer                                                                                                                                                                |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /games`                  | A new game dealt from `seed` (32 to 64 hexadecimal digits; `scoring`, `target` and `dealer` as the engine takes them).                                                |
+| `POST /games/apply`            | The game after one `action` of one `seat`, and the public events.                                                                                                     |
+| `POST /games/view`             | What one seat may know: its hand and everything public.                                                                                                               |
+| `POST /games/legal`            | The bids and cards open to a seat now; nothing out of turn.                                                                                                           |
+| `POST /games/robot`            | What a robot of a given `level` does for the seat to act, from that seat's view alone.                                                                                |
+| `POST /deals/replay`           | A recorded deal (count, dealer, auction, eight tricks) played again: hands, contract, tricks, score sheet.                                                            |
+| `POST /analysis/summary`       | A recorded deal summed up for one `seat`: the auction, the contract, what each team made.                                                                             |
+| `POST /analysis/trick`         | One `trick` (1 to 8) as it was played: the four cards, who led, who won, its points.                                                                                  |
+| `POST /analysis/expert-choice` | What the expert would have played at the seat's turn in a `trick`, from what the seat could know: every legal card with its average, and the loss of the card played. |
+| `POST /analysis/what-if`       | The deal finished by four experts from another `card` in a `trick`, next to the same from the card really played.                                                     |
+| `POST /analysis/swings`        | The seat's decisions the expert would have made otherwise, the costliest first.                                                                                       |
+| `GET /health`                  | `{ "ok": true }`                                                                                                                                                      |
 
 - What the engine refuses, the bridge refuses: `422` with the engine's own message, and for a recorded deal the bid or the trick and seat where it goes wrong. A request it does not understand is a `400`.
 - A seat's view never holds another hand, a belote not yet announced or a robot's reasoning; `bridge/test/bridge.test.ts` checks every view of a whole game.
 - Every call that draws at random takes a seed, so the same question always gets the same answer, byte for byte. A seed is 128 to 256 bits and the draws are an HMAC-SHA256 stream: the engine's own generator takes 32 bits, few enough to try them all against the eight cards of a hand and find the three others. A view gives the hand sorted, not in the order it was dealt.
 - A seed serves one call. On the PHP side a game keeps one secret `Seed` and derives a new one for each call (`$secret->derive('move 17')`); a seed used twice deals the same cards twice.
 - On the PHP side, `Engine` is the only door, and the domain does not know how the engine writes things: an action is an `Action` holding a `Bid` or a `Card`, and its JSON shape belongs to `Infrastructure/Bridge/Mapping`. A robot's bid carries its reason, which names its cards; what the table may hear is `$action->withoutReason()`. The full state stays an opaque `GameState` that only goes back to the engine; what may be sent to a player is a `SeatView`. A recorded deal sent by a client is checked for its shape and stripped to its known fields by `DealRecord::fromArray()` before the engine judges it.
+- The analysis calls replay the record first and refuse what `/deals/replay` refuses. They take no seed: their draws come from what is analysed (the seat's view for the expert's choice, the record for a what-if), so the same question about the same deal always gets the same answer, whatever the order a client wrote the fields in. The expert's choice is worked out from the seat's view alone: two deals that look the same from the seat get the same answer, whatever the hidden hands.
 - `bridge/contract/cases.json` is recorded from the bridge (`npm run contract:record`) and checked against it by its tests; the PHP tests then make the same calls through `BridgeEngine`, against the running bridge and against a transport that replays the recording (`tests/Support`).
 
 ## The server
 
 `server/src` is cut by bounded context first, then by layer. A test (`tests/Architecture/LayersTest.php`) reads the imports and fails when the rule below is broken.
 
-| Context     | What it is about                                                                                                                                                                                                                                            |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Game`      | The table. Its domain holds the words of the game (seat, suit, card, action, seed, game state, seat view, recorded deal) and one port, `Engine`. The rules themselves stay in TypeScript: the adapter `Infrastructure/Bridge` asks them through the bridge. |
-| `Assistant` | The AI features and whether they can be used. Its domain says what a feature is and which state it is in, from `AiSettings`; the application layer answers `GetCapabilities`; the HTTP controller and the start-up check `kabbout:check` are its interface. |
-| `Api`       | What every answer under `/api` has in common. Today one thing: errors are JSON, `{ "error": { "code", "message" } }`, the shape the bridge uses, and never an HTML page or the text of an exception.                                                        |
+| Context     | What it is about                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Game`      | The table. Its domain holds the words of the game (seat, suit, card, action, seed, game state, seat view, recorded deal) and one port, `Engine`. The rules themselves stay in TypeScript: the adapter `Infrastructure/Bridge` asks them through the bridge. A second port, `DealAnalysis`, looks at a recorded deal again; the application layer holds one class per capability (`SummariseDeal`, `ReviewTrick`, `AskExpertChoice`, `TryWhatIf`, `RankSwings`), shared by every way in. |
+| `Assistant` | The AI features and whether they can be used. Its domain says what a feature is and which state it is in, from `AiSettings`; the application layer answers `GetCapabilities`; the HTTP controllers and the start-up check `kabbout:check` are its interface. The coach lives here: `AskCoach`, the guard that checks its answers (`Domain/Grounding`), and the Symfony AI agent behind the `CoachModel` port (`Infrastructure/Ai`).                                                     |
+| `Api`       | What every answer under `/api` has in common. Today one thing: errors are JSON, `{ "error": { "code", "message" } }`, the shape the bridge uses, and never an HTML page or the text of an exception.                                                                                                                                                                                                                                                                                    |
 
 | Layer            | May know                                         | Holds                                                                                   |
 | ---------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------- |
@@ -169,6 +176,31 @@ The rules stay in TypeScript, shared by the game in the browser and the server: 
 Left out on purpose until something needs them: command and query buses, repositories, domain events, a shared kernel.
 
 The server runs on FrankenPHP in classic mode (a fresh PHP for each request, one process for PHP and the game's files). Only `server/docker/app.Dockerfile` and `server/docker/Caddyfile` know it.
+
+## The coach
+
+After a deal, the end-of-deal screen offers "Ask the coach": the player asks "what did I do wrong?", or anything about the deal, in French, English or Tunisian Arabic, and reads a short answer that names the trick it speaks of, with a button that shows that trick. The robots already play without any AI; the coach does what they cannot do, which is to explain.
+
+**The engine computes, the model talks.** The page sends the record of the deal (count, dealer, auction, eight tricks), never a hand. The server has the engine play it again and refuses a deal the rules do not allow (`422`, with the trick at fault) before any model is asked. The model is a Symfony AI agent (`symfony/ai-agent` 1.0.0-BETA1, Hugging Face platform) with five tools, each one a capability of the game returned as it is:
+
+| Tool             | What it returns                                                                                                              |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `deal_summary`   | The auction, the contract, whether it was made, what each team made.                                                         |
+| `trick`          | One trick: the four cards, who led, who won, its points.                                                                     |
+| `expert_choice`  | What the expert robot would have played at the player's turn, knowing only what the player could know, with its averages.    |
+| `what_if`        | How the deal ends from another card, next to how it ends from the card played, both finished by the same four experts.       |
+| `biggest_swings` | The player's decisions the expert would have made otherwise, ranked by what they cost on average over the deals it imagines. |
+
+- **A bad decision is not bad luck.** A swing is the expert's average for its own card minus its average for the card played, from the player's view alone. A card the expert would also have played costs nothing by construction, even when it lost the trick, and is never called a mistake.
+- **The guard.** Every number and every card of an answer must be in a tool result of the conversation (`GroundingGuard`: digits of Latin and Arabic script, ordinals in letters, card names in the three languages, codes and suit symbols). An answer that states anything else is sent back to the model once, with what it invented; a second invention and the player reads a plain summary built from `biggest_swings` and `deal_summary`, with no model. The same summary answers when the platform fails or the model called no tool. What the guard cannot see is said in its class: a rank or a suit named alone, and numbers in letters beyond the tricks' ordinals and the small cardinals.
+- **`POST /api/coach`** takes `{ record, seat, lang, question }` (a question is 1 to 300 characters) and answers `{ version, answer: { text, source, tricks, cards } }`, `source` being `model` or `summary`. `400` for a body that is not one, `422` for a deal the engine refuses, `429` past the limit per visitor (`KABBOUT_COACH_LIMIT` a minute, with `Retry-After`), `503` when the AI is off. The page shows the text as text, never as markup.
+- **Without a key** the end-of-deal screen says in one line how to wake the coach; played from plain files, it says nothing.
+
+**Measured, not claimed.** `eval/coach/` holds fifteen deals played by the expert robots, each with one card planted that the expert likes least; a deal is in the set only when the engine's analysis puts that card first among the swings, well ahead of the next. `npm run eval:coach` asks the coach "what did I do wrong?" about each, five in each language, and counts the answers written by the model that name the trick and the card. A plain summary always names them, so it is counted apart, as an answer the model did not give.
+
+| Date        | Model                       | Named the expected mistake | Answers written by the model |
+| ----------- | --------------------------- | -------------------------- | ---------------------------- |
+| not run yet | needs a key in `KABBOUT_AI` |                            |                              |
 
 ## Commands
 
@@ -186,6 +218,8 @@ npm run check               # everything: types, format, lint, conformity, unit,
 npm run bridge              # starts the bridge on http://127.0.0.1:8787 (BRIDGE_HOST, BRIDGE_PORT)
 npm run check:php           # PHP side: coding standard, PHPStan at its strictest, PHPUnit against a running bridge; fails under 80% of lines run (PHP 8.5 with pcov, or Docker)
 npm run contract:record     # after an intended change of the bridge: records bridge/contract/cases.json again
+npm run eval:coach          # asks the coach about the 15 deals of eval/coach/ and prints how often it names the expected mistake (needs KABBOUT_AI in .env; calls the model)
+npm run eval:coach:build    # after an intended change of the search or the analysis: builds eval/coach/ again
 npm run bench:robots        # measures the robots' levels against each other (add `-- --scoring tunisian` for the other count)
 npm run test:golden:update  # after an intended change of rules or robots: records the reference games again
 node tools/brand.mjs        # after a change of the emblem: draws the icons, the card back and the share image again
