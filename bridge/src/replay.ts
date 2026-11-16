@@ -5,6 +5,7 @@
 import type { Card, GameState, Play, PublicBid, Scoring, Seat } from '../../engine/src/index.ts';
 import { EngineError, SEATS, SEAT_COUNT, TRICKS_PER_DEAL, apply, isCard, isScoring, isSeat, newGame, seededRng } from '../../engine/src/index.ts';
 import { BadRequest } from './errors.ts';
+import { sorted } from './order.ts';
 import { isObject, unknownSeat } from './shape.ts';
 
 export interface DealRecord {
@@ -64,11 +65,31 @@ function handsOf(tricks: Play[][]): GameState['hands'] {
   return hands;
 }
 
+/** One card of the record, with the deal as it stood just before it was played. */
+export interface Decision {
+  /** from 1 */
+  trick: number;
+  seat: Seat;
+  card: Card;
+  before: GameState;
+}
+
+/** One bid of the record, with the deal as it stood just before it was made. */
+export interface Call {
+  seat: Seat;
+  bid: PublicBid;
+  before: GameState;
+}
+
 export interface Replay {
+  /** the auction, bid by bid */
+  auction: Call[];
   /** the deal before the first bid, with the hands rebuilt */
   start: GameState;
   /** the deal once scored (phase `roundEnd`) */
   end: GameState;
+  /** the thirty-two cards in the order they were played */
+  decisions: Decision[];
 }
 
 /** Plays the record through the engine, or throws DealRefused where the engine stops it. */
@@ -76,12 +97,17 @@ export function replayDeal(record: DealRecord): Replay {
   // a new game is only the engine's way to an empty table: its cards are replaced by the record's
   const rng = seededRng(0);
   const start = newGame(rng, { dealer: record.dealer, scoring: record.scoring }).state;
-  start.hands = handsOf(record.tricks);
+  // the cards come out of the record in the order they were played: left so, a hand would tell
+  // whoever plays on from it (the expert, the what-if) what its player did next
+  const [first, second, third, fourth] = handsOf(record.tricks).map(sorted);
+  start.hands = [first, second, third, fourth];
 
   let state = start;
+  const auction: Call[] = [];
   record.bids.forEach((bid, index) => {
     const { seat, ...action } = bid;
     try {
+      auction.push({ seat, bid, before: state });
       const step = apply(state, seat, { kind: 'bid', bid: action }, rng);
       // four passes: the engine deals again, and those cards are not the record's
       if (step.events.some((e) => e.type === 'redeal')) throw new EngineError('everybody passed: there is no deal to replay');
@@ -92,14 +118,17 @@ export function replayDeal(record: DealRecord): Replay {
   });
   if (state.phase !== 'playing') throw new DealRefused('the auction does not end in a contract', { bid: record.bids.length });
 
+  const decisions: Decision[] = [];
   record.tricks.forEach((plays, index) => {
     for (const { seat, card } of plays) {
       try {
+        // `apply` works on a copy: the state kept here is not touched by what follows
+        decisions.push({ trick: index + 1, seat, card, before: state });
         state = apply(state, seat, { kind: 'play', card }, rng).state;
       } catch (e) {
         throw e instanceof EngineError ? new DealRefused(e.message, { trick: index + 1, seat }) : e;
       }
     }
   });
-  return { start, end: state };
+  return { start, end: state, auction, decisions };
 }

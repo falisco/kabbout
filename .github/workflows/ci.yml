@@ -55,7 +55,8 @@ jobs:
           php-version: '8.5'
           coverage: pcov
           tools: composer:v2
-      - run: composer validate --strict --working-dir=server
+      # the Symfony AI packages are betas, pinned to one exact version on purpose: that warning is not asked for
+      - run: composer validate --strict --no-check-all --working-dir=server
       - run: composer install --no-interaction --no-progress --working-dir=server
       - run: composer audit --working-dir=server
       # coding standard, static analysis, tests against the running bridge; fails under 80% of lines run
@@ -105,16 +106,16 @@ jobs:
       - run: docker compose build
       # settings that cannot work stop the start, and the line that says why repeats nothing of them
       - run: |
-          if out=$(KABBOUT_AI='nope://hf_canary@auto/a-model' docker compose run --rm --no-deps app true 2>&1); then echo 'a bad KABBOUT_AI did not stop the start'; exit 1; fi
+          if out=$(ANTHROPIC_API_KEY='sk-ant-canary' KABBOUT_AI_MODEL=' ' docker compose run --rm --no-deps app true 2>&1); then echo 'a key with no model did not stop the start'; exit 1; fi
           echo "$out"
-          ! echo "$out" | grep -E 'hf_canary|nope'
+          ! echo "$out" | grep -E 'sk-ant-canary'
       # with a key, neither the answer nor the logs hold it
       - run: |
-          KABBOUT_AI='huggingface://hf_canary@auto/openai/gpt-oss-120b' docker compose up --detach --wait
+          ANTHROPIC_API_KEY='sk-ant-canary' docker compose up --detach --wait
           curl --fail --silent --show-error http://localhost:8080/api/capabilities | tee /tmp/capabilities.json
           grep -q '"configured":true' /tmp/capabilities.json
-          ! grep -q hf_canary /tmp/capabilities.json
-          ! docker compose logs 2>&1 | grep -q hf_canary
+          ! grep -q sk-ant-canary /tmp/capabilities.json
+          ! docker compose logs 2>&1 | grep -q sk-ant-canary
           docker compose down
       # what a juror runs after a clone, with no .env: both services must come up healthy
       - run: docker compose up --detach --wait

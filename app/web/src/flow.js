@@ -5,16 +5,17 @@ import { FAST, FAST_PACE, ME, PACE, TOAST_MS, UNDO_MS, nameOf, sideOf } from './
 import { onGameEvent } from './feedback.js';
 import { forcedCard, myBidTurn, myPlayTurn, session, view } from './game.js';
 import { esc } from './html.js';
-import { t } from './i18n/index.js';
+import { lang, t } from './i18n/index.js';
 import { bidHTML, suitHTML } from './labels.js';
 import { renderBid } from './render/bidding.js';
+import { showLastTurn } from './render/debrief.js';
 import { render } from './render/index.js';
 import { renderHand } from './render/table.js';
 import { say, toast } from './render/transient.js';
 import { turnKey } from './selectors.js';
-import { loadCapabilities } from './server.js';
+import { askCoach, loadCapabilities } from './server.js';
 import { clearBubbles } from './speech.js';
-import { capabilities, overlay, prefs, selection, tableState, undoState } from './store.js';
+import { capabilities, debrief, overlay, prefs, resetDebrief, selection, tableState, undoState } from './store.js';
 
 /** the one thing the table is waiting to do by itself */
 let pendingStep = null;
@@ -25,7 +26,54 @@ export async function askServer() {
   render();
 }
 
+/**
+ * Asks the coach about the deal just played: the player's question, or the one the screen proposes.
+ * The record comes from the session; the answer is the server's, and the screen shows it as plain text.
+ */
+export async function askDebrief() {
+  const record = session.record();
+  if (!record || debrief.status === 'asking' || debrief.left === 0) return;
+  // the screen proposes the first question; after it, an empty field asks nothing
+  const question = debrief.question.trim() || (debrief.turns.length ? '' : t('debriefDefault'));
+  if (!question) return;
+  // a question already answered on this deal is not paid for twice: its answer is on the screen
+  if (debrief.turns.some((turn) => sameQuestion(turn.question, question))) {
+    debrief.question = '';
+    debrief.asked++;
+    render();
+    return;
+  }
+  const asked = debrief.asked + 1;
+  Object.assign(debrief, { status: 'asking', pending: question, reason: '', asked });
+  say(t('debriefAsking'));
+  render();
+  showLastTurn();
+  const reply = await askCoach({ record, seat: ME, lang: lang(), question });
+  // the table moved on while the coach was thinking: this answer is about another deal
+  if (asked !== debrief.asked) return;
+  debrief.pending = '';
+  debrief.asked++;
+  if (reply.answer) {
+    const { left, ...answer } = reply.answer;
+    debrief.turns.push({ question, answer });
+    Object.assign(debrief, { status: 'answered', question: '', left: left ?? debrief.left });
+  } else {
+    // the question goes back to its field, to be sent again
+    Object.assign(debrief, { status: 'failed', reason: reply.reason, question, left: reply.reason === 'spent' ? 0 : debrief.left });
+  }
+  say(reply.answer ? reply.answer.text : t('debriefErrors')[reply.reason]);
+  render();
+  showLastTurn();
+}
+const sameQuestion = (a, b) => a.trim().toLowerCase().replace(/\s+/g, ' ') === b.trim().toLowerCase().replace(/\s+/g, ' ');
+/** Shows one trick of the deal the coach spoke of. */
+export function showDebriefTrick(number) {
+  debrief.trick = number;
+  openModal('trick');
+}
+
 export function newGame() {
+  resetDebrief();
   const events = session.start();
   overlay.modal = null;
   clearUndo();
@@ -57,7 +105,10 @@ function humanAct(action) {
 }
 export const playCard = (card) => humanAct({ kind: 'play', card });
 export const makeBid = (bid) => humanAct({ kind: 'bid', bid });
-export const nextRound = () => act({ kind: 'next' });
+export function nextRound() {
+  resetDebrief();
+  return act({ kind: 'next' });
+}
 
 function clearUndo() {
   undoState.snapshot = null;
@@ -67,6 +118,8 @@ export function undoLast() {
   if (!undoState.snapshot) return;
   clearTimeout(pendingStep);
   pendingStep = null;
+  // the deal is open again: what the coach said of it no longer holds
+  resetDebrief();
   session.restore(undoState.snapshot.game);
   tableState.cards = undoState.snapshot.cards;
   tableState.pause = null;

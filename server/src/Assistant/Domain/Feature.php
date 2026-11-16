@@ -20,7 +20,8 @@ enum Feature: string
     public function shipped(): bool
     {
         return match ($this) {
-            self::Coach, self::SpokenBids, self::Referee, self::AgentSeat => false,
+            self::Coach => true,
+            self::SpokenBids, self::Referee, self::AgentSeat => false,
         };
     }
 

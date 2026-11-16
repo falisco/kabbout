@@ -24,10 +24,10 @@ final class GetCapabilitiesTest extends TestCase
 
     public function testWithTheAiOnTheAnswerNamesThePlatformAndTheModel(): void
     {
-        $capabilities = (new GetCapabilities(self::configuredWith(new AiSettings(Platform::HuggingFace, 'a-key', 'a-model'))))();
+        $capabilities = (new GetCapabilities(self::configuredWith(new AiSettings('a-key', 'a-model'))))();
 
         self::assertTrue($capabilities->configured());
-        self::assertSame(Platform::HuggingFace, $capabilities->platform);
+        self::assertSame(Platform::Anthropic, $capabilities->platform);
         self::assertSame('a-model', $capabilities->model);
     }
 

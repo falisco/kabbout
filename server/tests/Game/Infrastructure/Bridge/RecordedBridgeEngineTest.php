@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Game\Infrastructure\Bridge;
 
+use Kabbout\Game\Domain\DealAnalysis;
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\Exception\EngineUnavailable;
@@ -11,6 +12,7 @@ use Kabbout\Game\Domain\GameState;
 use Kabbout\Game\Domain\Scoring;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Domain\Seed;
+use Kabbout\Game\Infrastructure\Bridge\BridgeDealAnalysis;
 use Kabbout\Game\Infrastructure\Bridge\BridgeEngine;
 use Kabbout\Tests\Support\RecordedBridgeTransport;
 
@@ -24,6 +26,11 @@ final class RecordedBridgeEngineTest extends EngineContractTestCase
     protected function engine(): Engine
     {
         return new BridgeEngine(RecordedBridgeTransport::fromContractFile(self::CASES));
+    }
+
+    protected function analysis(): DealAnalysis
+    {
+        return new BridgeDealAnalysis(RecordedBridgeTransport::fromContractFile(self::CASES));
     }
 
     public function testAQuestionItWasNeverGivenFailsLoudly(): void

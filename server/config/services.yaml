@@ -2,8 +2,17 @@
 # Domain code holds no service: it is built by the layers around it.
 parameters:
   # Nothing written: the AI is off and the bridge is where the compose file puts it.
-  env(KABBOUT_AI): ''
+  env(ANTHROPIC_API_KEY): ''
+  env(KABBOUT_AI_MODEL): 'claude-sonnet-5-5'
   env(BRIDGE_URL): 'http://bridge:8787'
+  # questions to the coach one visitor may ask in a minute
+  env(KABBOUT_COACH_LIMIT): '6'
+  # questions to the coach one visitor may ask about one deal
+  env(KABBOUT_COACH_PER_DEAL): '2'
+  # questions to the coach all visitors together may ask in a day
+  env(KABBOUT_COACH_DAILY): '500'
+  # the reverse proxies in front of the server, if any: addresses or ranges, comma separated
+  env(KABBOUT_TRUSTED_PROXIES): ''
 
 services:
   _defaults:
@@ -15,22 +24,50 @@ services:
     exclude:
       - '../src/Kernel.php'
       - '../src/*/Domain/'
+      # values and exceptions of the application layer
+      - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary,Exchange,Answered,AskedTooOften,CoachResting,DealSpent}.php'
+
+  # the coach's locks: files in the system's temporary directory, a fixed number of them
+  Kabbout\Assistant\Infrastructure\StripedLockFactory:
+    arguments:
+      $store: !service { class: Symfony\Component\Lock\Store\FlockStore }
 
   # Ports of the domains, and the adapter each one gets here.
   Kabbout\Game\Domain\Engine: '@Kabbout\Game\Infrastructure\Bridge\BridgeEngine'
+  Kabbout\Game\Domain\DealAnalysis: '@Kabbout\Game\Infrastructure\Bridge\BridgeDealAnalysis'
   Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport: '@Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport'
   Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport:
     arguments:
       $baseUrl: '%env(BRIDGE_URL)%'
 
+  Kabbout\Assistant\Application\Coach\CoachModel: '@Kabbout\Assistant\Infrastructure\Ai\SymfonyAiCoachModel'
   Kabbout\Assistant\Domain\AiConfiguration: '@Kabbout\Assistant\Infrastructure\EnvAiConfiguration'
   Kabbout\Assistant\Infrastructure\EnvAiConfiguration:
     arguments:
-      $dsn: '%env(KABBOUT_AI)%'
+      $apiKey: '%env(ANTHROPIC_API_KEY)%'
+      $model: '%env(KABBOUT_AI_MODEL)%'
 
 when@test:
   services:
-    # No use case asks for the engine yet (the coach does, next); the tests check that it is wired all the same.
+    # What the tests put something else behind: the engine's transport and the coach's model.
     Kabbout\Game\Domain\Engine:
       alias: Kabbout\Game\Infrastructure\Bridge\BridgeEngine
+      public: true
+    Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport:
+      alias: Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport
+      public: true
+    Kabbout\Assistant\Application\Coach\CoachModel:
+      alias: Kabbout\Assistant\Infrastructure\Ai\SymfonyAiCoachModel
+      public: true
+    Kabbout\Game\Application\RankSwings:
+      autowire: true
+      public: true
+    # Anthropic's API, scripted: the bundle, its platform and its agent are the real ones.
+    Kabbout\Tests\Support\AnthropicMock: ~
+    test.anthropic_client:
+      class: Symfony\Component\HttpClient\MockHttpClient
+      arguments: ['@Kabbout\Tests\Support\AnthropicMock']
+    Kabbout\Assistant\Infrastructure\Ai\CoachConversation:
+      autowire: true
+      autoconfigure: true
       public: true

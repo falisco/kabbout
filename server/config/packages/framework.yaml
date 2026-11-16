@@ -6,6 +6,46 @@ framework:
   php_errors:
     log: true
 
+  http_client:
+    scoped_clients:
+      # a player is waiting: seconds without a byte from the platform, then seconds for a whole call.
+      # With the coach's own time limits (AskCoach, CoachConversation) a question ends before the page gives up.
+      anthropic.client:
+        scope: 'https://api\.anthropic\.com'
+        timeout: 15
+        max_duration: 25
+
+  # Whose address a request comes from. Behind a reverse proxy every request arrives from the proxy: name
+  # it in KABBOUT_TRUSTED_PROXIES and the address it forwards is the visitor's. Unset, nothing forwarded is believed.
+  trusted_proxies: '%env(KABBOUT_TRUSTED_PROXIES)%'
+  trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port']
+
+  cache:
+    pools:
+      # the coach's counts and its memory of a deal, apart from the rest so that they can be cleared of what has expired
+      cache.coach:
+        adapter: cache.adapter.filesystem
+        default_lifetime: 86400
+
+  # Every count is changed under a lock, so two questions at the same instant are two questions. The locks
+  # come from StripedLockFactory (config/services.yaml): a fixed number of files, however many visitors.
+  # Questions to the coach: a visitor's pace, and what all visitors together may ask in a day. The
+  # questions of one deal are counted in LimiterCoachAllowance. Other doors to the model (MCP, the hosted
+  # demo) go through the same CoachAllowance.
+  rate_limiter:
+    coach:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_COACH_LIMIT)%'
+      interval: '1 minute'
+      cache_pool: cache.coach
+      lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
+    coach_day:
+      policy: fixed_window
+      limit: '%env(int:KABBOUT_COACH_DAILY)%'
+      interval: '1 day'
+      cache_pool: cache.coach
+      lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
+
 when@test:
   framework:
     test: true

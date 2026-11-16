@@ -132,8 +132,34 @@ export default {
   },
 
   // menu
-  aiPlanned: (variable) => `On its way: a coach that explains your deal, and bids you can say out loud. Both will wake up with ${variable}.`,
+  aiPlanned: (variable) =>
+    `On its way: bids you can say out loud, and a referee for your questions about the rules. Both will wake up with ${variable}.`,
   aiOff: (variable) => `The AI is asleep on this server: write ${variable} in .env and start it again.`,
+  // the coach of the server, after a deal
+  debriefOpen: 'Ask the coach',
+  debriefReopen: 'Back to the coach',
+  debriefMore: 'Another question about this deal?',
+  debriefLeft: (n) => (n > 1 ? `${n} questions left on this deal.` : '1 question left on this deal.'),
+  debriefSpent: 'The coach has said its piece on this deal. See you on the next one.',
+  debriefOff: (variable) => `The coach is asleep: write ${variable} in .env to ask it about your deal.`,
+  debriefTitle: 'The coach',
+  debriefIntro: 'A question about this deal? The engine has counted it all again, the coach explains.',
+  debriefLabel: 'Your question',
+  debriefDefault: 'What did I do wrong?',
+  debriefAsk: 'Ask',
+  debriefAsking: 'The coach is looking at the deal…',
+  debriefPlain: 'Answer taken straight from the engine’s analysis.',
+  debriefSeeTrick: (n) => `See trick ${n}`,
+  debriefTrickTitle: (n) => `Trick ${n}`,
+  debriefBack: 'Back to the result',
+  debriefBackCoach: 'Back to the coach',
+  debriefErrors: {
+    resting: 'The coach has answered a lot today: it is back tomorrow.',
+    spent: 'You have asked all your questions about this deal.',
+    busy: 'Too many questions in a row: try again in a minute.',
+    refused: 'The server could not replay this deal.',
+    unavailable: 'The coach is not answering right now. Try again a little later.',
+  },
   menuSub: (partner, o1, o2, target) =>
     `You and <b>${partner}</b> against <b>${o1}</b> and <b>${o2}</b>. First to <b>${target} points</b>, belote-rebelote included.`,
   resume: 'Back to the game',

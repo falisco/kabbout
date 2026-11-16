@@ -1,0 +1,29 @@
+# The Symfony AI bundle: one platform, one agent.
+ai:
+  platform:
+    anthropic:
+      # empty: the AI is off, and nothing here is ever asked (see Assistant\Infrastructure\EnvAiConfiguration)
+      api_key: '%env(ANTHROPIC_API_KEY)%'
+      http_client: 'anthropic.client'
+
+  agent:
+    # The coach: asked about a deal just played, it looks at it through the engine's analysis and explains.
+    # Its system prompt is written for each question (the player's seat and language): Infrastructure\Ai\CoachPrompt.
+    coach:
+      platform: 'ai.platform.anthropic'
+      model:
+        name: '%env(KABBOUT_AI_MODEL)%'
+        # the models think before they answer: the bridge's default of 1000 tokens can leave no room for the answer
+        options:
+          max_tokens: 4096
+      tools:
+        - 'Kabbout\Assistant\Infrastructure\Ai\CoachTools'
+      # rounds of tool calls in one answer: the six tools, and a few closer looks
+      max_tool_calls: 8
+
+when@test:
+  ai:
+    platform:
+      anthropic:
+        # no request leaves the tests: Kabbout\Tests\Support\AnthropicMock answers in Anthropic's place
+        http_client: 'test.anthropic_client'

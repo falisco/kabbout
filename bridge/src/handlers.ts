@@ -2,11 +2,10 @@
 // and returns what is answered. It keeps nothing between two calls: the game travels in the request.
 // Randomness always comes from a seed sent by the caller, so the same question gets the same answer.
 
-import type { Action, BidAction, Card, GameState, Seat } from '../../engine/src/index.ts';
+import type { Action, BidAction, GameState, Seat } from '../../engine/src/index.ts';
 import {
   BID_VALUES,
   EngineError,
-  RANKS,
   SEAT_COUNT,
   SUITS,
   aiBid,
@@ -20,11 +19,10 @@ import {
   legalPlays,
   newGame,
   publicEvents,
-  rankOf,
-  suitOf,
   viewFor,
 } from '../../engine/src/index.ts';
 import { BadRequest } from './errors.ts';
+import { sorted } from './order.ts';
 import { readRecord, replayDeal } from './replay.ts';
 import { readSeed, seededStream } from './rng.ts';
 import { isObject, unknownSeat } from './shape.ts';
@@ -97,8 +95,6 @@ function readSeat(v: unknown): Seat {
 }
 
 /** a hand in the order of the deck, which says nothing of the order the cards were dealt in */
-const deckOrder = (card: Card): number => SUITS.indexOf(suitOf(card)) * RANKS.length + RANKS.indexOf(rankOf(card));
-const sorted = (hand: readonly Card[]): Card[] => [...hand].sort((a, b) => deckOrder(a) - deckOrder(b));
 
 /** Whether the engine would deal the next round now. It is asked, not guessed: the draw is thrown away. */
 function mayAskNext(state: GameState, seat: Seat): boolean {
@@ -170,3 +166,5 @@ export const replayHandler: Handler = (body) => {
   const { start, end } = replayDeal(readRecord(body.record));
   return { hands: start.hands, contract: end.contract, tricks: end.tricks, result: end.result };
 };
+
+export { sorted };

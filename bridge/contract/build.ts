@@ -72,6 +72,42 @@ function addReplays(add: Add, over: GameState): void {
   });
 }
 
+interface ChoiceAnswer {
+  trick: number;
+  played: string;
+  forced: boolean;
+  cards: { card: string }[];
+}
+
+/** the deal of `over` analysed for seat 0: every question the coach may ask, and two it may not */
+function addAnalysis(add: Add, over: GameState): void {
+  const record = recordOf(over);
+  const asked = { record, seat: 0 };
+  add('a recorded deal summed up for a seat', '/analysis/summary', asked);
+  add('one trick of a recorded deal', '/analysis/trick', { ...asked, trick: 1 });
+  let free: ChoiceAnswer | undefined;
+  for (let trick = 1; trick <= 8; trick++) {
+    const choice = add(`what the expert would have played in trick ${trick}`, '/analysis/expert-choice', { ...asked, trick }) as ChoiceAnswer;
+    if (!choice.forced) free ??= choice;
+  }
+  if (!free) throw new Error('a seat has a choice somewhere in a deal');
+  const other = free.cards.find((c) => c.card !== free.played);
+  if (!other) throw new Error('a choice is between two cards at least');
+  add('the deal finished from another card', '/analysis/what-if', { ...asked, trick: free.trick, card: other.card });
+  add('the deal finished from the card really played', '/analysis/what-if', { ...asked, trick: free.trick, card: free.played });
+  add('the decisions of a seat, the costliest first', '/analysis/swings', asked);
+  add('the decisions of the other team', '/analysis/swings', { record, seat: 1 });
+  add('the auction of a seat next to the expert’s', '/analysis/bids', { ...asked, lang: 'fr' });
+  add('the same auction with its reasons in Tunisian Arabic', '/analysis/bids', { ...asked, lang: 'ar' });
+  // the card another seat played in the last trick: the player never held it
+  const notHeld = over.tricks[7].plays.find((p) => p.seat !== 0);
+  if (!notHeld) throw new Error('four seats play in a trick');
+  add('refused: a what-if with a card the seat did not hold', '/analysis/what-if', { ...asked, trick: 1, card: notHeld.card });
+  const tricks = structuredClone(record.tricks) as { seat: Seat; card: string }[][];
+  tricks[3].reverse();
+  add('refused: an analysis of a deal played out of turn', '/analysis/swings', { record: { ...record, tricks }, seat: 0 });
+}
+
 export function buildCases(): Case[] {
   const cases: Case[] = [];
   const add: Add = (name, path, request) => {
@@ -134,6 +170,7 @@ export function buildCases(): Case[] {
   add('refused: a robot asked to act once the deal is scored', '/games/robot', { state: over, level: 'easy', lang: 'ar', seed: seedOf(11) });
 
   addReplays(add, over);
+  addAnalysis(add, over);
   return cases;
 }
 

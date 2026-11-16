@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Card, CompletedTrick, GameState, Level, Play, PlayerView, Seat, Suit, Trick } from '../src/index.ts';
-import { LEVELS, aiPlay, apply, fullDeck, legalPlays, newGame, seededRng, trickWinner, viewFor } from '../src/index.ts';
+import { LEVELS, aiPlay, apply, expertAverages, fullDeck, legalPlays, newGame, seededRng, trickWinner, viewFor } from '../src/index.ts';
 import { recall } from '../src/ai/memory.ts';
 import { MIN_SAMPLES, sampleHands, searchCard } from '../src/ai/search.ts';
 import { robotAction } from './helpers.ts';
@@ -172,6 +172,39 @@ test('out of time, the expert settles for its first worlds instead of thinking o
   let asked = 0;
   searchCard(v, recall(v), seededRng(9), MIN_SAMPLES + 3, () => (asked++, false));
   assert.equal(asked, 3);
+});
+
+test("the averages behind the expert's choice name the card it plays and draw what it draws", () => {
+  let searched = 0;
+  let forced = 0;
+  for (let seed = 1; seed <= 3; seed++) {
+    const rng = seededRng(seed);
+    let s = newGame(rng).state;
+    while (s.phase !== 'roundEnd' && s.phase !== 'gameEnd') {
+      if (s.phase === 'playing') {
+        const v = viewFor(s, s.turn);
+        const played = seededRng(seed * 100 + s.tricks.length);
+        const explained = seededRng(seed * 100 + s.tricks.length);
+        const card = aiPlay(v, played, 'expert');
+        const found = expertAverages(v, explained);
+        assert.equal(found.choice, card);
+        // same draws: both streams are at the same place afterwards
+        assert.equal(explained(), played());
+        assert.deepEqual(found.cards.map((c) => c.card).sort(), [...legalPlays(s, s.turn)].sort());
+        const best = Math.max(...found.cards.map((c) => c.average));
+        assert.equal(found.cards.find((c) => c.card === card)?.average, best);
+        if (found.cards.length === 1) {
+          assert.equal(found.worlds, 0);
+          forced++;
+        } else {
+          assert.equal(found.worlds, 50);
+          searched++;
+        }
+      }
+      s = step(s, rng, 'normal');
+    }
+  }
+  assert.ok(searched >= 30 && forced >= 3, `${searched} searched, ${forced} forced`);
 });
 
 test('every level plays whole games with legal cards, and the same seed gives the same game', () => {
