@@ -20,9 +20,6 @@ framework:
   trusted_proxies: '%env(KABBOUT_TRUSTED_PROXIES)%'
   trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port']
 
-  # the counts below are changed under a lock: two questions at the same instant are two questions
-  lock: flock
-
   cache:
     pools:
       # the coach's counts and its memory of a deal, apart from the rest so that they can be cleared of what has expired
@@ -30,6 +27,8 @@ framework:
         adapter: cache.adapter.filesystem
         default_lifetime: 86400
 
+  # Every count is changed under a lock, so two questions at the same instant are two questions. The locks
+  # come from StripedLockFactory (config/services.yaml): a fixed number of files, however many visitors.
   # Questions to the coach: a visitor's pace, and what all visitors together may ask in a day. The
   # questions of one deal are counted in LimiterCoachAllowance. Other doors to the model (MCP, the hosted
   # demo) go through the same CoachAllowance.
@@ -39,11 +38,13 @@ framework:
       limit: '%env(int:KABBOUT_COACH_LIMIT)%'
       interval: '1 minute'
       cache_pool: cache.coach
+      lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
     coach_day:
       policy: fixed_window
       limit: '%env(int:KABBOUT_COACH_DAILY)%'
       interval: '1 day'
       cache_pool: cache.coach
+      lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
 
 when@test:
   framework:

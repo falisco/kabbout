@@ -9,11 +9,12 @@ use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Coach\DealSpent;
 use Kabbout\Assistant\Domain\Visitor;
 use Kabbout\Assistant\Infrastructure\LimiterCoachAllowance;
+use Kabbout\Assistant\Infrastructure\StripedLockFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\PruneableInterface;
-use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Key;
 use Symfony\Component\Lock\Store\InMemoryStore;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
@@ -94,6 +95,29 @@ final class LimiterCoachAllowanceTest extends TestCase
         self::allowance(pool: new ArrayAdapter(), pruneOneIn: 1)->day();
     }
 
+    public function testHoweverManyVisitorsTheLocksAreAFixedNumber(): void
+    {
+        $store = new class extends InMemoryStore {
+            /** @var array<string, true> */
+            public array $names = [];
+
+            public function save(Key $key): void
+            {
+                $this->names[(string) $key] = true;
+                parent::save($key);
+            }
+        };
+        $locks = new StripedLockFactory($store);
+        for ($i = 0; $i < 500; ++$i) {
+            $lock = $locks->createLock('visitor '.$i);
+            self::assertTrue($lock->acquire());
+            $lock->release();
+        }
+
+        self::assertLessThanOrEqual(StripedLockFactory::STRIPES, \count($store->names));
+        self::assertGreaterThan(1, \count($store->names));
+    }
+
     private static function allowance(int $perMinute = 99, int $perDay = 99, int $perDeal = 2, ?CacheItemPoolInterface $pool = null, int $pruneOneIn = 1): LimiterCoachAllowance
     {
         $limiter = static fn (string $policy, int $limit, string $interval): RateLimiterFactory => new RateLimiterFactory(
@@ -105,7 +129,7 @@ final class LimiterCoachAllowanceTest extends TestCase
             $limiter('sliding_window', $perMinute, '1 minute'),
             $limiter('fixed_window', $perDay, '1 day'),
             $pool ?? new ArrayAdapter(),
-            new LockFactory(new InMemoryStore()),
+            new StripedLockFactory(new InMemoryStore()),
             $perDeal,
             $pruneOneIn,
         );

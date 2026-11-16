@@ -12,14 +12,13 @@ use Kabbout\Assistant\Domain\Visitor;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\PruneableInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 
 /**
  * The three counts, kept in the coach's own cache pool. The pace and the day are Symfony rate limiters
  * (config/packages/framework.yaml). The questions of a deal are counted here, because a question that
- * cost nothing is given back, which a rate limiter does not do. Every count is changed under a lock:
- * two questions sent at the same instant are counted as two.
+ * cost nothing is given back, which a rate limiter does not do. Every count is changed under a lock
+ * (one of a fixed number, see StripedLockFactory): two questions sent at the same instant are counted as two.
  */
 final readonly class LimiterCoachAllowance implements CoachAllowance
 {
@@ -35,7 +34,7 @@ final readonly class LimiterCoachAllowance implements CoachAllowance
         private RateLimiterFactoryInterface $coachLimiter,
         private RateLimiterFactoryInterface $coachDayLimiter,
         #[Autowire(service: 'cache.coach')] private CacheItemPoolInterface $pool,
-        private LockFactory $locks,
+        private StripedLockFactory $locks,
         #[Autowire(env: 'int:KABBOUT_COACH_PER_DEAL')] private int $perDeal,
         private int $pruneOneIn = 200,
     ) {

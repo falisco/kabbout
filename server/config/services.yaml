@@ -25,7 +25,12 @@ services:
       - '../src/Kernel.php'
       - '../src/*/Domain/'
       # values and exceptions of the application layer
-      - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary}.php'
+      - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary,Exchange,Answered,AskedTooOften,CoachResting,DealSpent}.php'
+
+  # the coach's locks: files in the system's temporary directory, a fixed number of them
+  Kabbout\Assistant\Infrastructure\StripedLockFactory:
+    arguments:
+      $store: !service { class: Symfony\Component\Lock\Store\FlockStore }
 
   # Ports of the domains, and the adapter each one gets here.
   Kabbout\Game\Domain\Engine: '@Kabbout\Game\Infrastructure\Bridge\BridgeEngine'
