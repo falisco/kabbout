@@ -18,6 +18,7 @@ use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Domain\SeatView;
 use Kabbout\Game\Domain\Seed;
 use Kabbout\Game\Domain\Step;
+use Kabbout\Game\Infrastructure\Bridge\Mapping\ActionMapper;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\AnswerMapper;
 use Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport;
 
@@ -49,7 +50,7 @@ final readonly class BridgeEngine implements Engine
         return AnswerMapper::step($this->ask('/games/apply', [
             'state' => $state->toEngineArray(),
             'seat' => $seat->value,
-            'action' => $action->toEngineArray(),
+            'action' => ActionMapper::toArray($action),
             'seed' => $seed->toHex(),
         ]));
     }

@@ -119,6 +119,8 @@ jobs:
       # what a juror runs after a clone, with no .env: both services must come up healthy
       - run: docker compose up --detach --wait
       - run: curl --fail --silent --show-error http://localhost:8080/api/capabilities
+      # an address the API does not know is answered in JSON, not with a page
+      - run: test "$(curl --silent --output /dev/null --write-out '%{http_code} %{content_type}' http://localhost:8080/api/nothing-here)" = "404 application/json"
       # the browser tests, against the game as Symfony serves it
       - run: npx playwright test --project=desktop
         env:

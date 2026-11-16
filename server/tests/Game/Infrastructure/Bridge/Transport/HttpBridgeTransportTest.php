@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kabbout\Tests\Game\Infrastructure\Bridge\Transport;
 
 use Kabbout\Game\Domain\Action;
+use Kabbout\Game\Domain\Bid;
 use Kabbout\Game\Domain\Card;
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Domain\Exception\EngineException;
@@ -48,7 +49,7 @@ final class HttpBridgeTransportTest extends TestCase
             return new JsonMockResponse(['state' => self::STATE, 'events' => [['type' => 'bid', 'record' => ['type' => 'bid', 'value' => 90, 'suit' => 'H', 'seat' => 1]]]]);
         });
 
-        $step = self::engine($client, 'http://bridge:8787/')->apply(new GameState(self::STATE), Seat::Second, Action::bid(90, Suit::Hearts), self::seed());
+        $step = self::engine($client, 'http://bridge:8787/')->apply(new GameState(self::STATE), Seat::Second, Action::bid(Bid::raise(90, Suit::Hearts)), self::seed());
 
         self::assertSame('POST', $seen[0]);
         self::assertSame('http://bridge:8787/games/apply', $seen[1]);

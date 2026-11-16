@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Kabbout\Game\Infrastructure\Bridge\Mapping;
 
-use Kabbout\Game\Domain\Action;
 use Kabbout\Game\Domain\Card;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\Exception\EngineUnavailable;
@@ -91,7 +90,7 @@ final class AnswerMapper
     {
         $seat = Seat::tryFrom(Json::int($answer['seat'] ?? null, 'seat')) ?? throw new EngineUnavailable('The bridge answered an unknown seat.');
 
-        return new RobotMove($seat, Action::fromEngine(Json::object($answer['action'] ?? null, 'action')));
+        return new RobotMove($seat, ActionMapper::fromArray(Json::object($answer['action'] ?? null, 'action')));
     }
 
     /** @param array<string, mixed> $answer */

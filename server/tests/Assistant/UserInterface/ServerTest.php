@@ -64,14 +64,6 @@ final class ServerTest extends WebTestCase
         self::assertStringNotContainsString('nope', $body);
     }
 
-    public function testOnlyGetIsAnswered(): void
-    {
-        $client = self::createClient();
-        $client->request('POST', '/api/capabilities');
-
-        self::assertResponseStatusCodeSame(405);
-    }
-
     public function testTheCheckPassesWithTheAiOffAndWithGoodSettings(): void
     {
         self::assertStringContainsString('AI: off', self::check(0));

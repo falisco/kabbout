@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Game\Infrastructure\Bridge;
 
-use Kabbout\Game\Domain\Action;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\GameState;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Level;
+use Kabbout\Game\Domain\RobotMove;
 use Kabbout\Game\Domain\Scoring;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Domain\Seed;
+use Kabbout\Game\Infrastructure\Bridge\Mapping\ActionMapper;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\Json;
 use Kabbout\Tests\Support\Canonical;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -83,12 +84,18 @@ abstract class EngineContractTestCase extends TestCase
 
         return match ($path) {
             '/games' => $engine->newGame($seed(), Scoring::from($string('scoring')), isset($r['target']) ? Json::int($r['target'], 'target') : null, isset($r['dealer']) ? $seat('dealer') : null)->toEngineArray(),
-            '/games/apply' => $engine->apply($state(), $seat('seat'), Action::fromEngine(Json::object($r['action'], 'action')), $seed())->toEngineArray(),
+            '/games/apply' => $engine->apply($state(), $seat('seat'), ActionMapper::fromArray(Json::object($r['action'], 'action')), $seed())->toEngineArray(),
             '/games/view' => ['view' => $engine->view($state(), $seat('seat'))->toArray()],
             '/games/legal' => $engine->legalMoves($state(), $seat('seat'))->toArray(),
-            '/games/robot' => $engine->robotMove($state(), Level::from($string('level')), $seed(), Lang::from($string('lang')))->toEngineArray(),
+            '/games/robot' => self::robotMove($engine->robotMove($state(), Level::from($string('level')), $seed(), Lang::from($string('lang')))),
             '/deals/replay' => $engine->replay(DealRecord::fromArray(Json::object($r['record'], 'record')))->toArray(),
             default => self::fail('The contract holds a call this test does not know: '.$path),
         };
+    }
+
+    /** @return array{seat: int, action: array<string, mixed>} the move as the bridge wrote it */
+    private static function robotMove(RobotMove $move): array
+    {
+        return ['seat' => $move->seat->value, 'action' => ActionMapper::toArray($move->action)];
     }
 }

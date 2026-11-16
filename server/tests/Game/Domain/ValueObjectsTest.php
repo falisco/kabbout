@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Kabbout\Tests\Game\Domain;
 
 use Kabbout\Game\Domain\Action;
+use Kabbout\Game\Domain\ActionKind;
+use Kabbout\Game\Domain\Bid;
+use Kabbout\Game\Domain\BidType;
 use Kabbout\Game\Domain\Card;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\InvalidDealRecord;
@@ -30,15 +33,36 @@ final class ValueObjectsTest extends TestCase
         self::assertSame([0, 1, 0, 1], array_map(static fn (Seat $seat): int => $seat->team(), Seat::cases()));
     }
 
-    public function testActionsAreWrittenAsTheEngineReadsThem(): void
+    public function testAnActionIsABidACardOrTheNextDeal(): void
     {
-        self::assertSame(['kind' => 'bid', 'bid' => ['type' => 'pass']], Action::pass()->toEngineArray());
-        self::assertSame(['kind' => 'bid', 'bid' => ['type' => 'contre']], Action::contre()->toEngineArray());
-        self::assertSame(['kind' => 'bid', 'bid' => ['type' => 'surcontre']], Action::surcontre()->toEngineArray());
-        self::assertSame(['kind' => 'bid', 'bid' => ['type' => 'bid', 'value' => 110, 'suit' => 'C']], Action::bid(110, Suit::Clubs)->toEngineArray());
-        self::assertSame(['kind' => 'play', 'card' => 'TH'], Action::play(Card::fromCode('TH'))->toEngineArray());
-        self::assertSame(['kind' => 'next'], Action::next()->toEngineArray());
-        self::assertSame(['kind' => 'bid', 'bid' => ['type' => 'pass'], 'why' => 'nothing to say'], Action::fromEngine(['kind' => 'bid', 'bid' => ['type' => 'pass'], 'why' => 'nothing to say'])->toEngineArray());
+        $raise = Action::bid(Bid::raise(110, Suit::Clubs));
+        self::assertSame(ActionKind::Bid, $raise->kind);
+        self::assertSame(BidType::Raise, $raise->bid?->type);
+        self::assertSame(110, $raise->bid->value);
+        self::assertSame(Suit::Clubs, $raise->bid->suit);
+        self::assertNull($raise->reason);
+
+        foreach ([[Bid::pass(), BidType::Pass], [Bid::contre(), BidType::Contre], [Bid::surcontre(), BidType::Surcontre]] as [$bid, $type]) {
+            self::assertSame($type, $bid->type);
+            self::assertNull($bid->value);
+            self::assertNull($bid->suit);
+        }
+
+        $play = Action::play(Card::fromCode('TH'));
+        self::assertSame(ActionKind::Play, $play->kind);
+        self::assertSame('TH', $play->card?->code());
+        self::assertSame(ActionKind::Next, Action::next()->kind);
+    }
+
+    public function testTheTableNeverHearsTheReasonOfARobot(): void
+    {
+        $bid = Action::bid(Bid::raise(80, Suit::Spades), 'jack and nine of spades');
+        $move = new RobotMove(Seat::Second, $bid);
+
+        self::assertSame('jack and nine of spades', $move->action->reason);
+        self::assertNull($move->action->withoutReason()->reason);
+        self::assertSame(80, $move->action->withoutReason()->bid?->value);
+        self::assertSame(Seat::Second, $move->seat);
     }
 
     public function testACardIsARankThenASuit(): void
@@ -136,15 +160,8 @@ final class ValueObjectsTest extends TestCase
         self::assertFalse((new LegalMoves([], [], true))->isEmpty());
     }
 
-    public function testARobotsReasonGoesToTheEngineAndNotToTheTable(): void
+    public function testAStepHoldsTheGameAndWhatJustHappened(): void
     {
-        $bid = Action::fromEngine(['kind' => 'bid', 'bid' => ['type' => 'bid', 'value' => 80, 'suit' => 'S'], 'why' => 'jack and nine of spades']);
-        $move = new RobotMove(Seat::Second, $bid);
-
-        self::assertSame('jack and nine of spades', $move->toEngineArray()['action']['why'] ?? null);
-        self::assertSame(['seat' => 1, 'action' => ['kind' => 'bid', 'bid' => ['type' => 'bid', 'value' => 80, 'suit' => 'S']]], $move->toPublicArray());
-        self::assertSame(Action::pass()->toEngineArray(), Action::pass()->withoutReason()->toEngineArray());
-
         $step = new Step(new GameState(['phase' => 'bidding', 'turn' => 2]), [['type' => 'bid']]);
         self::assertSame(['state' => ['phase' => 'bidding', 'turn' => 2], 'events' => [['type' => 'bid']]], $step->toEngineArray());
     }
