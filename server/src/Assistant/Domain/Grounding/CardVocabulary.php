@@ -30,10 +30,14 @@ final class CardVocabulary
         'seven' => '7', 'eight' => '8', 'nine' => '9', 'ten' => 'T', 'jack' => 'J', 'queen' => 'Q', 'king' => 'K', 'ace' => 'A',
         'الفالي' => 'J', 'فالي' => 'J', 'الدامة' => 'Q', 'دامة' => 'Q', 'الروا' => 'K', 'روا' => 'K', 'اللاص' => 'A', 'لاص' => 'A',
     ];
-    private const array SUIT_WORDS = [
+    /** suits in Latin script: a card is then written with "de" or "of" between rank and suit */
+    private const array LATIN_SUIT_WORDS = [
         'piques' => 'S', 'pique' => 'S', 'cœurs' => 'H', 'cœur' => 'H', 'coeurs' => 'H', 'coeur' => 'H',
         'carreaux' => 'D', 'carreau' => 'D', 'trèfles' => 'C', 'trèfle' => 'C', 'trefles' => 'C', 'trefle' => 'C',
         'spades' => 'S', 'spade' => 'S', 'hearts' => 'H', 'heart' => 'H', 'diamonds' => 'D', 'diamond' => 'D', 'clubs' => 'C', 'club' => 'C',
+    ];
+    /** suits in Arabic script: the rank is followed by the suit, with nothing between */
+    private const array ARABIC_SUIT_WORDS = [
         'البيك' => 'S', 'بيك' => 'S', 'الكور' => 'H', 'كور' => 'H', 'الكارو' => 'D', 'كارو' => 'D', 'السباتة' => 'C', 'سباتة' => 'C',
     ];
     /** the letters printed in the corner of a card, French and English, before a suit symbol */
@@ -84,7 +88,7 @@ final class CardVocabulary
      * The cards a text names, in any of the three languages, and the text without them. A rank or a
      * suit alone names no card. Codes ("QH") are read as written; names are read whatever their case.
      *
-     * @return array{list<string>, string} the cards as codes, in order, and what is left of the text, lower case
+     * @return array{list<string>, string} the cards as codes, by the way they are written (codes, letters with a symbol, names, then ranks with a symbol), and what is left of the text, lower case
      */
     public static function take(string $text): array
     {
@@ -95,24 +99,26 @@ final class CardVocabulary
             return ' ';
         };
         $text = (string) preg_replace_callback(self::CODE, static fn (array $m): string => $keep($m[1], $m[2]), $text);
+        // a letter printed in the corner of a card is a capital: "A♥" is the ace of hearts, "a ♥" is a heart
+        $symbols = implode('', array_keys(self::SYMBOLS));
+        $letters = implode('', array_map(strtoupper(...), array_keys(self::INDEX_LETTERS)));
+        $text = (string) preg_replace_callback(
+            '/(?<![\p{L}\p{N}])(['.$letters.'])\s?(['.$symbols.'])/u',
+            static fn (array $m): string => $keep(self::INDEX_LETTERS[strtolower($m[1])], self::SYMBOLS[$m[2]]),
+            $text,
+        );
         $text = mb_strtolower($text);
         // Arabic joins a word to what follows it: "و9 سباتة" (and the 9 of clubs), "للـ9" (for the 9). The link is cut before reading.
         $text = (string) preg_replace(['/ـ/u', '/(?<=[\x{0621}-\x{064A}])(?=\p{Nd})/u'], ['', ' '], $text);
-
         $ranks = self::alternation(array_keys(self::RANK_WORDS));
-        $suits = self::alternation(array_keys(self::SUIT_WORDS));
-        // one or two joined particles may come before an Arabic rank: "والدامة", "بالروا"
-        $named = '/(?<![\p{L}\p{N}])(?:[وبفكل]{1,2}(?=\p{Arabic}))?('.$ranks.')\s+(?:de\s+|d[\'’]\s*|of\s+)?('.$suits.')(?![\p{L}\p{N}])/u';
-        $text = (string) preg_replace_callback($named, static fn (array $m): string => $keep(self::RANK_WORDS[$m[1]], self::SUIT_WORDS[$m[2]]), $text);
-
-        $letters = implode('', array_keys(self::INDEX_LETTERS));
-        $symbols = implode('', array_keys(self::SYMBOLS));
-        $drawn = '/(?<![\p{L}\p{N}])('.$ranks.'|['.$letters.'])\s?(?:de\s+|of\s+)?(['.$symbols.'])/u';
-        $text = (string) preg_replace_callback(
-            $drawn,
-            static fn (array $m): string => $keep(self::RANK_WORDS[$m[1]] ?? self::INDEX_LETTERS[$m[1]], self::SYMBOLS[$m[2]]),
-            $text,
-        );
+        // In French and English a card has "de" or "of" in it: without it, "as hearts were trumps" would be the ace of hearts.
+        $latin = '/(?<![\p{L}\p{N}])('.$ranks.')\s+(?:de\s+|d[\'’]\s*|of\s+)('.self::alternation(array_keys(self::LATIN_SUIT_WORDS)).')(?![\p{L}\p{N}])/u';
+        $text = (string) preg_replace_callback($latin, static fn (array $m): string => $keep(self::RANK_WORDS[$m[1]], self::LATIN_SUIT_WORDS[$m[2]]), $text);
+        // In Arabic the suit follows the rank; one or two joined particles may come before the rank: "والدامة", "بالروا".
+        $arabic = '/(?<![\p{L}\p{N}])(?:[وبفكل]{1,2}(?=\p{Arabic}))?('.$ranks.')\s+('.self::alternation(array_keys(self::ARABIC_SUIT_WORDS)).')(?![\p{L}\p{N}])/u';
+        $text = (string) preg_replace_callback($arabic, static fn (array $m): string => $keep(self::RANK_WORDS[$m[1]], self::ARABIC_SUIT_WORDS[$m[2]]), $text);
+        $drawn = '/(?<![\p{L}\p{N}])('.$ranks.')\s?(?:de\s+|of\s+)?(['.$symbols.'])/u';
+        $text = (string) preg_replace_callback($drawn, static fn (array $m): string => $keep(self::RANK_WORDS[$m[1]], self::SYMBOLS[$m[2]]), $text);
 
         return [$cards, $text];
     }

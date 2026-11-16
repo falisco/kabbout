@@ -18,7 +18,7 @@ ai:
           max_tokens: 4096
       tools:
         - 'Kabbout\Assistant\Infrastructure\Ai\CoachTools'
-      # rounds of tool calls in one answer: the five tools, and a few closer looks
+      # rounds of tool calls in one answer: the six tools, and a few closer looks
       max_tool_calls: 8
 
 when@test:

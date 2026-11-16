@@ -5,6 +5,7 @@
 import type { Card, GameState, Play, PublicBid, Scoring, Seat } from '../../engine/src/index.ts';
 import { EngineError, SEATS, SEAT_COUNT, TRICKS_PER_DEAL, apply, isCard, isScoring, isSeat, newGame, seededRng } from '../../engine/src/index.ts';
 import { BadRequest } from './errors.ts';
+import { sorted } from './order.ts';
 import { isObject, unknownSeat } from './shape.ts';
 
 export interface DealRecord {
@@ -96,7 +97,10 @@ export function replayDeal(record: DealRecord): Replay {
   // a new game is only the engine's way to an empty table: its cards are replaced by the record's
   const rng = seededRng(0);
   const start = newGame(rng, { dealer: record.dealer, scoring: record.scoring }).state;
-  start.hands = handsOf(record.tricks);
+  // the cards come out of the record in the order they were played: left so, a hand would tell
+  // whoever plays on from it (the expert, the what-if) what its player did next
+  const [first, second, third, fourth] = handsOf(record.tricks).map(sorted);
+  start.hands = [first, second, third, fourth];
 
   let state = start;
   const auction: Call[] = [];

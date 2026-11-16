@@ -12,6 +12,8 @@ import type { Case } from '../contract/build.ts';
 import { buildCases, recordOf, seedOf, serialize } from '../contract/build.ts';
 import type { BidReview, ExpertChoice, Summary, Swings, TrickReview, WhatIf } from '../src/analysis.ts';
 import { expertChoiceFrom, seatView } from '../src/analysis.ts';
+import { sorted as sortedHand } from '../src/order.ts';
+import { replayDeal } from '../src/replay.ts';
 import { seededStream, streamOf } from '../src/rng.ts';
 import { MAX_BODY_BYTES, createBridge } from '../src/server.ts';
 
@@ -668,6 +670,14 @@ test('a what-if finishes the deal twice with the same experts: the card played c
   const margin = (e: WhatIf['instead']) => e.us.gained - e.them.gained;
   assert.equal(other.difference, margin(other.instead) - margin(other.asPlayed));
   for (const end of [other.asPlayed, other.instead]) assert.equal(end.us.tricks + end.them.tricks, 8);
+});
+
+test('a replayed hand is in the order of the deck: what is played on from it cannot tell what its player did next', async () => {
+  const { record } = await recordedDeal(12);
+  const replay = replayDeal(record as unknown as Parameters<typeof replayDeal>[0]);
+  for (const state of [replay.start, ...replay.auction.map((c) => c.before), ...replay.decisions.map((d) => d.before)]) {
+    for (const hand of state.hands) assert.deepEqual(hand, sortedHand(hand));
+  }
 });
 
 test('an analysis refuses what the replay refuses, and says where', async () => {

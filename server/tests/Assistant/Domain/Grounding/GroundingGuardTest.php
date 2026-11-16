@@ -40,7 +40,7 @@ final class GroundingGuardTest extends TestCase
         yield 'Tunisian Arabic, an ordinal and the article' => ['البلي الثالث: الدامة الكور خير من فالي بيك.', ['QH', 'JS'], [3], [3]];
         yield 'Tunisian Arabic, particles joined to the card' => ['و9 سباتة كانت خير، والدامة بيك زادة، مقابل 45 للـ9 سباتة وبالروا كارو.', ['9C', 'QS', 'KD'], [45], []];
         yield 'Persian digits' => ['۱۲۰', [], [120], []];
-        yield 'cards drawn with their suit' => ['Q♥ puis D♥, le 10♠, R♦ et V ♣.', ['QH', 'TS', 'KD', 'JC'], [], []];
+        yield 'cards drawn with their suit' => ['Q♥ puis D♥, le 10♠, R♦ et V ♣.', ['QH', 'KD', 'JC', 'TS'], [], []];
         yield 'cards as the engine writes them' => ['You held KS and 9D, not TC.', ['KS', '9D', 'TC'], [], []];
         yield 'a rank alone is no card' => ['Your ace was safe, and the two kings behind it.', [], [2], []];
         yield 'a rank is not a number' => ['Le 7 de pique et le 8 de cœur ne valent rien.', ['7S', '8H'], [], []];
@@ -94,6 +94,37 @@ final class GroundingGuardTest extends TestCase
         self::assertNotSame([], GroundingGuard::ungrounded('L’expert aurait annoncé 100.', $facts));
         // a word of a result is not a card for looking like one: only whole codes are
         self::assertFalse($facts->hasCard('V '));
+    }
+
+    public function testOrdinaryWordsAreNotTakenForCardsOrTricks(): void
+    {
+        $facts = new Facts();
+        $facts->add(['swings' => [['trick' => 4, 'played' => 'TS', 'choice' => '7S', 'loss' => 52]], 'us' => ['tricks' => 3, 'cardPoints' => 61], 'winner' => 1]);
+
+        foreach ([
+            'In trick 4, as hearts were trumps, the 10 of spades gave 52 points away.',
+            'In trick 4 you played the 10 of spades and after that your side won only 1 trick.',
+            'You won 3 tricks 61 points in all, trick 4 was the turning point.',
+            'In trick 4 you needed a ♥ to follow.',
+            'The fourth trick: the 10 of spades. Le quatrième pli, le 4e pli.',
+        ] as $answer) {
+            self::assertSame([], GroundingGuard::ungrounded($answer, $facts), $answer);
+        }
+        self::assertSame([4], Reading::of('You won 3 tricks 61 points in all, trick 4 was the turning point.')->tricks);
+        self::assertSame([], Reading::of('As hearts were trumps, a ♥ was needed.')->cards);
+        // what is a card or a trick is still read as one
+        self::assertSame(['JH'], Reading::of('The J♥ was out, and V♥ too.')->cards);
+        self::assertSame(['AS', 'QH', 'TS', '7S'], Reading::of('L’as de pique et la dame de cœur. لعبت 10 بيك و7 بيك')->cards);
+        self::assertSame(['trick 3', 'trick 7'], GroundingGuard::ungrounded('the third trick and the 7th trick', $facts));
+    }
+
+    public function testDigitsOfAnyWidthAreDigitsAndNothingHidesBetweenTwoOfThem(): void
+    {
+        $facts = new Facts();
+        $facts->add(['trick' => 4]);
+
+        self::assertSame(['85'], GroundingGuard::ungrounded('In trick 4 you lost ８５ points.', $facts));
+        self::assertSame(['85'], GroundingGuard::ungrounded("In trick 4 you lost 8\u{200B}5 points.", $facts));
     }
 
     public function testACardIsNamedAsTheScreenNamesIt(): void

@@ -27,9 +27,10 @@ final readonly class Reading
         $numbers = array_map(intval(...), $found[0]);
 
         $tricks = [];
-        $after = '/'.self::TRICK.'\s*(?:n[°o]\.?\s*|numéro\s+|number\s+|رقم\s+|#\s*)?(\d+)/u';
-        // "the 4th trick" points at a trick; "4 tricks" counts them
-        $before = '/(\d+)\s*(?:ère|ere|er|re|ème|eme|e|st|nd|rd|th)?\s+(?:pli|trick|البلي|بلي)(?![\p{L}])/u';
+        // "trick 4" points at a trick; in "3 tricks 61 points" the word counts tricks and the number after it is something else
+        $after = '/(?<!\d\s)'.self::TRICK.'\s*(?:n[°o]\.?\s*|numéro\s+|number\s+|رقم\s+|#\s*)?(\d+)/u';
+        // "the 4th trick", "le 4e pli" point at a trick; "4 tricks" and "1 trick" count them
+        $before = '/(\d+)\s*(?:ère|ere|er|re|ème|eme|e|st|nd|rd|th)\s+(?:pli|trick)(?![\p{L}])/u';
         foreach ([$after, $before] as $pattern) {
             preg_match_all($pattern, $rest, $found);
             foreach ($found[1] as $number) {

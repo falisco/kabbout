@@ -27,7 +27,7 @@ type BySuit = Record<Suit, Card[]>;
 export interface LegalCard {
   card: Card;
   trump: boolean;
-  /** no card still out beats it in its suit */
+  /** no card of its suit beats it, neither one still out nor one already on the table */
   master: boolean;
   /** played now, it holds the trick over the cards already on the table */
   holds: boolean;
@@ -87,7 +87,7 @@ export function readingOf(view: PlayerView): Reading {
   const legal = legalCards(view.hand, plays, trump, seat).map((card) => ({
     card,
     trump: isTrump(card, trump),
-    master: !memory.unseen.some((o) => suitOf(o) === suitOf(card) && strength(o, trump) > strength(card, trump)),
+    master: ![...memory.unseen, ...onTable].some((o) => suitOf(o) === suitOf(card) && strength(o, trump) > strength(card, trump)),
     holds: trickWinner([...plays, { seat, card }], trump).seat === seat,
     points: cardPoints(card, trump),
   }));

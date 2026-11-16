@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * The coach's model: the agent `coach` of the Symfony AI bundle (config/packages/ai.yaml), which holds
- * the platform, the model, the five tools of CoachTools and the limit on how often it may call them.
+ * the platform, the model, the six tools of CoachTools and the limit on how often it may call them.
  * What changes with each question is given here: the deal, through CoachConversation, and the system
  * prompt, written for the player's seat and language.
  *

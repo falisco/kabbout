@@ -9,8 +9,15 @@ namespace Kabbout\Assistant\Domain\Grounding;
  * an answer must be found in a tool result of the conversation. No number is let through on its own
  * merits, not even a small one, and a trick the answer points at must be one a tool looked at.
  *
- * What it cannot see: a rank or a suit named alone ("your ace", "in trumps"), and numbers written in
- * words beyond the ones NumberWords knows. The prompt asks for digits and for whole card names.
+ * What it cannot see, and the prompt asks the model not to write:
+ * - a rank or a suit named alone ("your ace", "in trumps");
+ * - numbers written in words beyond the ones NumberWords knows ("eleven", "cent soixante");
+ * - what a number is said of: the numbers of the tool results are one set, so a true number given to
+ *   the wrong side ("you lost 250" when 250 is the other team's score) passes.
+ * In French and English a card is read only with "de" or "of" in it, or as its code or symbol; a card
+ * written otherwise ("ace hearts") is not checked.
+ * It reads too much rather than too little where the two cannot be told apart: "AS" in capitals is the
+ * ace of spades, and a decimal ("52.0") is two numbers. A good answer sent back costs one more try.
  */
 final class GroundingGuard
 {
