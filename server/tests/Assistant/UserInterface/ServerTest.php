@@ -30,12 +30,23 @@ final class ServerTest extends WebTestCase
         self::assertSame(['configured' => false, 'platform' => null, 'model' => null, 'variable' => 'KABBOUT_AI'], $answer['ai']);
         self::assertIsArray($answer['features']);
         self::assertSame(array_column(Feature::cases(), 'value'), array_keys($answer['features']));
-        foreach ($answer['features'] as $feature) {
+        foreach ($answer['features'] as $name => $feature) {
             self::assertIsArray($feature);
-            self::assertSame('planned', $feature['state']);
+            // the coach is built and waits for a key; the others wait for their version
+            self::assertSame('coach' === $name ? 'off' : 'planned', $feature['state']);
             self::assertIsString($feature['hint']);
             self::assertStringContainsString('KABBOUT_AI', $feature['hint']);
         }
+    }
+
+    public function testWithAKeyTheCoachIsOnAndTheRestStillPlanned(): void
+    {
+        $_SERVER['KABBOUT_AI'] = 'huggingface://'.self::KEY.'@auto/openai/gpt-oss-120b';
+        $features = self::capabilities()['features'];
+
+        self::assertIsArray($features);
+        self::assertSame(['state' => 'on', 'hint' => null], $features['coach']);
+        self::assertSame('planned', \is_array($features['referee']) ? $features['referee']['state'] : null);
     }
 
     public function testWithAKeyTheAnswerNamesThePlatformAndTheModelAndNeverTheKey(): void

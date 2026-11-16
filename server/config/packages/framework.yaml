@@ -6,6 +6,15 @@ framework:
   php_errors:
     log: true
 
+  # Questions to the coach, per visitor. The count is kept in the application cache; steps that open
+  # other doors to the model (MCP, the hosted demo) take the same limiter.
+  rate_limiter:
+    coach:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_COACH_LIMIT)%'
+      interval: '1 minute'
+      lock_factory: null
+
 when@test:
   framework:
     test: true

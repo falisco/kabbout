@@ -62,10 +62,12 @@ final class AiSettingsTest extends TestCase
         self::assertSame(FeatureState::On, FeatureState::of(true, true));
     }
 
-    public function testNoFeatureHasShippedYetSoAKeySwitchesNothingOn(): void
+    public function testAKeySwitchesOnTheFeaturesThatHaveShippedAndOnlyThose(): void
     {
         $settings = new AiSettings(Platform::HuggingFace, 'a-key', 'a-model');
-        foreach (Feature::cases() as $feature) {
+        self::assertSame(FeatureState::On, Feature::Coach->stateWith($settings));
+        self::assertSame(FeatureState::Off, Feature::Coach->stateWith(null));
+        foreach ([Feature::SpokenBids, Feature::Referee, Feature::AgentSeat] as $feature) {
             self::assertSame(FeatureState::Planned, $feature->stateWith($settings), $feature->value);
             self::assertSame(FeatureState::Planned, $feature->stateWith(null), $feature->value);
         }

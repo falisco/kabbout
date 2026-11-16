@@ -4,6 +4,8 @@ parameters:
   # Nothing written: the AI is off and the bridge is where the compose file puts it.
   env(KABBOUT_AI): ''
   env(BRIDGE_URL): 'http://bridge:8787'
+  # questions to the coach one visitor may ask in a minute
+  env(KABBOUT_COACH_LIMIT): '6'
 
 services:
   _defaults:
@@ -37,7 +39,13 @@ services:
 
 when@test:
   services:
-    # No use case asks for the engine yet (the coach does, next); the tests check that it is wired all the same.
+    # What the tests put something else behind: the engine's transport and the coach's model.
     Kabbout\Game\Domain\Engine:
       alias: Kabbout\Game\Infrastructure\Bridge\BridgeEngine
+      public: true
+    Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport:
+      alias: Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport
+      public: true
+    Kabbout\Assistant\Application\Coach\CoachModel:
+      alias: Kabbout\Assistant\Infrastructure\Ai\SymfonyAiCoachModel
       public: true
