@@ -133,8 +133,27 @@ export default {
   },
 
   // menu
-  aiPlanned: (variable) => `في الثنية: كوتش يفسّرلك الدونة، وطلبات تقولها بصوتك. يفيقو بـ ${variable}.`,
+  aiPlanned: (variable) => `في الثنية: طلبات تقولها بصوتك، وحكم يجاوبك على القوانين. يفيقو بـ ${variable}.`,
   aiOff: (variable) => `الذكاء الاصطناعي راقد في السرفور هذا: اكتب ${variable} في .env وعاود شعّلو.`,
+  // the coach of the server, after a deal
+  debriefOpen: 'اسأل الكوتش',
+  debriefOff: (variable) => `الكوتش راقد: اكتب ${variable} في .env باش تسألو على الدونة.`,
+  debriefTitle: 'الكوتش',
+  debriefIntro: 'عندك سؤال على الدونة هذي؟ الموتور عاود حسب كل شي، والكوتش يفسّر.',
+  debriefLabel: 'سؤالك',
+  debriefDefault: 'شنوّة لعبت غالط؟',
+  debriefAsk: 'اسأل',
+  debriefAsking: 'الكوتش يثبّت في الدونة…',
+  debriefPlain: 'جواب مأخوذ مباشرة من تحليل الموتور.',
+  debriefSeeTrick: (n) => `شوف البلي ${n}`,
+  debriefTrickTitle: (n) => `البلي ${n}`,
+  debriefBack: 'ارجع للنتيجة',
+  debriefBackCoach: 'ارجع للكوتش',
+  debriefErrors: {
+    busy: 'برشا أسئلة ورا بعضها: عاود بعد دقيقة.',
+    refused: 'السرفور ما نجّمش يعاود يلعب الدونة هذي.',
+    unavailable: 'الكوتش ما يجاوبش توّا. عاود بعد شوية.',
+  },
   menuSub: (partner, o1, o2, target) =>
     `إنت و<b>${partner}</b> ضد <b>${o1}</b> و<b>${o2}</b>. البارتية بـ <b>${target} نقطة</b>، والبلوط-روبلوط محسوبة.`,
   resume: 'كمّل البارتية',

@@ -134,8 +134,28 @@ export default {
   },
 
   // menu
-  aiPlanned: (variable) => `En chemin : un coach qui explique votre donne, et des annonces dites à voix haute. Ils se réveilleront avec ${variable}.`,
+  aiPlanned: (variable) =>
+    `En chemin : des annonces dites à voix haute, et un arbitre pour vos questions de règles. Ils se réveilleront avec ${variable}.`,
   aiOff: (variable) => `L’IA dort sur ce serveur : renseignez ${variable} dans .env, puis relancez-le.`,
+  // the coach of the server, after a deal
+  debriefOpen: 'Demander au coach',
+  debriefOff: (variable) => `Le coach dort : renseignez ${variable} dans .env pour lui poser vos questions sur la donne.`,
+  debriefTitle: 'Le coach',
+  debriefIntro: 'Une question sur cette donne ? Le moteur a tout recompté, le coach l’explique.',
+  debriefLabel: 'Votre question',
+  debriefDefault: 'Qu’est-ce que j’ai mal joué ?',
+  debriefAsk: 'Demander',
+  debriefAsking: 'Le coach regarde la donne…',
+  debriefPlain: 'Réponse tirée directement de l’analyse du moteur.',
+  debriefSeeTrick: (n) => `Voir le pli ${n}`,
+  debriefTrickTitle: (n) => `Pli ${n}`,
+  debriefBack: 'Retour au résultat',
+  debriefBackCoach: 'Retour au coach',
+  debriefErrors: {
+    busy: 'Trop de questions à la suite : réessayez dans une minute.',
+    refused: 'Le serveur n’a pas pu rejouer cette donne.',
+    unavailable: 'Le coach ne répond pas pour le moment. Réessayez un peu plus tard.',
+  },
   menuSub: (partner, o1, o2, target) =>
     `Vous et <b>${partner}</b> contre <b>${o1}</b> et <b>${o2}</b>. Partie en <b>${target} points</b>, belote-rebelote comprise.`,
   resume: 'Reprendre la partie',

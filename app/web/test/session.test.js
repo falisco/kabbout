@@ -216,3 +216,35 @@ test('snapshot and restore: an action can be taken back exactly', () => {
   s.restore(snap);
   assert.deepEqual(s.view(), before);
 });
+
+test('record: nothing until a deal is over, then the deal as the table saw it, and nothing else', () => {
+  const s = make();
+  assert.equal(s.record(), null);
+  s.start();
+  assert.equal(s.record(), null);
+  playUntil(s, myCardTurn);
+  assert.equal(s.record(), null);
+  const over = playUntil(s, (v) => v.phase === 'roundEnd');
+  const record = s.record();
+  assert.deepEqual(Object.keys(record), ['scoring', 'dealer', 'bids', 'tricks']);
+  assert.deepEqual([record.scoring, record.dealer], [over.scoring, over.dealer]);
+  // the auction as heard: who said what, never why
+  assert.deepEqual(record.bids, over.bids);
+  assert.ok(record.bids.length >= 4 && record.bids.every((bid) => !('why' in bid)));
+  // eight tricks of four plays, the thirty-two cards once each, in the order they fell
+  assert.deepEqual(
+    record.tricks,
+    over.tricks.map((trick) => trick.plays),
+  );
+  assert.deepEqual(
+    record.tricks.flat().map((p) => Object.keys(p)),
+    Array(32).fill(['seat', 'card']),
+  );
+  assert.deepEqual(record.tricks.flatMap((plays) => plays.map((p) => p.card)).sort(), [...fullDeck()].sort());
+  // a copy: what is done to it does not reach the game
+  record.tricks[0][0].card = 'XX';
+  assert.notEqual(s.record().tricks[0][0].card, 'XX');
+  // the next deal has no record yet
+  s.send({ kind: 'next' });
+  assert.equal(s.record(), null);
+});

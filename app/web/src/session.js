@@ -5,6 +5,7 @@
 
 import {
   EngineError,
+  TRICKS_PER_DEAL,
   aiBid,
   aiPlay,
   apply,
@@ -19,6 +20,20 @@ import {
   trickWinner,
   viewFor,
 } from '../../../engine/src/index.ts';
+
+/**
+ * A finished deal as the table saw it: the count, the dealer, the auction and the eight tricks.
+ * It holds nothing a player did not see: no hand, no robot's reason.
+ */
+function recordOf(state) {
+  if (!state || !state.result || state.tricks.length !== TRICKS_PER_DEAL) return null;
+  return {
+    scoring: state.scoring,
+    dealer: state.dealer,
+    bids: state.bids.map(({ why: _why, ...bid }) => bid),
+    tricks: state.tricks.map((trick) => trick.plays.map(({ seat, card }) => ({ seat, card }))),
+  };
+}
 
 /**
  * @param {object} o
@@ -95,6 +110,8 @@ export function createLocalSession({
     /** Solo only: the robots' reasons, one per bid of the auction (undefined for the human's). */
     reasons: () => (state ? state.bids.map((b) => (b.seat === seat ? undefined : b.why)) : []),
     ...advice({ humanTurnIn, lang, adviceRng, thinkMs }),
+    /** The deal just played, as the table saw it; null until a deal is over. */
+    record: () => recordOf(state),
     /** the game as it stands, to come back to with restore (undo) */
     snapshot: () => structuredClone(state),
     restore: (snap) => set(structuredClone(snap)),

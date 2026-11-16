@@ -3,17 +3,30 @@ import { SEATS, isLang, isLevel, isScoring } from '../../../engine/src/index.ts'
 import { snd, unlockAudio, updateMusic } from './audio.js';
 import { $ } from './dom.js';
 import { BUBBLE_MS, ME, PARTNER, PARTNER_REPLY_SHARE, REPLY_DELAY_MS, chatRng, placeOf, sideOf } from './config.js';
-import { closeModal, endKabbout, giveTip, makeBid, newGame, nextRound, openModal, playCard, toggleChat, undoLast } from './flow.js';
+import {
+  askDebrief,
+  closeModal,
+  endKabbout,
+  giveTip,
+  makeBid,
+  newGame,
+  nextRound,
+  openModal,
+  playCard,
+  showDebriefTrick,
+  toggleChat,
+  undoLast,
+} from './flow.js';
 import { coachStep, myBidTurn, view } from './game.js';
 import { setLang, t } from './i18n/index.js';
 import { renderBid } from './render/bidding.js';
 import { render, renderAll } from './render/index.js';
 import { availableBids, bidValueToShow } from './selectors.js';
 import { bubble, clearBubbles } from './speech.js';
-import { SWITCHES, coachAnswer, markTutorialStep, overlay, prefs, resetTutorial, savePrefs, selection, tableState } from './store.js';
+import { SWITCHES, coachAnswer, debrief, markTutorialStep, overlay, prefs, resetTutorial, savePrefs, selection, tableState } from './store.js';
 
 /** dialogs that close on Escape or a click outside */
-const CLOSABLE = ['last', 'rules', 'sheet', 'settings', 'values'];
+const CLOSABLE = ['last', 'rules', 'sheet', 'settings', 'values', 'debrief', 'trick'];
 const buttonOf = (event) => event.target.closest('button');
 
 function playFromHand(target) {
@@ -106,7 +119,10 @@ const SHEET_ACTIONS = {
   rules: () => openModal('rules'),
   values: () => openModal('values'),
   menu: () => openModal('menu'),
-  close: closeModal,
+  close: () => closeModal(),
+  debrief: () => openModal('debrief'),
+  ask: () => askDebrief(),
+  trick: (number) => showDebriefTrick(Number(number)),
   tutorial() {
     resetTutorial();
     closeModal();
@@ -127,7 +143,16 @@ function onSheetClick(event) {
   if (!button) return;
   const { setting, value, action } = button.dataset;
   if (setting) changeSetting(setting, value);
-  else SHEET_ACTIONS[action]?.();
+  else SHEET_ACTIONS[action]?.(value);
+}
+/** the question to the coach is kept as it is typed, and Enter sends it */
+function onSheetInput(event) {
+  if (event.target.id === 'debriefQ') debrief.question = event.target.value;
+}
+function onSheetKeyDown(event) {
+  if (event.key !== 'Enter' || event.target.id !== 'debriefQ') return;
+  event.preventDefault();
+  askDebrief();
 }
 
 function onChatPick(event) {
@@ -149,7 +174,9 @@ function onKeyDown(event) {
     return endKabbout();
   }
   if (key !== 'Escape') return;
-  if (CLOSABLE.includes(overlay.modal)) closeModal();
+  // from a trick the coach showed, back to what the coach said
+  if (overlay.modal === 'trick') openModal('debrief');
+  else if (CLOSABLE.includes(overlay.modal)) closeModal();
   else if (overlay.chatOpen) {
     toggleChat(false);
     $('#chatBtn').focus();
@@ -166,6 +193,8 @@ export function initInput() {
   $('#tipBtn').addEventListener('click', giveTip);
   $('#bid').addEventListener('click', onBidClick);
   $('#sheet').addEventListener('click', onSheetClick);
+  $('#sheet').addEventListener('input', onSheetInput);
+  $('#sheet').addEventListener('keydown', onSheetKeyDown);
 
   const openers = { '#bLast': 'last', '#bRules': 'rules', '#scoreBox': 'sheet', '#bMenu': 'menu', '#bSettings': 'settings', '#valBtn': 'values' };
   for (const [selector, modal] of Object.entries(openers)) $(selector).addEventListener('click', () => openModal(modal));

@@ -1,4 +1,5 @@
-// The dialogs: menu, round result, end of game, last trick, score sheet, rules, settings, card values.
+// The dialogs: menu, round result, end of game, last trick, score sheet, rules, settings, card values,
+// and the coach's two (render/debrief.js).
 import { LEVELS, SCORINGS, SEATS, TRICKS_PER_DEAL } from '../../../../engine/src/index.ts';
 import { PARTNER, TARGET, THEM, US, nameOf, sideOf, who } from '../config.js';
 import { $ } from '../dom.js';
@@ -12,6 +13,7 @@ import { loadStats } from '../storage.js';
 import { starSVG } from '../star.js';
 import { capabilities, overlay, prefs, tableState, tutorial } from '../store.js';
 import { historyHTML, valuesTable } from './bidding.js';
+import { debriefButton, debriefDialog, debriefHint, debriefState, debriefTrickDialog } from './debrief.js';
 import { multiplierMark } from './table.js';
 import { keepFocus } from './transient.js';
 
@@ -140,7 +142,8 @@ function roundDialog() {
     </tbody></table>
     <p class="sub">${t('tricksWon', tricksWon[US], tricksWon[THEM], view.target)}</p>
     ${firstTimeNote}
-    ${actionButton('next', 'take', view.winner !== null ? t('seeResult') : t('nextDeal'))}`;
+    <div class="menu-acts">${actionButton('next', 'take', view.winner !== null ? t('seeResult') : t('nextDeal'))}${debriefButton()}</div>
+    ${debriefHint()}`;
 }
 
 function endDialog() {
@@ -150,7 +153,8 @@ function endDialog() {
     <table class="res">${scoreColumns('<th></th>')}<tbody>
     <tr class="tot"><td>${t('finalScore')}</td><td>${view.scores[US]}</td><td>${view.scores[THEM]}</td></tr></tbody></table>
     <p class="sub">${t('dealsPlayed', view.history.length)}</p>
-    <div class="menu-acts">${actionButton('new', 'take', t('replay'))}${actionButton('menu', 'pass', t('menu'))}</div>`;
+    <div class="menu-acts">${actionButton('new', 'take', t('replay'))}${debriefButton()}${actionButton('menu', 'pass', t('menu'))}</div>
+    ${debriefHint()}`;
 }
 
 function lastTrickDialog() {
@@ -210,7 +214,11 @@ const DIALOGS = {
   rules: rulesDialog,
   settings: settingsDialog,
   values: valuesDialog,
+  debrief: debriefDialog,
+  trick: debriefTrickDialog,
 };
+/** dialogs drawn again when what they show has changed, and left alone otherwise: what the player is typing stays */
+const DIALOG_STATES = { debrief: debriefState };
 
 /** The dialog to show: the one the player opened, else the result of the round or of the game once the table has settled. */
 function dialogDue() {
@@ -234,12 +242,14 @@ export function renderModal() {
     if (closing && focusBeforeDialog && document.contains(focusBeforeDialog)) focusBeforeDialog.focus();
     return;
   }
-  const changed = sheet.dataset.modal !== name;
+  const state = DIALOG_STATES[name]?.() ?? '';
+  const changed = sheet.dataset.modal !== name || sheet.dataset.state !== state;
   if (!changed && !REDRAWN_WHILE_OPEN.includes(name)) return;
   keepFocus(sheet, () => {
     sheet.innerHTML = DIALOGS[name]();
   });
   sheet.dataset.modal = name;
+  sheet.dataset.state = state;
   const title = sheet.querySelector('h1,h2');
   if (title) {
     title.id = 'dlgTitle';

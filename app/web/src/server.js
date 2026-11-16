@@ -46,3 +46,50 @@ export function aiNotice(capabilities) {
   if (states.includes('off')) return 'off';
   return states.every((state) => state === 'planned') ? 'planned' : null;
 }
+
+/** how long the page waits for the coach: the model may be asked twice, with the engine's analysis in between */
+export const COACH_TIMEOUT_MS = 60_000;
+const SOURCES = ['model', 'summary'];
+const LAST_TRICK = 8;
+/** why the coach has no answer, by the status the server gave */
+const REASONS = { 422: 'refused', 429: 'busy' };
+
+/**
+ * @param {unknown} body the answer of POST api/coach
+ * @returns {{ text: string, source: 'model' | 'summary', tricks: number[] } | null} null when it is not an answer
+ */
+function readAnswer(body) {
+  const answer = /** @type {any} */ (body)?.answer;
+  if (typeof answer?.text !== 'string' || answer.text.trim() === '' || !SOURCES.includes(answer.source)) return null;
+  // the tricks become buttons: only whole numbers that name a trick get through
+  const tricks = Array.isArray(answer.tricks) ? answer.tricks.filter((n) => Number.isInteger(n) && n >= 1 && n <= LAST_TRICK) : [];
+  return { text: answer.text, source: answer.source, tricks: [...new Set(tricks)].sort((a, b) => a - b) };
+}
+
+/**
+ * Asks the coach about a deal. Never fails: when there is no answer, `reason` says why, 'busy' (too many
+ * questions), 'refused' (the server could not replay the deal) or 'unavailable' (anything else, a server
+ * that takes too long included).
+ * @param {{ record: object, seat: number, lang: string, question: string }} question
+ * @param {typeof fetch} [fetchFn]
+ * @param {number} [timeoutMs]
+ * @returns {Promise<{ answer: { text: string, source: 'model' | 'summary', tricks: number[] } | null, reason: string }>}
+ */
+export async function askCoach(question, fetchFn = (url, init) => fetch(url, init), timeoutMs = COACH_TIMEOUT_MS) {
+  const waiting = new AbortController();
+  const timer = setTimeout(() => waiting.abort(), timeoutMs);
+  try {
+    const response = await fetchFn('api/coach', {
+      method: 'POST',
+      headers: { accept: 'application/json', 'content-type': 'application/json' },
+      body: JSON.stringify(question),
+      signal: waiting.signal,
+    });
+    const answer = response.status === 200 ? readAnswer(await response.json()) : null;
+    return { answer, reason: answer ? '' : (REASONS[response.status] ?? 'unavailable') };
+  } catch {
+    return { answer: null, reason: 'unavailable' };
+  } finally {
+    clearTimeout(timer);
+  }
+}

@@ -170,6 +170,10 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .links .btn{font-size:15px;white-space:normal;min-height:44px}
 .note{background:#ffffff10;border-radius:12px;padding:10px 12px;font-size:13px;color:var(--muted)}
 .note b{color:var(--gold)}
+.ask{display:grid;gap:6px}
+.ask input{font:inherit;font-size:16px;color:var(--ink);background:#ffffff14;border:1px solid var(--line);border-radius:12px;padding:0 12px;min-height:46px;width:100%;user-select:text;-webkit-user-select:text}
+.ask input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.answer{margin:0;background:#ffffff10;border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.5;color:var(--ink);white-space:pre-line;overflow-wrap:anywhere}
 .sec{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0}
 
 #toast small{display:block;font-family:var(--f-body);font-size:13px;color:var(--muted);margin-top:3px}

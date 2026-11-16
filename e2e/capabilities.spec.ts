@@ -39,10 +39,11 @@ test('played from plain files, the menu says nothing about the AI', async ({ pag
   expect(errors).toEqual([]);
 });
 
-test('served by Kabbout with no key, the menu says the AI is on its way', async ({ page }) => {
+test('served by Kabbout with no key, the menu says the AI is asleep', async ({ page }) => {
   test.skip(!SERVED, 'needs the Kabbout server: E2E_BASE_URL');
   const errors = await openGame(page, { lang: 'en' });
-  await expect(page.locator(NOTICE)).toContainText(WORDS.en.planned);
+  // the coach is built and waits for its key
+  await expect(page.locator(NOTICE)).toContainText(WORDS.en.off);
   await expect(page.locator(`${NOTICE} code`)).toHaveText('KABBOUT_AI');
   expect(errors).toEqual([]);
 });

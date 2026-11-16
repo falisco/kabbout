@@ -57,13 +57,35 @@ export const tableState = {
 
 /** What covers the table. */
 export const overlay = {
-  /** open dialog: 'menu' | 'last' | 'rules' | 'sheet' | 'settings' | 'values' | null */
+  /** open dialog: 'menu' | 'last' | 'rules' | 'sheet' | 'settings' | 'values' | 'debrief' | 'trick' | null */
   modal: null,
   chatOpen: false,
 };
 
+/**
+ * The coach's word on the deal just played: asked once the deal is over, forgotten when the table moves on.
+ * (The `tutorial` above is the guide of the first deals; this is the AI coach of the server.)
+ */
+export const debrief = {
+  /** 'idle' | 'asking' | 'answered' | 'failed' */
+  status: 'idle',
+  /** what the player typed; empty for the question the screen proposes */
+  question: '',
+  /** @type {{ text: string, source: string, tricks: number[] } | null} */
+  answer: null,
+  /** why there is no answer: 'busy' | 'refused' | 'unavailable' */
+  reason: '',
+  /** the trick being looked at, from 1 */
+  trick: 0,
+  /** counts the questions and the deals: an answer that comes back to another count is thrown away */
+  asked: 0,
+};
+export function resetDebrief() {
+  Object.assign(debrief, { status: 'idle', question: '', answer: null, reason: '', trick: 0, asked: debrief.asked + 1 });
+}
+
 /** What the server adds to the game, as server.js read it; nothing until a server answers. */
-export const capabilities = { ...NO_SERVER };
+export const capabilities = /** @type {{ server: boolean, variable: string, features: Record<string, string> }} */ ({ ...NO_SERVER });
 
 /** The last human action, while it can still be taken back. */
 export const undoState = {
