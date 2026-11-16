@@ -83,24 +83,37 @@ const REDRAWS = 4;
 /** worlds always played out, even when the caller's time is up */
 export const MIN_SAMPLES = 12;
 
+/** What the search found for each legal card. `candidates[0]` is the rule-of-thumb card. */
+export interface CardAverages {
+  candidates: Card[];
+  /** per candidate, the sum over the worlds played of what its team gains minus what the other gains, in score-sheet points */
+  totals: number[];
+  /** worlds played out; 0 when one card only is legal, or when no world fits what was observed */
+  worlds: number;
+}
+
 /**
+ * Plays every legal card out in up to `samples` imagined worlds. With one legal card nothing is
+ * imagined and nothing is drawn from `rng`.
+ *
  * `outOfTime`, when given, is asked before each world past the first MIN_SAMPLES: a slow device
- * then thinks less instead of freezing. Without it the choice depends on the seed alone.
+ * then thinks less instead of freezing. Without it the result depends on the seed alone.
  */
-export function searchCard(view: PlayerView, m: Memory, rng: Rng, samples: number, outOfTime?: () => boolean): Card {
+export function cardAverages(view: PlayerView, m: Memory, rng: Rng, samples: number, outOfTime?: () => boolean): CardAverages {
   const { contract, trick } = cardPlay(view);
   const trump = contract.suit;
   const us = team(view.seat);
   const first = chooseCard(situation(view, m));
   const legal = legalCards(view.hand, trick.plays, trump, view.seat);
-  if (legal.length === 1) return first;
+  if (legal.length === 1) return { candidates: [first], totals: [0], worlds: 0 };
   // the rule-of-thumb card comes first: it is kept unless another one does strictly better
   const candidates = [first, ...legal.filter((c) => c !== first)];
   const totals = candidates.map(() => 0);
   const soFar = tallyTricks(view.tricks, trump);
 
-  for (let n = 0; n < samples; n++) {
-    if (n >= MIN_SAMPLES && outOfTime?.()) break;
+  let worlds = 0;
+  for (; worlds < samples; worlds++) {
+    if (worlds >= MIN_SAMPLES && outOfTime?.()) break;
     let world = sampleHands(view, m, rng);
     for (let redraw = 0; redraw < REDRAWS && world && !fitsAuction(view, world, trump); redraw++) world = sampleHands(view, m, rng);
     // no world fits what was observed: the totals so far decide, the rule-of-thumb card if there are none
@@ -112,9 +125,20 @@ export function searchCard(view: PlayerView, m: Memory, rng: Rng, samples: numbe
       totals[i] += gained[us] - gained[opponentOf(us)];
     });
   }
+  return { candidates, totals, worlds };
+}
+
+/** The card that did best in `cardAverages`; a tie keeps the earlier candidate, so the rule-of-thumb card first. */
+export function bestOf({ totals }: Pick<CardAverages, 'totals'>): number {
   let best = 0;
-  for (let i = 1; i < candidates.length; i++) if (totals[i] > totals[best]) best = i;
-  return candidates[best];
+  for (let i = 1; i < totals.length; i++) if (totals[i] > totals[best]) best = i;
+  return best;
+}
+
+/** The expert's card: see `cardAverages` for `outOfTime`. */
+export function searchCard(view: PlayerView, m: Memory, rng: Rng, samples: number, outOfTime?: () => boolean): Card {
+  const found = cardAverages(view, m, rng, samples, outOfTime);
+  return found.candidates[bestOf(found)];
 }
 
 type Pair = [number, number];
