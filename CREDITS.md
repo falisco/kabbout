@@ -22,8 +22,13 @@ Les cartes et les sons sont dans le domaine public (CC0 1.0) : utilisation comme
 - **Source Serif 4** et **Source Sans 3** (Adobe), licence SIL Open Font License 1.1 — https://github.com/adobe-fonts/source-serif et https://github.com/adobe-fonts/source-sans
 - **El Messiri** (Mohamed Gaber, d'après Jovanny Lemonad), licence SIL Open Font License 1.1 — https://github.com/Gue3bara/El-Messiri — pour le nom du jeu, en lettres latines et arabes.
 - **Noto Sans Arabic** (Google), licence SIL Open Font License 1.1 — https://github.com/notofonts/arabic — pour les textes en arabe tunisien.
+- Le texte de la licence et la mention de copyright de chaque famille accompagnent les fichiers : `app/web/fonts/OFL.txt`.
 - Fichiers WOFF2 des sous-ensembles latin et arabe, servis par l'app elle-même : la page ne charge rien depuis un autre site.
 
 ## Emblème — `app/web/icon.svg`, `app/web/brand/`
 
 - L'étoile à huit branches au pique, les icônes de l'app, l'image de partage et le dos des cartes sont des dessins du projet, tracés par `tools/brand.mjs` à partir de `app/web/src/star.js`.
+
+## Code
+
+- Le code du projet est sous licence MIT : voir `LICENSE`.
