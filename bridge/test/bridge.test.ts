@@ -6,11 +6,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import { after, before, test } from 'node:test';
-import type { Action, Card, GameState, PlayerView, PublicEvent, RoundResult, Seat } from '../../engine/src/index.ts';
+import type { Action, Card, GameState, PlayerView, PublicBid, PublicEvent, RoundResult, Seat } from '../../engine/src/index.ts';
 import { SEATS, aiBid, aiPlay, apply, legalPlays, newGame as dealGame, nextSeat, seededRng, suitOf, team, viewFor } from '../../engine/src/index.ts';
 import type { Case } from '../contract/build.ts';
 import { buildCases, recordOf, seedOf, serialize } from '../contract/build.ts';
-import type { ExpertChoice, Summary, Swings, TrickReview, WhatIf } from '../src/analysis.ts';
+import type { BidReview, ExpertChoice, Summary, Swings, TrickReview, WhatIf } from '../src/analysis.ts';
 import { expertChoiceFrom, seatView } from '../src/analysis.ts';
 import { seededStream, streamOf } from '../src/rng.ts';
 import { MAX_BODY_BYTES, createBridge } from '../src/server.ts';
@@ -488,6 +488,45 @@ test('the table read at the player’s turn accounts for every card and every po
     }
   }
   assert.ok(voids > 0, 'no deal showed a void: the test would check nothing of them');
+});
+
+test('the auction is looked at turn by turn: what the seat said, what the expert says with the same cards', async () => {
+  let turns = 0;
+  for (const seed of [11, 12, 13]) {
+    const { record } = await recordedDeal(seed);
+    for (const seat of SEATS) {
+      const review: BidReview = await ok('/analysis/bids', { record, seat, lang: 'en' });
+      const bids = record.bids as PublicBid[];
+      const said = bids.filter((b) => b.seat === seat);
+      assert.equal(review.hand.length, 8);
+      assert.deepEqual([...review.hand].sort(), record.tricks.flatMap((plays) => plays.filter((p) => p.seat === seat).map((p) => p.card)).sort());
+      assert.deepEqual(
+        review.suits.map((s) => s.suit),
+        ['S', 'H', 'D', 'C'],
+      );
+      assert.equal(review.turns.length, said.length);
+      review.turns.forEach((turn, i) => {
+        const { seat: _seat, ...bid } = said[i];
+        assert.equal(turn.turn, i + 1);
+        assert.deepEqual(turn.bid, bid);
+        // what the seat had heard: the bids before its own, and nothing after
+        assert.deepEqual(turn.heard, bids.slice(0, bids.indexOf(said[i])));
+        assert.equal(turn.same, JSON.stringify(turn.bid) === JSON.stringify(turn.expert));
+        assert.ok(turn.why.length > 0);
+        turns++;
+      });
+      // the reasons follow the language, the bids do not
+      const french: BidReview = await ok('/analysis/bids', { record, seat, lang: 'fr' });
+      assert.deepEqual(
+        french.turns.map((t) => t.expert),
+        review.turns.map((t) => t.expert),
+      );
+    }
+  }
+  assert.ok(turns > 12);
+  const { record } = await recordedDeal(11);
+  assert.equal((await post('/analysis/bids', { record, seat: 0 })).status, 400);
+  assert.equal((await post('/analysis/bids', { record, seat: 0, lang: 'de' })).status, 400);
 });
 
 test('the swings are the expert’s choices trick by trick: only the cards it would not have played, the costliest first', async () => {

@@ -4,6 +4,8 @@
 // what-if is the only call that plays on with the real hands, the deal being over.
 
 import type {
+  BestBid,
+  BidAction,
   Card,
   CardAverage,
   Contract,
@@ -14,14 +16,20 @@ import type {
   RoundResult,
   Scoring,
   Seat,
+  Suit,
   Team,
 } from '../../engine/src/index.ts';
 import {
   EngineError,
   TRICKS_PER_DEAL,
+  SUITS,
+  aiBid,
   aiPlay,
   apply,
+  evaluateSuit,
   expertAverages,
+  explain,
+  isLang,
   isCard,
   isSeat,
   legalPlays,
@@ -287,3 +295,66 @@ export const whatIfHandler: Handler = (body): WhatIf => {
   const margin = (e: Ending): number => e.us.gained - e.them.gained;
   return { trick, played, card, asPlayed, instead, difference: margin(instead) - margin(asPlayed) };
 };
+
+/** one of the player's turns to speak in the auction */
+export interface BidTurn {
+  /** the player's first turn to speak is 1 */
+  turn: number;
+  /** what the table had heard when the player spoke, in order */
+  heard: PublicBid[];
+  /** the contract standing then; null when nobody had bid */
+  standing: BestBid | null;
+  /** what the player said */
+  bid: BidAction;
+  /** what the expert says there, with the same cards */
+  expert: BidAction;
+  /** the expert's reasons, in the language asked for */
+  why: string;
+  /** whether the player said what the expert says */
+  same: boolean;
+}
+
+export interface BidReview {
+  /** the player's eight cards during the auction */
+  hand: Card[];
+  /** what that hand is worth as the taker's, with each suit as trumps: the bid it supports, and why */
+  suits: { suit: Suit; value: number; why: string }[];
+  turns: BidTurn[];
+}
+
+/** as the robots join the reasons of a bid */
+const REASONS_JOINED = ' · ';
+
+/**
+ * The auction looked at again: at each of the player's turns, what the expert would have said with the
+ * same cards, having heard the same bids. The expert bids by conventions, the same for every robot, so
+ * this compares the player with a partner's expectations; it does not measure what a bid was worth.
+ */
+export const bidsHandler: Handler = (body): BidReview => {
+  const { replay, seat } = read(body);
+  if (!isLang(body.lang)) throw new BadRequest('lang: fr, en or ar expected');
+  const lang = body.lang;
+  const hand = sorted(replay.start.hands[seat]);
+  const turns = replay.auction
+    .filter((call) => call.seat === seat)
+    .map((call, index): BidTurn => {
+      const view = seatView(call.before, seat);
+      const { seat: _seat, ...bid } = call.bid;
+      const expert = aiBid(view, lang);
+      return {
+        turn: index + 1,
+        heard: view.bids,
+        standing: view.best,
+        bid,
+        expert: expert.bid,
+        why: expert.why,
+        same: JSON.stringify(sortedKeys(bid)) === JSON.stringify(sortedKeys(expert.bid)),
+      };
+    });
+  const suits = SUITS.map((suit) => {
+    const worth = evaluateSuit(hand, suit);
+    return { suit, value: worth.value, why: explain(worth.reasons, lang).join(REASONS_JOINED) };
+  });
+  return { hand, suits, turns };
+};
+const sortedKeys = (bid: BidAction): [string, unknown][] => Object.entries(bid).sort(([a], [b]) => a.localeCompare(b));

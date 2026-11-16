@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Game\Domain;
 
+use Kabbout\Game\Domain\Analysis\BidReview;
 use Kabbout\Game\Domain\Analysis\DealSummary;
 use Kabbout\Game\Domain\Analysis\ExpertChoice;
 use Kabbout\Game\Domain\Analysis\Swings;
@@ -38,4 +39,7 @@ interface DealAnalysis
     public function whatIf(DealRecord $record, Seat $seat, TrickNumber $trick, Card $card): WhatIf;
 
     public function swings(DealRecord $record, Seat $seat): Swings;
+
+    /** The seat's bids next to the expert's, from what the seat could know at each turn; the reasons in `$lang`. */
+    public function bids(DealRecord $record, Seat $seat, Lang $lang): BidReview;
 }

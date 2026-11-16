@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Game\Infrastructure\Bridge\Mapping;
 
+use Kabbout\Game\Domain\Analysis\BidReview;
 use Kabbout\Game\Domain\Analysis\DealSummary;
 use Kabbout\Game\Domain\Analysis\Ending;
 use Kabbout\Game\Domain\Analysis\ExpertChoice;
@@ -115,6 +116,45 @@ final class AnalysisMapper
         );
 
         return new Swings($swings, Json::int($a['choices'] ?? null, 'number of choices'));
+    }
+
+    /** @param array<string, mixed> $a */
+    public static function bids(array $a): BidReview
+    {
+        $suits = array_map(
+            static fn (array $s): array => [
+                'suit' => self::suit($s['suit'] ?? null)->value,
+                'value' => Json::int($s['value'] ?? null, 'hand value'),
+                'why' => self::string($s['why'] ?? null, 'reason'),
+            ],
+            Json::objects($a['suits'] ?? null, 'suits'),
+        );
+        $turns = array_map(
+            static function (array $t): array {
+                $standing = $t['standing'] ?? null;
+                if (null !== $standing) {
+                    $standing = Json::object($standing, 'standing bid');
+                    $standing = [
+                        'seat' => self::seat($standing['seat'] ?? null)->value,
+                        'value' => Json::int($standing['value'] ?? null, 'bid value'),
+                        'suit' => self::suit($standing['suit'] ?? null)->value,
+                    ];
+                }
+
+                return [
+                    'turn' => Json::int($t['turn'] ?? null, 'turn'),
+                    'heard' => array_map(self::bid(...), Json::objects($t['heard'] ?? null, 'bids heard')),
+                    'standing' => $standing,
+                    'bid' => self::bid(Json::object($t['bid'] ?? null, 'bid')),
+                    'expert' => self::bid(Json::object($t['expert'] ?? null, 'expert bid')),
+                    'why' => self::string($t['why'] ?? null, 'reason'),
+                    'same' => Json::bool($t['same'] ?? null, 'word on the bid'),
+                ];
+            },
+            Json::objects($a['turns'] ?? null, 'turns'),
+        );
+
+        return new BidReview(array_map(static fn (string $code): string => self::card($code)->code(), Json::strings($a['hand'] ?? null, 'cards')), $suits, $turns);
     }
 
     /** @param array<string, mixed> $r */

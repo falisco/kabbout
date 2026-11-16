@@ -7,7 +7,8 @@ namespace Kabbout\Assistant\Domain\Grounding;
 /**
  * What the tools established in one conversation: every number and every card found anywhere in their
  * results. An answer may state these and nothing else. A number counts whatever its sign: "-80" in a
- * result lets the answer say "80 points less". The number printed on a card counts too: the 9 of "9C".
+ * result lets the answer say "80 points less". The number printed on a card counts too: the 9 of "9C",
+ * and so does a number written in a sentence a tool returned.
  */
 final class Facts
 {
@@ -71,6 +72,14 @@ final class Facts
             $rank = 'T' === $value[0] ? 10 : (int) $value[0];
             if ($rank > 0) {
                 $this->numbers[$rank] = true;
+            }
+
+            return;
+        }
+        // words a tool returned (the expert's reasons for a bid: "V et 3 atouts") may hold numbers too
+        if (\is_string($value) && preg_match_all('/\d+/', $value, $found) > 0) {
+            foreach ($found[0] as $digits) {
+                $this->numbers[(int) $digits] = true;
             }
         }
     }

@@ -85,6 +85,17 @@ final class GroundingGuardTest extends TestCase
         self::assertFalse($facts->hasCard('7S'));
     }
 
+    public function testANumberWrittenInAToolsSentenceIsAFact(): void
+    {
+        $facts = new Facts();
+        $facts->add(['turns' => [['turn' => 1, 'expert' => ['type' => 'bid', 'value' => 90, 'suit' => 'H'], 'why' => 'V et 3 atouts · jeu estimé à 110 à deux']]]);
+
+        self::assertSame([], GroundingGuard::ungrounded('L’expert aurait annoncé 90 : le valet et 3 atouts, un jeu estimé à 110.', $facts));
+        self::assertNotSame([], GroundingGuard::ungrounded('L’expert aurait annoncé 100.', $facts));
+        // a word of a result is not a card for looking like one: only whole codes are
+        self::assertFalse($facts->hasCard('V '));
+    }
+
     public function testACardIsNamedAsTheScreenNamesIt(): void
     {
         self::assertSame('dame de cœur', CardVocabulary::name('QH', 'fr'));

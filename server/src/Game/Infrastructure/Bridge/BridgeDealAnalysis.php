@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Game\Infrastructure\Bridge;
 
+use Kabbout\Game\Domain\Analysis\BidReview;
 use Kabbout\Game\Domain\Analysis\DealSummary;
 use Kabbout\Game\Domain\Analysis\ExpertChoice;
 use Kabbout\Game\Domain\Analysis\Swings;
@@ -13,6 +14,7 @@ use Kabbout\Game\Domain\Analysis\WhatIf;
 use Kabbout\Game\Domain\Card;
 use Kabbout\Game\Domain\DealAnalysis;
 use Kabbout\Game\Domain\DealRecord;
+use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\AnalysisMapper;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\AnswerMapper;
@@ -48,6 +50,11 @@ final readonly class BridgeDealAnalysis implements DealAnalysis
     public function swings(DealRecord $record, Seat $seat): Swings
     {
         return AnalysisMapper::swings($this->ask('/analysis/swings', $record, $seat));
+    }
+
+    public function bids(DealRecord $record, Seat $seat, Lang $lang): BidReview
+    {
+        return AnalysisMapper::bids($this->ask('/analysis/bids', $record, $seat, ['lang' => $lang->value]));
     }
 
     /**

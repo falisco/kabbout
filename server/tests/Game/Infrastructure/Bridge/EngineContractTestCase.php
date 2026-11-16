@@ -97,6 +97,7 @@ abstract class EngineContractTestCase extends TestCase
                 '/analysis/expert-choice' => $analysis->expertChoice($record(), $seat('seat'), $trick())->toArray(),
                 '/analysis/what-if' => $analysis->whatIf($record(), $seat('seat'), $trick(), Card::fromCode($string('card')))->toArray(),
                 '/analysis/swings' => $analysis->swings($record(), $seat('seat'))->toArray(),
+                '/analysis/bids' => $analysis->bids($record(), $seat('seat'), Lang::from($string('lang')))->toArray(),
                 default => self::fail('The contract holds an analysis this test does not know: '.$path),
             };
         }

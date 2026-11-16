@@ -97,6 +97,8 @@ function addAnalysis(add: Add, over: GameState): void {
   add('the deal finished from the card really played', '/analysis/what-if', { ...asked, trick: free.trick, card: free.played });
   add('the decisions of a seat, the costliest first', '/analysis/swings', asked);
   add('the decisions of the other team', '/analysis/swings', { record, seat: 1 });
+  add('the auction of a seat next to the expert’s', '/analysis/bids', { ...asked, lang: 'fr' });
+  add('the same auction with its reasons in Tunisian Arabic', '/analysis/bids', { ...asked, lang: 'ar' });
   // the card another seat played in the last trick: the player never held it
   const notHeld = over.tricks[7].plays.find((p) => p.seat !== 0);
   if (!notHeld) throw new Error('four seats play in a trick');

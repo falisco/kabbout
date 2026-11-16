@@ -4,7 +4,7 @@
 import { createServer } from 'node:http';
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 import { EngineError } from '../../engine/src/index.ts';
-import { expertChoiceHandler, summaryHandler, swingsHandler, trickHandler, whatIfHandler } from './analysis.ts';
+import { bidsHandler, expertChoiceHandler, summaryHandler, swingsHandler, trickHandler, whatIfHandler } from './analysis.ts';
 import { BadRequest } from './errors.ts';
 import type { Body, Handler } from './handlers.ts';
 import { applyHandler, legalHandler, newGameHandler, replayHandler, robotHandler, viewHandler } from './handlers.ts';
@@ -26,6 +26,7 @@ const ROUTES = new Map<string, Handler>([
   ['/analysis/expert-choice', expertChoiceHandler],
   ['/analysis/what-if', whatIfHandler],
   ['/analysis/swings', swingsHandler],
+  ['/analysis/bids', bidsHandler],
 ]);
 
 export interface Answer {

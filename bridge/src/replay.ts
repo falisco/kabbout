@@ -73,7 +73,16 @@ export interface Decision {
   before: GameState;
 }
 
+/** One bid of the record, with the deal as it stood just before it was made. */
+export interface Call {
+  seat: Seat;
+  bid: PublicBid;
+  before: GameState;
+}
+
 export interface Replay {
+  /** the auction, bid by bid */
+  auction: Call[];
   /** the deal before the first bid, with the hands rebuilt */
   start: GameState;
   /** the deal once scored (phase `roundEnd`) */
@@ -90,9 +99,11 @@ export function replayDeal(record: DealRecord): Replay {
   start.hands = handsOf(record.tricks);
 
   let state = start;
+  const auction: Call[] = [];
   record.bids.forEach((bid, index) => {
     const { seat, ...action } = bid;
     try {
+      auction.push({ seat, bid, before: state });
       const step = apply(state, seat, { kind: 'bid', bid: action }, rng);
       // four passes: the engine deals again, and those cards are not the record's
       if (step.events.some((e) => e.type === 'redeal')) throw new EngineError('everybody passed: there is no deal to replay');
@@ -115,5 +126,5 @@ export function replayDeal(record: DealRecord): Replay {
       }
     }
   });
-  return { start, end: state, decisions };
+  return { start, end: state, auction, decisions };
 }

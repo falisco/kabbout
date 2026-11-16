@@ -6,6 +6,7 @@ namespace Kabbout\Tests\Game\Application;
 
 use Kabbout\Game\Application\AskExpertChoice;
 use Kabbout\Game\Application\RankSwings;
+use Kabbout\Game\Application\ReviewBids;
 use Kabbout\Game\Application\ReviewTrick;
 use Kabbout\Game\Application\SummariseDeal;
 use Kabbout\Game\Application\TryWhatIf;
@@ -16,6 +17,7 @@ use Kabbout\Game\Domain\Card;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\Exception\EngineUnavailable;
+use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Infrastructure\Bridge\BridgeDealAnalysis;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\AnalysisMapper;
@@ -94,6 +96,27 @@ final class DealCapabilitiesTest extends TestCase
         (new TryWhatIf($this->analysis))($this->record, Seat::First, TrickNumber::of(1), Card::fromCode(\is_string($refused['card'] ?? null) ? $refused['card'] : ''));
     }
 
+    public function testTheAuctionIsTheSeatsBidsNextToTheExpertsWithItsReasons(): void
+    {
+        $review = (new ReviewBids($this->analysis))($this->record, Seat::First, Lang::Fr);
+
+        self::assertCount(8, $review->hand);
+        self::assertSame(['S', 'H', 'D', 'C'], array_column($review->suits, 'suit'));
+        self::assertNotSame([], $review->turns);
+        foreach ($review->turns as $i => $turn) {
+            self::assertSame($i + 1, $turn['turn']);
+            [$said, $expert] = [$turn['bid'], $turn['expert']];
+            ksort($said);
+            ksort($expert);
+            self::assertSame($said === $expert, $turn['same']);
+            self::assertNotSame('', $turn['why']);
+        }
+        // the reasons follow the language asked for, the bids do not
+        $arabic = (new ReviewBids($this->analysis))($this->record, Seat::First, Lang::Ar);
+        self::assertSame(array_column($review->turns, 'expert'), array_column($arabic->turns, 'expert'));
+        self::assertNotSame(array_column($review->turns, 'why'), array_column($arabic->turns, 'why'));
+    }
+
     public function testATrickNumberIsOneToEight(): void
     {
         self::assertNull(TrickNumber::tryFrom(0));
@@ -132,6 +155,11 @@ final class DealCapabilitiesTest extends TestCase
         yield 'a table read in a fifth suit' => [AnalysisMapper::expertChoice(...), ['reading' => ['trump' => 'X'] + $reading] + $choice];
         yield 'a table read without its trumps' => [AnalysisMapper::expertChoice(...), ['reading' => ['trumps' => null] + $reading] + $choice];
         yield 'a choice without its table' => [AnalysisMapper::expertChoice(...), ['reading' => null] + $choice];
+        $bids = self::recorded('/analysis/bids')['response'];
+        yield 'an auction without its turns' => [AnalysisMapper::bids(...), ['turns' => null] + $bids];
+        yield 'a turn of an auction without its reason' => [AnalysisMapper::bids(...), ['turns' => [['turn' => 1, 'heard' => [], 'bid' => ['type' => 'pass'], 'expert' => ['type' => 'pass'], 'same' => true]]] + $bids];
+        yield 'a bid standing at no seat' => [AnalysisMapper::bids(...), ['turns' => [['turn' => 1, 'heard' => [], 'standing' => ['value' => 80, 'suit' => 'H'], 'bid' => ['type' => 'pass'], 'expert' => ['type' => 'pass'], 'why' => 'x', 'same' => true]]] + $bids];
+        yield 'a hand worth something in a fifth suit' => [AnalysisMapper::bids(...), ['suits' => [['suit' => 'X', 'value' => 80, 'why' => '']]] + $bids];
         yield 'swings without their count' => [AnalysisMapper::swings(...), ['choices' => null] + $swings];
         yield 'an empty what-if' => [AnalysisMapper::whatIf(...), []];
         yield 'an empty trick' => [AnalysisMapper::trick(...), []];

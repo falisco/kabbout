@@ -76,7 +76,7 @@ final class SymfonyAiCoachModelTest extends KernelTestCase
         self::assertContains('x-api-key: '.self::KEY, $requests[0]['headers']);
         self::assertSame('claude-sonnet-5-5', $requests[0]['body']['model']);
         self::assertSame(4096, $requests[0]['body']['max_tokens']);
-        self::assertSame(['deal_summary', 'trick', 'expert_choice', 'what_if', 'biggest_swings'], array_column(Json::objects($requests[0]['body']['tools'] ?? null, 'tools'), 'name'));
+        self::assertSame(['deal_summary', 'trick', 'expert_choice', 'what_if', 'expert_bids', 'biggest_swings'], array_column(Json::objects($requests[0]['body']['tools'] ?? null, 'tools'), 'name'));
         // the first request is the rules and the question; the next ones carry what the tools returned
         $sent = array_map(static fn (array $request): string => (string) json_encode($request['body'], \JSON_UNESCAPED_UNICODE), $requests);
         self::assertStringContainsString('You are the coach of Kabbout', $sent[0]);
