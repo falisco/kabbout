@@ -15,6 +15,10 @@ services:
     exclude:
       - '../src/Kernel.php'
       - '../src/*/Domain/'
+      # built for one conversation, by CoachToolsFactory
+      - '../src/Assistant/Infrastructure/Ai/CoachTools.php'
+      # values and exceptions of the application layer
+      - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary}.php'
 
   # Ports of the domains, and the adapter each one gets here.
   Kabbout\Game\Domain\Engine: '@Kabbout\Game\Infrastructure\Bridge\BridgeEngine'
@@ -24,6 +28,8 @@ services:
     arguments:
       $baseUrl: '%env(BRIDGE_URL)%'
 
+  Kabbout\Assistant\Application\Coach\CoachModel: '@Kabbout\Assistant\Infrastructure\Ai\SymfonyAiCoachModel'
+  Kabbout\Assistant\Infrastructure\Ai\AiPlatformFactory: '@Kabbout\Assistant\Infrastructure\Ai\HuggingFacePlatformFactory'
   Kabbout\Assistant\Domain\AiConfiguration: '@Kabbout\Assistant\Infrastructure\EnvAiConfiguration'
   Kabbout\Assistant\Infrastructure\EnvAiConfiguration:
     arguments:
