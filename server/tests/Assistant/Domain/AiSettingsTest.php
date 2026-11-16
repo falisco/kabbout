@@ -30,6 +30,7 @@ final class AiSettingsTest extends TestCase
         yield 'a key of spaces' => ['  ', 'a-model', null];
         yield 'no model' => ['a-key', '', null];
         yield 'an empty provider' => ['a-key', 'a-model', ''];
+        yield 'a provider of spaces' => ['a-key', 'a-model', ' '];
     }
 
     #[DataProvider('holes')]
@@ -45,6 +46,12 @@ final class AiSettingsTest extends TestCase
 
         self::assertStringNotContainsString('a-secret-key', $dump);
         self::assertStringContainsString('a-model', $dump);
+    }
+
+    public function testSettingsAreNotSerialised(): void
+    {
+        $this->expectException(\LogicException::class);
+        serialize(new AiSettings(Platform::HuggingFace, 'a-secret-key', 'a-model'));
     }
 
     public function testAFeatureIsPlannedUntilItShipsThenFollowsTheSettings(): void

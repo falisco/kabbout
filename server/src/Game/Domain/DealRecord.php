@@ -61,14 +61,14 @@ final readonly class DealRecord
     /** @return array{seat: int, type: string, value?: int, suit?: string} */
     private static function bid(mixed $bid): array
     {
-        if (!\is_array($bid) || !\is_int($bid['seat'] ?? null) || !\in_array($bid['type'] ?? null, self::BID_TYPES, true)) {
+        if (!\is_array($bid) || !\is_int($bid['seat'] ?? null) || null === Seat::tryFrom($bid['seat']) || !\in_array($bid['type'] ?? null, self::BID_TYPES, true)) {
             throw new InvalidDealRecord('A bid of a recorded deal has a seat and says what it is.');
         }
         $kept = ['seat' => $bid['seat'], 'type' => $bid['type']];
         if ('bid' !== $bid['type']) {
             return $kept;
         }
-        if (!\is_int($bid['value'] ?? null) || !\is_string($bid['suit'] ?? null) || 1 !== \strlen($bid['suit'])) {
+        if (!\is_int($bid['value'] ?? null) || !\is_string($bid['suit'] ?? null) || null === Suit::tryFrom($bid['suit'])) {
             throw new InvalidDealRecord('A raise of a recorded deal has a value and a suit.');
         }
 
@@ -84,7 +84,7 @@ final readonly class DealRecord
 
         return array_map(static function (mixed $play): array {
             $card = \is_array($play) && \is_string($play['card'] ?? null) ? Card::tryFromCode($play['card']) : null;
-            if (!\is_array($play) || !\is_int($play['seat'] ?? null) || null === $card) {
+            if (!\is_array($play) || !\is_int($play['seat'] ?? null) || null === Seat::tryFrom($play['seat']) || null === $card) {
                 throw new InvalidDealRecord('A play of a recorded deal has a seat and a card.');
             }
 

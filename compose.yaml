@@ -27,10 +27,6 @@ services:
       KABBOUT_AI: ${KABBOUT_AI:-}
       KABBOUT_PORT: ${KABBOUT_PORT:-8080}
       BRIDGE_URL: http://bridge:8787
+    # for this machine only; write '${KABBOUT_PORT:-8080}:8080' to open it to others
     ports:
       - '127.0.0.1:${KABBOUT_PORT:-8080}:8080'
-    healthcheck:
-      test: ['CMD', 'curl', '-fsS', '-o', '/dev/null', 'http://127.0.0.1:8080/api/capabilities']
-      interval: 5s
-      timeout: 3s
-      retries: 12

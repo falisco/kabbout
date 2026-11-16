@@ -15,6 +15,15 @@ const WORDS = {
   ar: { planned: 'في الثنية', off: 'راقد' },
 } as const;
 
+/** opens the game and waits until the page has read what its origin answers about the server */
+async function openAndAsk(page: Page, options: Parameters<typeof openGame>[1] = {}) {
+  const answered = page.waitForResponse('**/api/capabilities');
+  const errors = await openGame(page, options);
+  await (await answered).finished();
+  await expect(page.locator('#sheet [data-action="new"]')).toBeVisible();
+  return errors;
+}
+
 /** makes the page's own origin answer as the Kabbout server would, every feature in the given state */
 async function serverAnswers(page: Page, state: 'planned' | 'off' | 'on') {
   const features = Object.fromEntries(FEATURES.map((name) => [name, { state, hint: null }]));
@@ -25,8 +34,7 @@ async function serverAnswers(page: Page, state: 'planned' | 'off' | 'on') {
 
 test('played from plain files, the menu says nothing about the AI', async ({ page }) => {
   test.skip(SERVED, 'this run is served by the Kabbout server');
-  const errors = await openGame(page);
-  await expect(page.locator('#sheet [data-action="new"]')).toBeVisible();
+  const errors = await openAndAsk(page);
   await expect(page.locator(NOTICE)).toHaveCount(0);
   expect(errors).toEqual([]);
 });
@@ -56,7 +64,6 @@ for (const lang of ['fr', 'en', 'ar'] as const) {
 
 test('a server with everything on has nothing left to explain', async ({ page }) => {
   await serverAnswers(page, 'on');
-  await openGame(page);
-  await expect(page.locator('#sheet [data-action="new"]')).toBeVisible();
+  await openAndAsk(page);
   await expect(page.locator(NOTICE)).toHaveCount(0);
 });

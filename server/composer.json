@@ -6,10 +6,6 @@
     "require": {
         "php": ">=8.5",
         "ext-json": "*",
-        "symfony/ai-bundle": "1.0.0-BETA1",
-        "symfony/ai-generic-platform": "1.0.0-BETA1",
-        "symfony/ai-hugging-face-platform": "1.0.0-BETA1",
-        "symfony/ai-platform": "1.0.0-BETA1",
         "symfony/console": "8.1.*",
         "symfony/framework-bundle": "8.1.*",
         "symfony/http-client": "8.1.*",

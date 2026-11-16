@@ -18,4 +18,5 @@ initInput();
 initAudio({ soundOn: () => prefs.sound, musicOn: () => prefs.music });
 overlay.modal = 'menu';
 advance();
-askServer();
+// the game does not wait for the server, and plays on whatever becomes of the question
+askServer().catch(() => {});

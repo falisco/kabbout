@@ -23,7 +23,7 @@ final readonly class AiSettings
         if ('' === trim($model)) {
             throw new InvalidAiSettings('The AI settings name no model.');
         }
-        if ('' === $provider) {
+        if (null !== $provider && '' === trim($provider)) {
             throw new InvalidAiSettings('The AI settings name an empty provider.');
         }
     }
@@ -32,6 +32,12 @@ final readonly class AiSettings
     public function apiKey(): string
     {
         return $this->apiKey;
+    }
+
+    /** @return never settings hold a key: they are not written anywhere */
+    public function __serialize(): array
+    {
+        throw new \LogicException('AI settings are not serialised: they hold a key.');
     }
 
     /** @return array{platform: string, model: string, provider: ?string, apiKey: string} */

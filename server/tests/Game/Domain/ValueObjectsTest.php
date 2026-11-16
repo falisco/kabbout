@@ -46,7 +46,6 @@ final class ValueObjectsTest extends TestCase
         $card = Card::fromCode('TH');
 
         self::assertSame('TH', $card->code());
-        self::assertSame(Suit::Hearts, $card->suit());
         self::assertSame(['bids' => [], 'cards' => ['TH'], 'next' => false], (new LegalMoves([], [$card], false))->toArray());
     }
 
@@ -219,6 +218,10 @@ final class ValueObjectsTest extends TestCase
         yield 'a bid of an unknown kind' => ['bids', [['seat' => 0, 'type' => 'double']]];
         yield 'a raise with no value' => ['bids', [['seat' => 0, 'type' => 'bid', 'suit' => 'S']]];
         yield 'a raise with a suit that is not one letter' => ['bids', [['seat' => 0, 'type' => 'bid', 'value' => 80, 'suit' => 'spades']]];
+        yield 'a raise in a suit that does not exist' => ['bids', [['seat' => 0, 'type' => 'bid', 'value' => 80, 'suit' => 'X']]];
+        yield 'a bid from a fifth seat' => ['bids', [['seat' => 4, 'type' => 'pass']]];
+        yield 'a card that is not one' => ['tricks', array_fill(0, 8, array_fill(0, 4, ['seat' => 0, 'card' => '1S']))];
+        yield 'a play from a fifth seat' => ['tricks', array_fill(0, 8, array_fill(0, 4, ['seat' => 4, 'card' => '7S']))];
         yield 'seven tricks' => ['tricks', array_fill(0, 7, self::record()['tricks'][0])];
         yield 'tricks that are not a list' => ['tricks', 'none'];
         yield 'a trick of three plays' => ['tricks', array_fill(0, 8, [['seat' => 0, 'card' => '7S']])];

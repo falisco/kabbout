@@ -35,9 +35,4 @@ final readonly class Card
     {
         return $this->rank.$this->suit->value;
     }
-
-    public function suit(): Suit
-    {
-        return $this->suit;
-    }
 }

@@ -14,12 +14,14 @@ use Kabbout\Assistant\Domain\Platform;
  *     <platform>://<key>@<provider>/<model>      huggingface://hf_xxx@auto/openai/gpt-oss-120b
  *
  * The provider "auto" leaves the choice to the platform. Nothing written means the AI is off.
- * An error never repeats the value: it holds the key.
+ * A key that holds "@", "/" or "%" is written percent-encoded, as in any address.
+ * An error never repeats any part of the value: a part put in the wrong place may be the key.
  */
 final class AiSettingsDsn
 {
     public const string FORM = '<platform>://<key>@<provider>/<model>';
     private const string ANY_PROVIDER = 'auto';
+    private const string PATTERN = '#^(?<platform>[a-z][a-z0-9+.-]*)://(?<key>[^@/\s]+)@(?<provider>[a-z0-9][a-z0-9-]*)/(?<model>[\w.:/-]+)$#i';
 
     /** @throws InvalidAiSettings */
     public static function parse(#[\SensitiveParameter] string $dsn): ?AiSettings
@@ -28,12 +30,16 @@ final class AiSettingsDsn
         if ('' === $dsn) {
             return null;
         }
-        if (1 !== preg_match('#^(?<platform>[a-z][a-z0-9+.-]*)://(?<key>[^@/\s]+)@(?<provider>[^/\s]+)/(?<model>\S+)$#i', $dsn, $parts)) {
+        if (1 !== preg_match(self::PATTERN, $dsn, $parts)) {
             throw new InvalidAiSettings(\sprintf('The AI settings are not written as %s.', self::FORM));
         }
         $platform = Platform::tryFrom(strtolower($parts['platform']))
-            ?? throw new InvalidAiSettings(\sprintf('The AI platform "%s" is not known. Known: %s.', $parts['platform'], implode(', ', array_column(Platform::cases(), 'value'))));
+            ?? throw new InvalidAiSettings(\sprintf('The AI platform is not known. Known: %s.', implode(', ', array_column(Platform::cases(), 'value'))));
+        $key = rawurldecode($parts['key']);
+        if (1 === preg_match('/[\s\x00-\x1F\x7F]/', $key)) {
+            throw new InvalidAiSettings('The key of the AI settings holds a space or a control character.');
+        }
 
-        return new AiSettings($platform, rawurldecode($parts['key']), $parts['model'], self::ANY_PROVIDER === $parts['provider'] ? null : $parts['provider']);
+        return new AiSettings($platform, $key, $parts['model'], self::ANY_PROVIDER === strtolower($parts['provider']) ? null : $parts['provider']);
     }
 }

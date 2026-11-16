@@ -23,13 +23,13 @@ final readonly class CheckCommand
         try {
             $settings = $this->configuration->settings();
         } catch (InvalidAiSettings $e) {
-            $io->error($e->getMessage());
+            $io->getErrorStyle()->writeln('Kabbout cannot start: '.$e->getMessage());
 
             return Command::FAILURE;
         }
         $io->writeln(null === $settings
             ? 'AI: off. The game is complete without it.'
-            : \sprintf('AI: on, %s with %s.', $settings->platform->value, $settings->model));
+            : \sprintf('AI: on, %s with %s, run by %s.', $settings->platform->value, $settings->model, $settings->provider ?? 'the provider the platform picks'));
 
         return Command::SUCCESS;
     }

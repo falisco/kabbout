@@ -41,5 +41,7 @@ USER www-data
 # the container is built once, here, and not at the first request
 RUN php bin/console cache:warmup
 EXPOSE 8080
+# the base image asks Caddy's admin address, which is off here: ask what a client asks
+HEALTHCHECK --interval=5s --timeout=3s --retries=12 CMD curl -fsS -o /dev/null http://127.0.0.1:8080/api/capabilities || exit 1
 ENTRYPOINT ["kabbout-entrypoint"]
 CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]

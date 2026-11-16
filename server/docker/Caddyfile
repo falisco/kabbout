@@ -23,7 +23,7 @@
 	}
 
 	# Symfony answers under /api and nowhere else
-	@api path /api/*
+	@api path /api /api/*
 	handle @api {
 		rewrite * /index.php
 		php

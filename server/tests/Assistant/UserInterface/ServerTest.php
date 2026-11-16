@@ -7,7 +7,6 @@ namespace Kabbout\Tests\Assistant\UserInterface;
 use Kabbout\Assistant\Domain\Feature;
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Infrastructure\Bridge\BridgeEngine;
-use Symfony\AI\Platform\PlatformInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -52,6 +51,19 @@ final class ServerTest extends WebTestCase
         self::assertStringContainsString('"configured":true,"platform":"huggingface","model":"openai\/gpt-oss-120b"', $body);
     }
 
+    public function testSettingsThatCannotWorkAreAnsweredInJsonWithoutTheKey(): void
+    {
+        $_SERVER['KABBOUT_AI'] = 'nope://'.self::KEY.'@auto/a-model';
+        $client = self::createClient();
+        $client->request('GET', '/api/capabilities');
+
+        self::assertResponseStatusCodeSame(503);
+        $body = (string) $client->getResponse()->getContent();
+        self::assertStringContainsString('"code":"invalid_ai_settings"', $body);
+        self::assertStringNotContainsString(self::KEY, $body);
+        self::assertStringNotContainsString('nope', $body);
+    }
+
     public function testOnlyGetIsAnswered(): void
     {
         $client = self::createClient();
@@ -67,7 +79,7 @@ final class ServerTest extends WebTestCase
         self::ensureKernelShutdown();
         $_SERVER['KABBOUT_AI'] = 'huggingface://'.self::KEY.'@auto/a-model';
         $output = self::check(0);
-        self::assertStringContainsString('AI: on, huggingface with a-model', $output);
+        self::assertStringContainsString('AI: on, huggingface with a-model, run by the provider the platform picks.', $output);
         self::assertStringNotContainsString(self::KEY, $output);
     }
 
@@ -76,16 +88,14 @@ final class ServerTest extends WebTestCase
         $_SERVER['KABBOUT_AI'] = 'nope://'.self::KEY.'@auto/a-model';
         $output = self::check(1);
 
-        self::assertStringContainsString('"nope" is not known', $output);
+        self::assertStringContainsString('Kabbout cannot start: The AI platform is not known. Known: huggingface.', $output);
+        self::assertStringNotContainsString('nope', $output);
         self::assertStringNotContainsString(self::KEY, $output);
     }
 
     public function testThePortsOfTheDomainsGetTheirAdapters(): void
     {
-        $container = self::getContainer();
-
-        self::assertInstanceOf(BridgeEngine::class, $container->get(Engine::class));
-        self::assertInstanceOf(PlatformInterface::class, $container->get('ai.platform.huggingface'));
+        self::assertInstanceOf(BridgeEngine::class, self::getContainer()->get(Engine::class));
     }
 
     /** @return array<array-key, mixed> */

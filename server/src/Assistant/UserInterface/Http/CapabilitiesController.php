@@ -6,6 +6,8 @@ namespace Kabbout\Assistant\UserInterface\Http;
 
 use Kabbout\Assistant\Application\GetCapabilities;
 use Kabbout\Assistant\Domain\FeatureState;
+use Kabbout\Assistant\Domain\InvalidAiSettings;
+use Kabbout\Assistant\Infrastructure\EnvAiConfiguration;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -16,8 +18,6 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 final readonly class CapabilitiesController
 {
-    /** the variable that switches the AI on, as .env.example and the README name it */
-    public const string VARIABLE = 'KABBOUT_AI';
     private const int VERSION = 1;
 
     public function __construct(private GetCapabilities $getCapabilities)
@@ -27,7 +27,12 @@ final readonly class CapabilitiesController
     #[Route('/api/capabilities', name: 'capabilities', methods: ['GET'])]
     public function __invoke(): JsonResponse
     {
-        $capabilities = ($this->getCapabilities)();
+        try {
+            $capabilities = ($this->getCapabilities)();
+        } catch (InvalidAiSettings $e) {
+            // the start-up check stops this before a request comes; a server started without it still answers in JSON
+            return new JsonResponse(['error' => ['code' => 'invalid_ai_settings', 'message' => $e->getMessage()]], 503, ['Cache-Control' => 'no-store']);
+        }
         $features = [];
         foreach ($capabilities->features as $name => $state) {
             $features[$name] = ['state' => $state->value, 'hint' => self::hint($state)];
@@ -40,7 +45,7 @@ final readonly class CapabilitiesController
                     'configured' => $capabilities->configured(),
                     'platform' => $capabilities->platform?->value,
                     'model' => $capabilities->model,
-                    'variable' => self::VARIABLE,
+                    'variable' => EnvAiConfiguration::VARIABLE,
                 ],
                 'features' => $features,
             ],
@@ -51,8 +56,8 @@ final readonly class CapabilitiesController
     private static function hint(FeatureState $state): ?string
     {
         return match ($state) {
-            FeatureState::Planned => \sprintf('Arrives in a later version; it will be switched on with %s.', self::VARIABLE),
-            FeatureState::Off => \sprintf('Off: set %s in .env and start again.', self::VARIABLE),
+            FeatureState::Planned => \sprintf('Arrives in a later version; it will be switched on with %s.', EnvAiConfiguration::VARIABLE),
+            FeatureState::Off => \sprintf('Off: set %s in .env and start again.', EnvAiConfiguration::VARIABLE),
             FeatureState::On => null,
         };
     }

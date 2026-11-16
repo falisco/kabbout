@@ -6,11 +6,9 @@ namespace Kabbout\Tests\Assistant\Infrastructure;
 
 use Kabbout\Assistant\Domain\InvalidAiSettings;
 use Kabbout\Assistant\Infrastructure\AiSettingsDsn;
-use Kabbout\Assistant\Infrastructure\AiSettingsEnvVarProcessor;
 use Kabbout\Assistant\Infrastructure\EnvAiConfiguration;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 
 final class AiSettingsDsnTest extends TestCase
 {
@@ -33,6 +31,16 @@ final class AiSettingsDsnTest extends TestCase
         self::assertSame('openai/gpt-oss-120b', $settings->model);
     }
 
+    public function testADumpOfTheConfigurationHidesTheVariable(): void
+    {
+        self::assertStringNotContainsString('hf_k', print_r(new EnvAiConfiguration(self::DSN), true));
+    }
+
+    public function testAModelMayHoldSlashesColonsAndDots(): void
+    {
+        self::assertSame('org/model-v1.5:fast', AiSettingsDsn::parse('huggingface://k@fal-ai/org/model-v1.5:fast')?->model);
+    }
+
     public function testTheProviderAutoLeavesTheChoiceToThePlatform(): void
     {
         self::assertNull(AiSettingsDsn::parse('HuggingFace://hf_key@auto/a-model')?->provider);
@@ -41,7 +49,12 @@ final class AiSettingsDsnTest extends TestCase
     /** @return iterable<string, array{string, string}> */
     public static function wrong(): iterable
     {
-        yield 'an unknown platform' => ['nope://a-secret-key@auto/a-model', 'platform "nope" is not known'];
+        yield 'an unknown platform' => ['nope://a-secret-key@auto/a-model', 'platform is not known'];
+        yield 'the key where the platform goes' => ['asecretkey://huggingface@auto/a-model', 'platform is not known'];
+        yield 'a key with an @ left as it is' => ['huggingface://a-secret-key@tail@auto/a-model', 'not written as'];
+        yield 'a provider that is not a name' => ['huggingface://a-secret-key@gr oq/a-model', 'not written as'];
+        yield 'a model with a question mark' => ['huggingface://a-secret-key@auto/a-model?x=1', 'not written as'];
+        yield 'a key that decodes to a line break' => ['huggingface://a-secret-key%0A@auto/a-model', 'control character'];
         yield 'a key alone' => ['a-secret-key', 'not written as'];
         yield 'no key' => ['huggingface://auto/a-model', 'not written as'];
         yield 'no model' => ['huggingface://a-secret-key@auto/', 'not written as'];
@@ -56,25 +69,7 @@ final class AiSettingsDsnTest extends TestCase
             self::fail('The settings were accepted.');
         } catch (InvalidAiSettings $e) {
             self::assertStringContainsString($why, $e->getMessage());
-            self::assertStringNotContainsString('a-secret-key', $e->getMessage());
+            self::assertStringNotContainsString('secret', $e->getMessage());
         }
-    }
-
-    public function testABundleCanTakeOnePartOfTheVariable(): void
-    {
-        $processor = new AiSettingsEnvVarProcessor();
-        $on = static fn (string $name): string => 'KABBOUT_AI' === $name ? self::DSN : '';
-        $off = static fn (): string => '';
-
-        self::assertSame(['kabbout_ai' => 'string'], AiSettingsEnvVarProcessor::getProvidedTypes());
-        self::assertSame('hf_k@y', $processor->getEnv('kabbout_ai', 'api_key:KABBOUT_AI', $on));
-        self::assertSame('groq', $processor->getEnv('kabbout_ai', 'provider:KABBOUT_AI', $on));
-        self::assertSame('openai/gpt-oss-120b', $processor->getEnv('kabbout_ai', 'model:KABBOUT_AI', $on));
-        self::assertSame('', $processor->getEnv('kabbout_ai', 'api_key:KABBOUT_AI', $off));
-        self::assertSame('', $processor->getEnv('kabbout_ai', 'model:KABBOUT_AI', $off));
-        self::assertNull($processor->getEnv('kabbout_ai', 'provider:KABBOUT_AI', $off));
-
-        $this->expectException(RuntimeException::class);
-        $processor->getEnv('kabbout_ai', 'colour:KABBOUT_AI', $on);
     }
 }

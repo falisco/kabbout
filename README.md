@@ -17,14 +17,14 @@ git clone https://github.com/falisco/kabbout && cd kabbout
 docker compose up
 ```
 
-Open the address it prints, `http://localhost:8080`. That is the whole game: no key, no account, nothing to set.
+Open the address it prints, `http://localhost:8080`. That is the whole game: no key, no account, nothing to set. The port is published to this machine only (`127.0.0.1`); `compose.yaml` says what to change to open it to others.
 
 Two services start: `app`, a Symfony application that serves the built game and `/api` on that one port, and `bridge`, the rules engine, which only `app` can reach. To change the port or to switch the AI on, copy `.env.example` to `.env`:
 
-| Variable       | What it does                                                                                                                                                                                                                                                                            |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `KABBOUT_AI`   | Switches the AI on, in one line: `<platform>://<key>@<provider>/<model>`, for example `huggingface://hf_xxx@auto/openai/gpt-oss-120b` (`auto` lets Hugging Face choose who runs the model). Empty: the AI is off. A value that cannot work stops the start with one line that says why. |
-| `KABBOUT_PORT` | The port the game is opened on, 8080 unless set.                                                                                                                                                                                                                                        |
+| Variable       | What it does                                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `KABBOUT_AI`   | Switches the AI on, in one line: `<platform>://<key>@<provider>/<model>`, for example `huggingface://hf_xxx@auto/openai/gpt-oss-120b` (`auto` lets Hugging Face choose who runs the model; a key holding `@`, `/` or `%` is written percent-encoded). Empty: the AI is off. A value that cannot work stops `app` at the start, with one line that says why and repeats nothing of the value. |
+| `KABBOUT_PORT` | The port the game is opened on, 8080 unless set.                                                                                                                                                                                                                                                                                                                                             |
 
 `GET /api/capabilities` says what the server can do with the AI: for each feature (`coach`, `spoken_bids`, `referee`, `agent_seat`) a `state`, `planned`, `off` or `on`, and a `hint` when it is not on. In this version every feature is `planned`: the AI features arrive with the next ones, and the menu of the game says so in one line. The key is never part of an answer.
 
@@ -161,8 +161,8 @@ The rules stay in TypeScript, shared by the game in the browser and the server: 
 | Layer            | May know                                         | Holds                                                                                   |
 | ---------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------- |
 | `Domain`         | its own context's domain, and nothing of Symfony | value objects that cannot exist in a wrong state, enums, ports (interfaces), exceptions |
-| `Application`    | domains                                          | one class per question or action a client has                                           |
-| `Infrastructure` | everything in its context                        | adapters of the ports: the bridge, the environment, the Symfony AI bundle               |
+| `Application`    | domains and applications                         | one class per question or action a client has                                           |
+| `Infrastructure` | everything in its context                        | adapters of the ports: the bridge, the environment                                      |
 | `UserInterface`  | everything in its context                        | HTTP controllers and console commands, thin                                             |
 
 Left out on purpose until something needs them: command and query buses, repositories, domain events, a shared kernel.
