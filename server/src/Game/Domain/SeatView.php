@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Kabbout\Game\Domain;
 
+use Kabbout\Game\Domain\Exception\InvalidDealRecord;
+
 /**
  * What one seat may know of a game: its own hand and everything public. This is the only picture of
  * a game that may be sent to a player, a client or a model. It is built by the engine; this class is
@@ -55,6 +57,25 @@ final readonly class SeatView
     public function hand(): array
     {
         return $this->hand;
+    }
+
+    /**
+     * The deal this view shows, as a record of it, once its eight tricks are played: the auction and the
+     * tricks are public by then. Before that, and for a view that holds no whole deal, there is none.
+     */
+    public function dealRecord(): ?DealRecord
+    {
+        $tricks = $this->data['tricks'] ?? null;
+        try {
+            return DealRecord::fromArray([
+                'scoring' => $this->data['scoring'] ?? null,
+                'dealer' => $this->data['dealer'] ?? null,
+                'bids' => $this->data['bids'] ?? null,
+                'tricks' => \is_array($tricks) ? array_map(static fn (mixed $trick): mixed => \is_array($trick) ? $trick['plays'] ?? null : null, $tricks) : null,
+            ]);
+        } catch (InvalidDealRecord) {
+            return null;
+        }
     }
 
     /** @return array<string, mixed> */

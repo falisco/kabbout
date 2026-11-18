@@ -34,4 +34,17 @@ final readonly class Bid
     {
         return new self(BidType::Raise, $value, $suit);
     }
+
+    /**
+     * A bid from its parts, as a client names them. A raise without its value or its suit is no bid;
+     * whether the value is one the rules know, and whether the bid is allowed now, is for the engine.
+     */
+    public static function of(BidType $type, ?int $value = null, ?Suit $suit = null): self
+    {
+        if (BidType::Raise !== $type) {
+            return new self($type);
+        }
+
+        return null !== $value && null !== $suit ? new self($type, $value, $suit) : throw new \InvalidArgumentException('A bid of type "bid" names its value and its trump suit.');
+    }
 }

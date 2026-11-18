@@ -38,6 +38,10 @@ framework:
       # the players the server knows; CachePlayers says how long each one is kept
       cache.players:
         adapter: cache.adapter.filesystem
+      # the games played at the server's tables, and the pace of the calls to them; CacheTables says how long a table is kept
+      cache.tables:
+        adapter: cache.adapter.filesystem
+        default_lifetime: 86400
 
   # Every count is changed under a lock, so two questions at the same instant are two questions. The locks
   # come from StripedLockFactory (config/services.yaml): a fixed number of files, however many visitors.
@@ -63,6 +67,13 @@ framework:
       limit: '%env(int:KABBOUT_COACH_DAILY)%'
       interval: '1 day'
       cache_pool: cache.coach
+      lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
+    # Calls to the tables (the MCP server) from one address: each is work for the engine.
+    tables:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_TABLES_LIMIT)%'
+      interval: '1 minute'
+      cache_pool: cache.tables
       lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
 
 when@test:
