@@ -22,6 +22,9 @@ use Symfony\Component\BrowserKit\Cookie;
  */
 final class CoachEndpointTest extends WebTestCase
 {
+    /** what a browser sends with a request the game's own page made, and the header the page adds */
+    private const array FROM_THE_PAGE = ['HTTP_SEC_FETCH_SITE' => 'same-origin', 'HTTP_CSRF_TOKEN' => 'csrf-token'];
+
     /** the address the questions come from: a new one for each test, so that no test meets the count of another */
     private static string $visitor = '';
 
@@ -278,6 +281,25 @@ final class CoachEndpointTest extends WebTestCase
         self::assertResponseStatusCodeSame(429);
     }
 
+    public function testAPageOfAnotherSiteCannotAskForTheVisitorAndSpendsNoneOfTheirQuestions(): void
+    {
+        $_SERVER['KABBOUT_COACH_LIMIT'] = '1';
+        $swings = RecordedDeal::call('/analysis/swings')['response'];
+        $model = new ScriptedCoachModel(['Le pli 4.'], [$swings]);
+        $client = self::client($model);
+
+        foreach ([['HTTP_SEC_FETCH_SITE' => 'cross-site'], ['HTTP_SEC_FETCH_SITE' => '', 'HTTP_ORIGIN' => 'https://evil.example'], ['HTTP_CSRF_TOKEN' => '']] as $says) {
+            $answer = self::ask($client, self::question(), headers: $says);
+
+            self::assertResponseStatusCodeSame(401);
+            self::assertSame(['error' => ['code' => 'unauthorized', 'message' => 'Unauthorized']], $answer);
+        }
+        // nothing was asked of the model, and the one question a minute this visitor has is still theirs
+        self::assertSame([], $model->briefs);
+        self::ask($client, self::question());
+        self::assertResponseIsSuccessful();
+    }
+
     public function testTheCoachOnlyTakesQuestionsByPost(): void
     {
         $client = self::client(new ScriptedCoachModel([]));
@@ -295,7 +317,7 @@ final class CoachEndpointTest extends WebTestCase
     private static function enter(KernelBrowser $client): Cookie
     {
         $client->getCookieJar()->clear();
-        $client->request('POST', '/api/session');
+        $client->request('POST', '/api/session', server: self::FROM_THE_PAGE);
         self::assertResponseStatusCodeSame(201);
         $cookie = $client->getCookieJar()->get(GuestCookie::NAME, '/api');
         self::assertNotNull($cookie);
@@ -327,7 +349,7 @@ final class CoachEndpointTest extends WebTestCase
      */
     private static function ask(KernelBrowser $client, array|string $body, ?string $from = null, array $headers = []): array
     {
-        $client->request('POST', '/api/coach', server: ['CONTENT_TYPE' => 'application/json', 'REMOTE_ADDR' => $from ?? self::$visitor, ...$headers], content: \is_string($body) ? $body : json_encode($body, \JSON_THROW_ON_ERROR));
+        $client->request('POST', '/api/coach', server: ['CONTENT_TYPE' => 'application/json', 'REMOTE_ADDR' => $from ?? self::$visitor, ...self::FROM_THE_PAGE, ...$headers], content: \is_string($body) ? $body : json_encode($body, \JSON_THROW_ON_ERROR));
         $answer = json_decode((string) $client->getResponse()->getContent(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($answer);
 

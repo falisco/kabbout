@@ -26,6 +26,8 @@ use Symfony\Component\Lock\Store\InMemoryStore;
 final class IdentityEndpointTest extends WebTestCase
 {
     private const string NAME = '/^C[0-9]{7}$/D';
+    /** what a browser sends with a request the game's own page made, and the header the page adds */
+    private const array FROM_THE_PAGE = ['HTTP_SEC_FETCH_SITE' => 'same-origin', 'HTTP_CSRF_TOKEN' => 'csrf-token'];
 
     /** the address the requests come from: a new one for each test, so that no test meets the count of another */
     private static string $from = '';
@@ -201,30 +203,48 @@ final class IdentityEndpointTest extends WebTestCase
         self::assertSame([], $client->getResponse()->headers->getCookies());
     }
 
-    /** @return iterable<string, array{string|null, int}> */
+    /** @return iterable<string, array{array<string, string>, int}> what a request says of where it comes from, and the status it gets */
     public static function whereARequestComesFrom(): iterable
     {
-        yield 'the page itself' => ['same-origin', 201];
-        yield 'the visitor, by hand' => ['none', 201];
-        yield 'a client that is no browser' => [null, 201];
-        yield 'another site' => ['cross-site', 403];
-        yield 'another site of the same domain' => ['same-site', 403];
-        yield 'anything else' => ['SAME-ORIGIN ', 403];
+        $token = ['HTTP_CSRF_TOKEN' => 'csrf-token'];
+        yield 'the page itself, as a browser says it' => [['HTTP_SEC_FETCH_SITE' => 'same-origin'] + $token, 201];
+        yield 'the page itself, from a browser that only says its origin' => [['HTTP_ORIGIN' => 'http://localhost'] + $token, 201];
+        yield 'the page itself, from a browser that only says its referer' => [['HTTP_REFERER' => 'http://localhost/?lang=fr'] + $token, 201];
+        yield 'a client that is no browser and names the server' => [['HTTP_ORIGIN' => 'http://localhost'] + $token, 201];
+        yield 'another site' => [['HTTP_SEC_FETCH_SITE' => 'cross-site'] + $token, 401];
+        yield 'another site of the same domain' => [['HTTP_SEC_FETCH_SITE' => 'same-site'] + $token, 401];
+        yield 'another site, from a browser that only says its origin' => [['HTTP_ORIGIN' => 'https://evil.example'] + $token, 401];
+        yield 'another site whose name starts like ours' => [['HTTP_ORIGIN' => 'http://localhost.evil.example'] + $token, 401];
+        yield 'another site, whatever origin it claims besides' => [['HTTP_SEC_FETCH_SITE' => 'cross-site', 'HTTP_ORIGIN' => 'http://localhost'] + $token, 401];
+        yield 'the address typed by hand' => [['HTTP_SEC_FETCH_SITE' => 'none'] + $token, 401];
+        yield 'nothing said of where it comes from' => [$token, 401];
+        yield 'the page, without the header only it can add' => [['HTTP_SEC_FETCH_SITE' => 'same-origin'], 401];
+        yield 'the header with another value' => [['HTTP_SEC_FETCH_SITE' => 'same-origin', 'HTTP_CSRF_TOKEN' => 'x'], 401];
     }
 
+    /** @param array<string, string> $says */
     #[DataProvider('whereARequestComesFrom')]
-    public function testOnlyTheGamesOwnPageMayComeInForItsVisitor(?string $from, int $status): void
+    public function testOnlyTheGamesOwnPageMayComeInForItsVisitor(array $says, int $status): void
     {
         $client = self::client();
 
-        $answer = self::ask($client, 'POST', null === $from ? [] : ['HTTP_SEC_FETCH_SITE' => $from]);
+        $client->request('POST', '/api/session', server: ['REMOTE_ADDR' => self::$from, ...$says]);
 
         self::assertResponseStatusCodeSame($status);
-        if (403 === $status) {
-            self::assertSame(['error' => ['code' => 'cross_site', 'message' => 'Only the game’s own page may enter for its visitor.']], $answer);
+        if (401 === $status) {
+            self::assertSame('{"error":{"code":"unauthorized","message":"Unauthorized"}}', $client->getResponse()->getContent());
             self::assertSame([], $client->getResponse()->headers->getCookies());
             self::assertResponseHeaderSame('Cache-Control', 'no-store, private');
         }
+    }
+
+    public function testAskingWhoIsAskingChangesNothingAndNeedsNoSuchProof(): void
+    {
+        $client = self::client();
+
+        $client->request('GET', '/api/session', server: ['HTTP_SEC_FETCH_SITE' => 'cross-site']);
+
+        self::assertResponseStatusCodeSame(200);
     }
 
     public function testWhenEveryNameDrawnIsTakenTheServerSaysSoAndNobodyComesIn(): void
@@ -295,7 +315,7 @@ final class IdentityEndpointTest extends WebTestCase
      */
     private static function ask(KernelBrowser $client, string $method, array $server = []): array
     {
-        $client->request($method, '/api/session', server: ['REMOTE_ADDR' => self::$from, ...$server]);
+        $client->request($method, '/api/session', server: ['REMOTE_ADDR' => self::$from, ...self::FROM_THE_PAGE, ...$server]);
         $answer = json_decode((string) $client->getResponse()->getContent(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($answer);
 

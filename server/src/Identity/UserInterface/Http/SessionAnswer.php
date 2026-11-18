@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Identity\UserInterface\Http;
 
+use Kabbout\Api\Domain\Envelope;
 use Kabbout\Identity\Domain\Player;
 use Symfony\Component\DependencyInjection\Attribute\Exclude;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,14 +17,8 @@ use Symfony\Component\HttpFoundation\Response;
 #[Exclude]
 final readonly class SessionAnswer
 {
-    private const int VERSION = 1;
-
     public static function of(?Player $player, int $status = Response::HTTP_OK): JsonResponse
     {
-        return new JsonResponse(
-            ['version' => self::VERSION, 'player' => null === $player ? null : ['name' => $player->name->toString()]],
-            $status,
-            ['Cache-Control' => 'no-store'],
-        );
+        return new JsonResponse(Envelope::answer(['player' => null === $player ? null : ['name' => $player->name->toString()]]), $status);
     }
 }

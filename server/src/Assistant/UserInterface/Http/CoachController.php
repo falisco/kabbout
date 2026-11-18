@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\UserInterface\Http;
 
+use Kabbout\Api\Domain\Envelope;
+use Kabbout\Api\Domain\FromThePage;
 use Kabbout\Assistant\Application\Coach\AnswerVisitor;
 use Kabbout\Assistant\Application\Coach\AskedTooOften;
 use Kabbout\Assistant\Application\Coach\CoachResting;
@@ -24,6 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
 
 /**
  * POST /api/coach: a question about a deal just played. The body holds the record of the deal (as the
@@ -32,13 +35,15 @@ use Symfony\Component\Routing\Attribute\Route;
  * where it goes wrong. The answer names the tricks and the cards it speaks of, for the screen to show
  * them, and says how many questions about this deal are left (`left`).
  *
+ * Only the game's own page may ask for its visitor (FromThePage): a page of another site could otherwise
+ * spend their questions, and the day's. Symfony makes the check before this is called, and answers 401.
+ *
  * This is only the HTTP door. It says who asks: the address of the request, for what is counted, and
  * the player Security recognised behind it, if any, for what is remembered. What may be asked, what is
  * remembered and what is answered are AnswerVisitor's business, shared with every other door.
  */
 final readonly class CoachController
 {
-    private const int VERSION = 1;
     /** a record is about 2 kB; nothing a player sends is larger than this */
     private const int MAX_BODY_BYTES = 16 * 1024;
     private const int JSON_DEPTH = 8;
@@ -48,6 +53,7 @@ final readonly class CoachController
     }
 
     #[Route('/api/coach', name: 'coach', methods: ['POST'])]
+    #[IsCsrfTokenValid(FromThePage::CHECK, tokenKey: FromThePage::HEADER, tokenSource: IsCsrfTokenValid::SOURCE_HEADER)]
     public function __invoke(Request $request): JsonResponse
     {
         try {
@@ -73,14 +79,10 @@ final readonly class CoachController
         }
         $answer = $answered->answer;
 
-        return new JsonResponse(
-            [
-                'version' => self::VERSION,
-                'answer' => ['text' => $answer->text, 'source' => $answer->source->value, 'tricks' => $answer->tricks, 'cards' => $answer->cards],
-                'left' => $answered->left,
-            ],
-            headers: ['Cache-Control' => 'no-store'],
-        );
+        return new JsonResponse(Envelope::answer([
+            'answer' => ['text' => $answer->text, 'source' => $answer->source->value, 'tricks' => $answer->tricks, 'cards' => $answer->cards],
+            'left' => $answered->left,
+        ]));
     }
 
     /**
@@ -115,6 +117,6 @@ final readonly class CoachController
     /** @param array<string, mixed> $more */
     private static function error(int $status, string $code, string $message, array $more = []): JsonResponse
     {
-        return new JsonResponse(['error' => ['code' => $code, 'message' => $message, ...$more]], $status, ['Cache-Control' => 'no-store']);
+        return new JsonResponse(Envelope::error($code, $message, $more), $status);
     }
 }

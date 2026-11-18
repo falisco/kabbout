@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\UserInterface\Http;
 
+use Kabbout\Api\Domain\Envelope;
 use Kabbout\Assistant\Application\GetCapabilities;
 use Kabbout\Assistant\Domain\FeatureState;
 use Kabbout\Assistant\Domain\InvalidAiSettings;
@@ -18,8 +19,6 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 final readonly class CapabilitiesController
 {
-    private const int VERSION = 1;
-
     public function __construct(private GetCapabilities $getCapabilities)
     {
     }
@@ -31,26 +30,22 @@ final readonly class CapabilitiesController
             $capabilities = ($this->getCapabilities)();
         } catch (InvalidAiSettings $e) {
             // the start-up check stops this before a request comes; a server started without it still answers in JSON
-            return new JsonResponse(['error' => ['code' => 'invalid_ai_settings', 'message' => $e->getMessage()]], 503, ['Cache-Control' => 'no-store']);
+            return new JsonResponse(Envelope::error('invalid_ai_settings', $e->getMessage()), 503);
         }
         $features = [];
         foreach ($capabilities->features as $name => $state) {
             $features[$name] = ['state' => $state->value, 'hint' => self::hint($state)];
         }
 
-        return new JsonResponse(
-            [
-                'version' => self::VERSION,
-                'ai' => [
-                    'configured' => $capabilities->configured(),
-                    'platform' => $capabilities->platform?->value,
-                    'model' => $capabilities->model,
-                    'variable' => EnvAiConfiguration::VARIABLE,
-                ],
-                'features' => $features,
+        return new JsonResponse(Envelope::answer([
+            'ai' => [
+                'configured' => $capabilities->configured(),
+                'platform' => $capabilities->platform?->value,
+                'model' => $capabilities->model,
+                'variable' => EnvAiConfiguration::VARIABLE,
             ],
-            headers: ['Cache-Control' => 'no-store'],
-        );
+            'features' => $features,
+        ]));
     }
 
     private static function hint(FeatureState $state): ?string

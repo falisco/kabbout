@@ -20,6 +20,12 @@ framework:
   trusted_proxies: '%env(KABBOUT_TRUSTED_PROXIES)%'
   trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port']
 
+  # A request that changes something must come from the game's own page: Symfony's same-origin check,
+  # with no session. Kabbout\Api\Domain\FromThePage says what a client sends; the doors that take a POST
+  # ask for the check with #[IsCsrfTokenValid].
+  csrf_protection:
+    stateless_token_ids: [api]
+
   # Locks are files, on every machine: left to itself the framework takes semaphores where PHP has them.
   lock: flock
 

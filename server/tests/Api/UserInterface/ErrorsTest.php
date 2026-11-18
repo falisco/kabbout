@@ -48,7 +48,26 @@ final class ErrorsTest extends WebTestCase
 
         self::assertSame(500, $response->getStatusCode());
         self::assertSame('{"error":{"code":"server_error","message":"Internal Server Error"}}', $response->getContent());
-        self::assertSame('no-store, private', $response->headers->get('Cache-Control'));
+    }
+
+    /** @return iterable<string, array{string, string, int}> */
+    public static function anythingTheApiSays(): iterable
+    {
+        yield 'an answer' => ['GET', '/api/capabilities', 200];
+        yield 'an address nothing answers' => ['GET', '/api/nothing-here', 404];
+        yield 'a method the address does not take' => ['DELETE', '/api/session', 405];
+        yield 'a request that does not come from the page' => ['POST', '/api/session', 401];
+        yield 'an address written with a stroke too many' => ['GET', '/api/session/', 301];
+    }
+
+    #[DataProvider('anythingTheApiSays')]
+    public function testNothingTheApiSaysIsKeptByABrowserOrAProxy(string $method, string $path, int $status): void
+    {
+        $client = self::createClient();
+        $client->request($method, $path);
+
+        self::assertResponseStatusCodeSame($status);
+        self::assertResponseHeaderSame('Cache-Control', 'no-store, private');
     }
 
     public function testOtherStatusesKeepTheirHeadersAndGetACode(): void

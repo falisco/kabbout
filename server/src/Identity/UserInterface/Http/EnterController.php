@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Kabbout\Identity\UserInterface\Http;
 
+use Kabbout\Api\Domain\Envelope;
+use Kabbout\Api\Domain\FromThePage;
 use Kabbout\Identity\Application\CurrentPlayer;
 use Kabbout\Identity\Application\EnterAsGuest;
 use Kabbout\Identity\Application\EnteredTooOften;
@@ -16,6 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
 
 /**
  * POST /api/session: come in as a guest. The answer is 201 with the new guest's name, and their secret
@@ -23,25 +26,20 @@ use Symfony\Component\Routing\Attribute\Route;
  * name and gets no new cookie. New guests are counted against the address of the request: past
  * KABBOUT_GUESTS_LIMIT a minute the answer is 429, with Retry-After.
  *
- * A browser says where a request comes from (Sec-Fetch-Site). One made by another site is refused:
- * its form could otherwise replace a visitor's guest by a new one. A client that is no browser sends
- * no such header and comes in.
+ * Only the game's own page may come in for its visitor (FromThePage): the form of another site could
+ * otherwise replace a visitor's guest by a new one. Symfony makes the check before this is called, and
+ * answers 401 by itself.
  */
 final readonly class EnterController
 {
-    /** what a browser says of a request the page itself made, or the visitor made by hand */
-    private const array FROM_HERE = ['same-origin', 'none'];
-
     public function __construct(private EnterAsGuest $enter, private CurrentPlayer $current)
     {
     }
 
     #[Route('/api/session', name: 'session_enter', methods: ['POST'])]
+    #[IsCsrfTokenValid(FromThePage::CHECK, tokenKey: FromThePage::HEADER, tokenSource: IsCsrfTokenValid::SOURCE_HEADER)]
     public function __invoke(Request $request): JsonResponse
     {
-        if (!\in_array($request->headers->get('Sec-Fetch-Site') ?? 'none', self::FROM_HERE, true)) {
-            return self::error(Response::HTTP_FORBIDDEN, 'cross_site', 'Only the game’s own page may enter for its visitor.');
-        }
         try {
             $entered = ($this->enter)(NetworkAddress::of($request->getClientIp()), $this->current->player());
         } catch (EnteredTooOften $tooOften) {
@@ -62,6 +60,6 @@ final readonly class EnterController
 
     private static function error(int $status, string $code, string $message): JsonResponse
     {
-        return new JsonResponse(['error' => ['code' => $code, 'message' => $message]], $status, ['Cache-Control' => 'no-store']);
+        return new JsonResponse(Envelope::error($code, $message), $status);
     }
 }
