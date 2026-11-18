@@ -27,6 +27,9 @@ services:
       # values and exceptions of the application layer
       - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary,Exchange,Answered,AskedTooOften,CoachResting,DealSpent}.php'
       - '../src/Identity/Application/{Entered,NoNameFree}.php'
+      # a player as Symfony Security holds it, and what the two routes of /api/session answer
+      - '../src/Identity/Infrastructure/Security/SecurityPlayer.php'
+      - '../src/Identity/UserInterface/Http/SessionAnswer.php'
 
   # the coach's locks: files in the system's temporary directory, a fixed number of them
   Kabbout\Assistant\Infrastructure\StripedLockFactory:
@@ -50,6 +53,7 @@ services:
 
   Kabbout\Identity\Domain\Players: '@Kabbout\Identity\Infrastructure\CachePlayers'
   Kabbout\Identity\Domain\Chance: '@Kabbout\Identity\Infrastructure\SystemChance'
+  Kabbout\Identity\Application\CurrentPlayer: '@Kabbout\Identity\Infrastructure\Security\SecurityCurrentPlayer'
 
 when@test:
   services:
@@ -74,4 +78,15 @@ when@test:
     Kabbout\Assistant\Infrastructure\Ai\CoachConversation:
       autowire: true
       autoconfigure: true
+      public: true
+    # The players and chance, for a test that moves the clock or leaves no name free.
+    Kabbout\Identity\Domain\Players:
+      alias: Kabbout\Identity\Infrastructure\CachePlayers
+      public: true
+    Kabbout\Identity\Domain\Chance:
+      alias: Kabbout\Identity\Infrastructure\SystemChance
+      public: true
+    # Every line the server would log, kept for the tests to read.
+    logger:
+      class: Kabbout\Tests\Support\ListedLog
       public: true

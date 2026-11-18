@@ -12,6 +12,7 @@ final readonly class PlayerId
 {
     private const string PATTERN = '/^[0-9a-f]{32}$/D';
 
+    /** @param non-empty-string $hex */
     private function __construct(private string $hex)
     {
     }
@@ -24,7 +25,7 @@ final readonly class PlayerId
     /** @param string $hex 32 lower-case hexadecimal digits */
     public static function fromString(string $hex): self
     {
-        return 1 === preg_match(self::PATTERN, $hex) ? new self($hex) : throw new \InvalidArgumentException('A player id is 32 hexadecimal digits.');
+        return '' !== $hex && 1 === preg_match(self::PATTERN, $hex) ? new self($hex) : throw new \InvalidArgumentException('A player id is 32 hexadecimal digits.');
     }
 
     public function equals(self $other): bool
@@ -32,6 +33,7 @@ final readonly class PlayerId
         return $this->hex === $other->hex;
     }
 
+    /** @return non-empty-string */
     public function toString(): string
     {
         return $this->hex;
