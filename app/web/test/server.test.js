@@ -54,12 +54,12 @@ test('the menu says one thing about the AI, or nothing', () => {
 /* ---------- who is playing ---------- */
 
 const session = (player) => ({ version: 1, player });
-/** a fetch that answers each request in turn, and writes down what was asked */
+/** a fetch that answers each request in turn, and writes down what was asked: the method, the address, and the header only the page adds */
 function answeringInTurn(...answers) {
   const asked = [];
   const fetchFn = /** @type {any} */ (
     async (url, init) => {
-      asked.push([init.method ?? 'GET', url]);
+      asked.push([init.method, url, init.headers['csrf-token'] ?? null]);
       const next = answers.shift();
       if (next instanceof Error) throw next;
       if (!next) throw new Error('asked more often than the test said');
@@ -68,25 +68,37 @@ function answeringInTurn(...answers) {
   );
   return { fetchFn, asked };
 }
+const ASKED = ['GET', 'api/session', null];
+/** coming in changes something on the server: the page shows the request is its own */
+const CAME_IN = ['POST', 'api/session', 'csrf-token'];
 
 test('a visitor the server knows plays under their name, and is not made to come in again', async () => {
   const { fetchFn, asked } = answeringInTurn([200, session({ name: 'C4821973' })]);
   assert.equal(await enter(fetchFn), 'C4821973');
-  assert.deepEqual(asked, [['GET', 'api/session']]);
+  assert.deepEqual(asked, [ASKED]);
 });
 
-test('a visitor the server does not know comes in as a guest, once, and plays under the name they are given', async () => {
-  const { fetchFn, asked } = answeringInTurn([200, session(null)], [201, session({ name: 'C0000007' })]);
+test('a visitor the server does not know comes in as a guest, once, and plays under the name the browser is then known by', async () => {
+  const { fetchFn, asked } = answeringInTurn([200, session(null)], [201, session({ name: 'C0000007' })], [200, session({ name: 'C0000007' })]);
   assert.equal(await enter(fetchFn), 'C0000007');
-  assert.deepEqual(asked, [
-    ['GET', 'api/session'],
-    ['POST', 'api/session'],
-  ]);
+  assert.deepEqual(asked, [ASKED, CAME_IN, ASKED]);
+});
+
+test('two tabs coming in at the same instant show the same name: the one the browser kept', async () => {
+  // this tab was given C0000007, and the other tab's guest is the one whose cookie the browser holds
+  const { fetchFn } = answeringInTurn([200, session(null)], [201, session({ name: 'C0000007' })], [200, session({ name: 'C0000042' })]);
+  assert.equal(await enter(fetchFn), 'C0000042');
 });
 
 test('a guest who came in from another tab meanwhile is the same guest', async () => {
-  const { fetchFn } = answeringInTurn([200, session(null)], [200, session({ name: 'C0000007' })]);
+  const { fetchFn } = answeringInTurn([200, session(null)], [200, session({ name: 'C0000007' })], [200, session({ name: 'C0000007' })]);
   assert.equal(await enter(fetchFn), 'C0000007');
+});
+
+test('a browser that keeps no cookie shows no name: the server would not know it by one', async () => {
+  const { fetchFn, asked } = answeringInTurn([200, session(null)], [201, session({ name: 'C0000007' })], [200, session(null)]);
+  assert.equal(await enter(fetchFn), '');
+  assert.equal(asked.length, 3);
 });
 
 test('with no server nobody comes in: there is no name, and nothing is posted', async () => {
@@ -104,17 +116,19 @@ test('with no server nobody comes in: there is no name, and nothing is posted', 
     'an empty name': [200, session({ name: '' })],
     'a name too long to be one': [200, session({ name: 'C'.repeat(33) })],
     'a player that is no player': [200, session('C4821973')],
+    'a guest made by a question, which makes none': [201, session({ name: 'C4821973' })],
   };
   for (const [name, said] of Object.entries(cases)) {
     const { fetchFn, asked } = answeringInTurn(said);
     assert.equal(await enter(fetchFn), '', name);
-    assert.deepEqual(asked, [['GET', 'api/session']], name);
+    assert.deepEqual(asked, [ASKED], name);
   }
 });
 
 test('a visitor the server will not let in plays with no name, and it is never an error', async () => {
   const cases = {
-    'refused as coming from another site': [403, { error: { code: 'cross_site' } }],
+    'refused as not coming from the page': [401, { error: { code: 'unauthorized' } }],
+    'too many guests from this address': [429, { error: { code: 'too_many_requests' } }],
     'no name free': [503, { error: { code: 'no_name_free' } }],
     'the network down': new TypeError('failed'),
     'an answer that is not JSON': [201, new SyntaxError('no')],
@@ -124,8 +138,13 @@ test('a visitor the server will not let in plays with no name, and it is never a
   for (const [name, said] of Object.entries(cases)) {
     const { fetchFn, asked } = answeringInTurn([200, session(null)], said);
     assert.equal(await enter(fetchFn), '', name);
-    assert.equal(asked.length, 2, name);
+    assert.deepEqual(asked, [ASKED, CAME_IN], name);
   }
+});
+
+test('a server that stops answering once the guest is in leaves no name, and no error', async () => {
+  const { fetchFn } = answeringInTurn([200, session(null)], [201, session({ name: 'C0000007' })], new TypeError('failed'));
+  assert.equal(await enter(fetchFn), '');
 });
 
 /* ---------- the coach ---------- */
@@ -140,6 +159,8 @@ test('a question to the coach is posted to the page’s own origin, as JSON', as
   assert.equal(url, 'api/coach');
   assert.equal(init.method, 'POST');
   assert.equal(init.headers['content-type'], 'application/json');
+  // a question spends something on the server: the page shows the request is its own
+  assert.equal(init.headers['csrf-token'], 'csrf-token');
   assert.deepEqual(JSON.parse(init.body), QUESTION);
   assert.ok(init.signal instanceof AbortSignal);
 });

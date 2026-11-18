@@ -1,15 +1,7 @@
 // Automated accessibility audit (axe-core, WCAG 2.0, 2.1 and 2.2, levels A and AA) of every screen and dialog.
 
-import AxeBuilder from '@axe-core/playwright';
-import { expect, type Page } from '@playwright/test';
-import { PLAY_BY_HAND, newGame, openGame, playUntil, test } from './helpers.ts';
-
-const RULES = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-
-async function audit(page: Page) {
-  const report = await new AxeBuilder({ page }).withTags(RULES).analyze();
-  return report.violations.map((v) => `${v.impact} ${v.id}: ${v.nodes.length} × ${v.nodes[0]?.target.join(' ')}`);
-}
+import { expect } from '@playwright/test';
+import { PLAY_BY_HAND, audit, newGame, openGame, playUntil, test } from './helpers.ts';
 
 /** the dialogs a button of the table opens, by that button */
 const DIALOGS = { settings: '#bSettings', rules: '#bRules', 'score sheet': '#scoreBox', 'previous trick': '#bLast', 'card values': '#valBtn' };

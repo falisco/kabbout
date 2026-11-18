@@ -25,15 +25,12 @@ let pendingStep = null;
  * first visit. Each answer shows as soon as it is in: the menu's line about the AI, the player's name.
  */
 export async function askServer() {
-  const adds = loadCapabilities().then((answer) => {
-    Object.assign(capabilities, answer);
+  /** keeps an answer once it is in, and draws the screen again */
+  const learn = async (asking, keep) => {
+    keep(await asking);
     render();
-  });
-  const who = enter().then((name) => {
-    player.name = name;
-    render();
-  });
-  await Promise.all([adds, who]);
+  };
+  await Promise.all([learn(loadCapabilities(), (answer) => Object.assign(capabilities, answer)), learn(enter(), (name) => (player.name = name))]);
 }
 
 /**
