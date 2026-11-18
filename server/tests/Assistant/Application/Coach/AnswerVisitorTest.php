@@ -16,6 +16,7 @@ use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
+use Kabbout\Identity\Domain\PlayerId;
 use Kabbout\Tests\Support\RecordedBridgeTransport;
 use Kabbout\Tests\Support\RecordedDeal;
 use PHPUnit\Framework\TestCase;
@@ -32,24 +33,58 @@ final class AnswerVisitorTest extends TestCase
     {
         $model = new ScriptedCoachModel(['Le pli 4.', 'Le pli 4 encore.'], [RecordedDeal::call('/analysis/swings')['response']]);
         $desk = $this->desk($model);
-        $ana = Visitor::atAddress('203.0.113.1');
+        [$address, $ana] = [Visitor::atAddress('203.0.113.1'), PlayerId::random()];
 
-        $first = $desk($ana, RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
-        $desk($ana, RecordedDeal::record(), Seat::First, Lang::Fr, 'Et pourquoi ?');
+        $first = $desk($address, $ana, RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
+        $desk($address, $ana, RecordedDeal::record(), Seat::First, Lang::Fr, 'Et pourquoi ?');
 
         self::assertSame([AnswerSource::Model, 1], [$first->answer->source, $first->left]);
         self::assertSame(['pace', 'take', 'day', 'pace', 'take', 'day'], $this->allowance->asked);
         self::assertSame([], $model->briefs[0]->earlier);
         self::assertEquals([new Exchange('Qu’ai-je mal joué ?', 'Le pli 4.')], $model->briefs[1]->earlier);
-        // a conversation is a visitor's about a deal: another seat of the same deal is another one
+        // a conversation is a player's about a deal: another seat of the same deal is another one
         self::assertCount(1, $this->memory->threads ?? []);
+    }
+
+    public function testTwoPlayersBehindOneAddressDoNotReadEachOthersConversation(): void
+    {
+        $model = new ScriptedCoachModel(['Le pli 4.', 'Le pli 4 aussi.', 'Le pli 4 encore.'], [RecordedDeal::call('/analysis/swings')['response']]);
+        $desk = $this->desk($model, left: 3);
+        // one household, one address: the counts are shared, the conversations are not
+        [$address, $ana, $ben] = [Visitor::atAddress('203.0.113.1'), PlayerId::random(), PlayerId::random()];
+
+        $desk($address, $ana, RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
+        $last = $desk($address, $ben, RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
+        $desk($address, $ana, RecordedDeal::record(), Seat::First, Lang::Fr, 'Et pourquoi ?');
+
+        self::assertSame([], $model->briefs[1]->earlier);
+        self::assertEquals([new Exchange('Qu’ai-je mal joué ?', 'Le pli 4.')], $model->briefs[2]->earlier);
+        self::assertCount(2, $this->memory->threads ?? []);
+        self::assertSame(1, $last->left);
+    }
+
+    public function testWhoeverAsksAsNobodyIsAnsweredLikeAnybodyAndNothingIsRemembered(): void
+    {
+        $model = new ScriptedCoachModel(['Le pli 4.', 'Le pli 4 encore.'], [RecordedDeal::call('/analysis/swings')['response']]);
+        $desk = $this->desk($model);
+        $address = Visitor::atAddress('203.0.113.1');
+
+        $first = $desk($address, null, RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
+        $second = $desk($address, null, RecordedDeal::record(), Seat::First, Lang::Fr, 'Et pourquoi ?');
+
+        self::assertSame([AnswerSource::Model, AnswerSource::Model], [$first->answer->source, $second->answer->source]);
+        // each question is a first question, and each one is counted
+        self::assertSame([], $model->briefs[1]->earlier);
+        self::assertSame([], $this->memory->threads ?? null);
+        self::assertSame([1, 0], [$first->left, $second->left]);
+        self::assertSame(['pace', 'take', 'day', 'pace', 'take', 'day'], $this->allowance->asked);
     }
 
     public function testAModelThatGaveNothingCostsTheVisitorNoQuestionAndLeavesNoMemory(): void
     {
         $desk = $this->desk(new ScriptedCoachModel([new CoachModelFailed('down')]));
 
-        $answered = $desk(Visitor::atAddress('203.0.113.1'), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
+        $answered = $desk(Visitor::atAddress('203.0.113.1'), PlayerId::random(), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
 
         self::assertSame([AnswerSource::Summary, 2], [$answered->answer->source, $answered->left]);
         self::assertSame(['pace', 'take', 'day', 'giveBack'], $this->allowance->asked);
@@ -60,7 +95,7 @@ final class AnswerVisitorTest extends TestCase
     {
         $desk = $this->desk(new ScriptedCoachModel([self::INVENTED, self::INVENTED], [RecordedDeal::call('/analysis/swings')['response']]));
 
-        $answered = $desk(Visitor::atAddress('203.0.113.1'), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
+        $answered = $desk(Visitor::atAddress('203.0.113.1'), PlayerId::random(), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
 
         self::assertSame([AnswerSource::Summary, 1], [$answered->answer->source, $answered->left]);
         self::assertSame(['pace', 'take', 'day'], $this->allowance->asked);
@@ -76,7 +111,7 @@ final class AnswerVisitorTest extends TestCase
         $model = new ScriptedCoachModel([]);
 
         try {
-            $this->desk($model, $transport)(Visitor::atAddress('203.0.113.1'), $tampered, Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
+            $this->desk($model, $transport)(Visitor::atAddress('203.0.113.1'), PlayerId::random(), $tampered, Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
             self::fail('The engine refuses this deal.');
         } catch (EngineRefused) {
             self::assertSame(['pace'], $this->allowance->asked);
@@ -88,7 +123,7 @@ final class AnswerVisitorTest extends TestCase
     {
         $model = new ScriptedCoachModel([]);
         try {
-            $this->desk($model)(Visitor::atAddress('203.0.113.1'), RecordedDeal::record(), Seat::First, Lang::Fr, '   ');
+            $this->desk($model)(Visitor::atAddress('203.0.113.1'), PlayerId::random(), RecordedDeal::record(), Seat::First, Lang::Fr, '   ');
             self::fail('An empty question is refused.');
         } catch (\InvalidArgumentException) {
             self::assertSame([], $this->allowance->asked);
@@ -96,7 +131,7 @@ final class AnswerVisitorTest extends TestCase
 
         $this->expectException(DealSpent::class);
         try {
-            $this->desk($model, left: 0)(Visitor::atAddress('203.0.113.1'), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
+            $this->desk($model, left: 0)(Visitor::atAddress('203.0.113.1'), PlayerId::random(), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
         } finally {
             self::assertSame([], $model->calls);
             // asking again about a spent deal takes nothing from the day of everybody else
@@ -111,7 +146,7 @@ final class AnswerVisitorTest extends TestCase
         $this->allowance->resting = true;
 
         try {
-            $desk(Visitor::atAddress('203.0.113.1'), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
+            $desk(Visitor::atAddress('203.0.113.1'), PlayerId::random(), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
             self::fail('The coach rests for the day.');
         } catch (CoachResting) {
             self::assertSame(['pace', 'take', 'giveBack'], $this->allowance->asked);

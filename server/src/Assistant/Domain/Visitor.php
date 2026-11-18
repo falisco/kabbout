@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Kabbout\Assistant\Domain;
 
 /**
- * Who is asking, for what is counted per person: the questions to the coach, its memory of a deal.
- * Until players have accounts a visitor is a network address; an account will be one more way to name
- * a visitor, and nothing that counts per visitor will change.
+ * Where a question comes from, for what is counted: the questions to the coach, per minute and per
+ * deal. A visitor is a network address, and not a player: a guest costs nothing to make, so a count
+ * per guest would be no limit at all. The counts move to the player when players have accounts.
+ * What the server keeps for somebody, the coach's memory of a deal to begin with, is kept under the
+ * player (Identity), never under a visitor.
  */
 final readonly class Visitor
 {

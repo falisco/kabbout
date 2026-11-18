@@ -18,6 +18,7 @@ use Kabbout\Game\Domain\Exception\EngineUnavailable;
 use Kabbout\Game\Domain\Exception\InvalidDealRecord;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
+use Kabbout\Identity\Application\CurrentPlayer;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,7 +32,8 @@ use Symfony\Component\Routing\Attribute\Route;
  * where it goes wrong. The answer names the tricks and the cards it speaks of, for the screen to show
  * them, and says how many questions about this deal are left (`left`).
  *
- * This is only the HTTP door: who asks is the address of the request, and what may be asked, what is
+ * This is only the HTTP door. It says who asks: the address of the request, for what is counted, and
+ * the player Security recognised behind it, if any, for what is remembered. What may be asked, what is
  * remembered and what is answered are AnswerVisitor's business, shared with every other door.
  */
 final readonly class CoachController
@@ -41,7 +43,7 @@ final readonly class CoachController
     private const int MAX_BODY_BYTES = 16 * 1024;
     private const int JSON_DEPTH = 8;
 
-    public function __construct(private AnswerVisitor $answerVisitor, private AiConfiguration $configuration)
+    public function __construct(private AnswerVisitor $answerVisitor, private AiConfiguration $configuration, private CurrentPlayer $current)
     {
     }
 
@@ -53,7 +55,7 @@ final readonly class CoachController
             if (null === $this->configuration->settings()) {
                 return self::error(Response::HTTP_SERVICE_UNAVAILABLE, 'ai_off', \sprintf('The coach is off: set %s in .env and start again.', EnvAiConfiguration::VARIABLE));
             }
-            $answered = ($this->answerVisitor)(Visitor::atAddress($request->getClientIp()), $record, $seat, $lang, $question);
+            $answered = ($this->answerVisitor)(Visitor::atAddress($request->getClientIp()), $this->current->player()?->id, $record, $seat, $lang, $question);
         } catch (InvalidDealRecord|\InvalidArgumentException $e) {
             return self::error(Response::HTTP_BAD_REQUEST, 'bad_request', $e->getMessage());
         } catch (InvalidAiSettings $e) {
