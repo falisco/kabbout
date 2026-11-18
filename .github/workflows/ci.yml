@@ -27,6 +27,20 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm run conformity
+
+  # On its own, and nothing waits for it: an advisory is news from outside, published on a day of its own,
+  # and may have no fixed version to move to. It must be seen (this job goes red) without keeping the
+  # tests of the code from running.
+  audit:
+    name: Advisories against the npm packages
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
       - run: npm audit --audit-level=moderate
 
   unit:

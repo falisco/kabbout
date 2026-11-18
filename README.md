@@ -277,11 +277,12 @@ URL parameters for tests: `?seed=42` makes the deal and the robots' choices repr
 
 `.github/workflows/ci.yml`, on every push to `main` or `develop` and every pull request:
 
-1. **Quality**: type checking, format (Prettier), lint (ESLint), conformity (expected cards, CC0 and font credits, nothing loaded from another site, a Content-Security-Policy and no inline script or style, no `eval`, no third-party brand name, no secret in the repository), `npm audit` at moderate level.
+1. **Quality**: type checking, format (Prettier), lint (ESLint), conformity (expected cards, CC0 and font credits, nothing loaded from another site, a Content-Security-Policy and no inline script or style, no `eval`, no third-party brand name, no secret in the repository).
 2. **Unit and non-regression tests**: rules, scoring, bidding, robots, 160 simulated games, 33 reference games replayed card for card (both counts, the three robot levels), the three dictionaries, settings and storage, the screen's questions about a game.
 3. **PHP side**: coding standard (php-cs-fixer, Symfony rules), static analysis (PHPStan at its strictest), `composer audit`, and the PHPUnit tests with the bridge running; fails under 80% of the lines of `server/src` run.
 4. **Browser tests and coverage** (after the first two): Chromium, desktop and one phone (375 wide) for every test, four more phone formats for the layout (portrait 360 and 320 wide, landscape 812 and 667), and WebKit as an iPhone 13 (Safari's engine) for the layout, the sounds and whole games; fails under 80% of lines or branches run by unit and browser tests together; coverage report attached, Playwright report and traces on failure.
 5. **One command** (after the first two): builds the two images, `docker compose up --wait`, asks `/api/capabilities`, comes in as a guest and checks that the name is the same once the server's container has been replaced, that the secret is in no log of either container and that a request from elsewhere is refused, then runs the browser tests on the desktop project against the game as Symfony serves it.
+6. **Advisories**: `npm audit` at moderate level, in a job of its own that nothing waits for. An advisory is published on a day of its own and may have no fixed version yet: the job goes red and is seen, and the tests of the code still run.
 
 ## Branches
 
