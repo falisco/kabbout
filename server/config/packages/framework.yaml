@@ -26,6 +26,9 @@ framework:
       cache.coach:
         adapter: cache.adapter.filesystem
         default_lifetime: 86400
+      # the players the server knows; CachePlayers says how long each one is kept
+      cache.players:
+        adapter: cache.adapter.filesystem
 
   # Every count is changed under a lock, so two questions at the same instant are two questions. The locks
   # come from StripedLockFactory (config/services.yaml): a fixed number of files, however many visitors.

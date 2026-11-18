@@ -1,4 +1,4 @@
-# The server is cut by bounded context (src/Game, src/Assistant), then by layer.
+# The server is cut by bounded context (src/Game, src/Assistant, src/Identity), then by layer.
 # Domain code holds no service: it is built by the layers around it.
 parameters:
   # Nothing written: the AI is off and the bridge is where the compose file puts it.
@@ -26,6 +26,7 @@ services:
       - '../src/*/Domain/'
       # values and exceptions of the application layer
       - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary,Exchange,Answered,AskedTooOften,CoachResting,DealSpent}.php'
+      - '../src/Identity/Application/{Entered,NoNameFree}.php'
 
   # the coach's locks: files in the system's temporary directory, a fixed number of them
   Kabbout\Assistant\Infrastructure\StripedLockFactory:
@@ -46,6 +47,9 @@ services:
     arguments:
       $apiKey: '%env(ANTHROPIC_API_KEY)%'
       $model: '%env(KABBOUT_AI_MODEL)%'
+
+  Kabbout\Identity\Domain\Players: '@Kabbout\Identity\Infrastructure\CachePlayers'
+  Kabbout\Identity\Domain\Chance: '@Kabbout\Identity\Infrastructure\SystemChance'
 
 when@test:
   services:
