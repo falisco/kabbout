@@ -122,6 +122,16 @@ jobs:
       - run: curl --fail --silent --show-error http://localhost:8080/api/capabilities
       # an address the API does not know is answered in JSON, not with a page
       - run: test "$(curl --silent --output /dev/null --write-out '%{http_code} %{content_type}' http://localhost:8080/api/nothing-here)" = "404 application/json"
+      # a guest is given a name, keeps it when the server is replaced by a new one, and their secret is in no log
+      - run: |
+          curl --fail --silent --show-error --cookie-jar /tmp/guest.txt --request POST http://localhost:8080/api/session | tee /tmp/entered.json
+          grep -Eq '"name":"C[0-9]{7}"' /tmp/entered.json
+          docker compose up --detach --wait --force-recreate app
+          curl --fail --silent --show-error --cookie /tmp/guest.txt http://localhost:8080/api/session | tee /tmp/recognised.json
+          cmp /tmp/entered.json /tmp/recognised.json
+          secret=$(awk '$6 == "kabbout_guest" { print $7 }' /tmp/guest.txt)
+          test -n "$secret"
+          ! docker compose logs 2>&1 | grep -q "$secret"
       # the browser tests, against the game as Symfony serves it
       - run: npx playwright test --project=desktop
         env:

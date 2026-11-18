@@ -35,3 +35,10 @@ services:
     # for this machine only; write '${KABBOUT_PORT:-8080}:8080' to open it to others
     ports:
       - '127.0.0.1:${KABBOUT_PORT:-8080}:8080'
+    # what the server keeps: a guest finds their name again after the image is built anew
+    volumes:
+      - kept:/app/var/share
+
+# `docker compose down --volumes` forgets everybody.
+volumes:
+  kept:
