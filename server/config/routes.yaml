@@ -3,3 +3,9 @@ assistant:
     path: ../src/Assistant/UserInterface/Http/
     namespace: Kabbout\Assistant\UserInterface\Http
   type: attribute
+
+identity:
+  resource:
+    path: ../src/Identity/UserInterface/Http/
+    namespace: Kabbout\Identity\UserInterface\Http
+  type: attribute

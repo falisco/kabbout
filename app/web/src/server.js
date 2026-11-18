@@ -48,6 +48,59 @@ export function aiNotice(capabilities) {
 }
 
 /**
+ * What the page adds to a request that changes something on the server, to show that the game's own
+ * page made it: a header a page of another site cannot add. The server says what it is
+ * (Kabbout\Api\Domain\FromThePage), and Symfony's same-origin check reads it.
+ */
+const FROM_THE_PAGE = { 'csrf-token': 'csrf-token' };
+
+/* ---------- who is playing ---------- */
+
+/** A longer name would not fit beside the player's seat. What a name is made of is the server's business: the page shows it as plain text. */
+const NAME_MAX = 32;
+
+/**
+ * One question to api/session, and what the Kabbout server answered.
+ * @param {typeof fetch} fetchFn
+ * @param {'GET' | 'POST'} method
+ * @returns {Promise<{ server: boolean, name: string }>} `server` is false when this is not the Kabbout
+ *   server's answer; `name` is the player's, '' when the server says nobody is asking
+ */
+async function session(fetchFn, method) {
+  const nothing = { server: false, name: '' };
+  const headers = { accept: 'application/json', ...(method === 'POST' ? FROM_THE_PAGE : {}) };
+  const response = await fetchFn('api/session', { method, headers });
+  if (response.status !== 200 && !(method === 'POST' && response.status === 201)) return nothing;
+  const answer = /** @type {any} */ (await response.json());
+  if (typeof answer !== 'object' || answer === null || answer.player === undefined) return nothing;
+  if (answer.player === null) return { server: true, name: '' };
+  const name = answer.player.name;
+  return typeof name === 'string' && name !== '' && name.length <= NAME_MAX ? { server: true, name } : nothing;
+}
+
+/**
+ * The name the visitor plays under. The server is asked who is asking: it knows the visitor by a cookie
+ * the page cannot read. When it says nobody, and only then, the page comes in as a new guest, and then
+ * asks again: the name shown is the one the browser is known by, even if another tab came in at the
+ * same instant, or if the browser keeps no cookie. Never fails: with no server, or with anything that
+ * is not its answer, there is no name ('') and nothing is posted.
+ * @param {typeof fetch} [fetchFn]
+ * @returns {Promise<string>}
+ */
+export async function enter(fetchFn = (url, init) => fetch(url, init)) {
+  try {
+    const asked = await session(fetchFn, 'GET');
+    if (!asked.server || asked.name) return asked.name;
+    const entered = await session(fetchFn, 'POST');
+    return entered.name ? (await session(fetchFn, 'GET')).name : '';
+  } catch {
+    return '';
+  }
+}
+
+/* ---------- the coach ---------- */
+
+/**
  * How long the page waits for the coach. The server gives a question about 55 seconds at the very worst
  * (its tools stop after 30, a call to the model lasts 25 at most): the page waits longer than that, so
  * an answer the server paid for is an answer the player reads.
@@ -93,7 +146,7 @@ export async function askCoach(question, fetchFn = (url, init) => fetch(url, ini
   try {
     const response = await fetchFn('api/coach', {
       method: 'POST',
-      headers: { accept: 'application/json', 'content-type': 'application/json' },
+      headers: { accept: 'application/json', 'content-type': 'application/json', ...FROM_THE_PAGE },
       body: JSON.stringify(question),
       signal: waiting.signal,
     });

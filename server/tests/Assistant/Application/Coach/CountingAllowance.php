@@ -7,7 +7,7 @@ namespace Kabbout\Tests\Assistant\Application\Coach;
 use Kabbout\Assistant\Application\Coach\CoachAllowance;
 use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Coach\DealSpent;
-use Kabbout\Assistant\Domain\Visitor;
+use Kabbout\Identity\Domain\NetworkAddress;
 
 /** An allowance for tests: it refuses nothing but a spent deal, and writes down what it was asked. */
 final class CountingAllowance implements CoachAllowance
@@ -22,7 +22,7 @@ final class CountingAllowance implements CoachAllowance
     {
     }
 
-    public function pace(Visitor $visitor): void
+    public function pace(NetworkAddress $from): void
     {
         $this->asked[] = 'pace';
     }
@@ -35,7 +35,7 @@ final class CountingAllowance implements CoachAllowance
         $this->asked[] = 'day';
     }
 
-    public function take(Visitor $visitor, string $deal): int
+    public function take(NetworkAddress $from, string $deal): int
     {
         if ($this->left <= 0) {
             throw new DealSpent();
@@ -45,7 +45,7 @@ final class CountingAllowance implements CoachAllowance
         return --$this->left;
     }
 
-    public function giveBack(Visitor $visitor, string $deal): int
+    public function giveBack(NetworkAddress $from, string $deal): int
     {
         $this->asked[] = 'giveBack';
 

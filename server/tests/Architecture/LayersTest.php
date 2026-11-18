@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * The dependency rule of the server, read from every class name written in server/src: imported, written in
- * full in the code or in an attribute. The code is cut by bounded context (Game, Assistant), then by layer:
+ * full in the code or in an attribute. The code is cut by bounded context (Game, Assistant, Identity), then by layer:
  * - Domain knows its own context's domain and PHP itself: no framework, no other layer, no other context;
  * - Application knows domains and applications, and nothing else;
  * - a context never reaches into the adapters (Infrastructure, UserInterface) of another one.

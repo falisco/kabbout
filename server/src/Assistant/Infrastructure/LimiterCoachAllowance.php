@@ -8,7 +8,7 @@ use Kabbout\Assistant\Application\Coach\AskedTooOften;
 use Kabbout\Assistant\Application\Coach\CoachAllowance;
 use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Coach\DealSpent;
-use Kabbout\Assistant\Domain\Visitor;
+use Kabbout\Identity\Domain\NetworkAddress;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\PruneableInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -40,9 +40,9 @@ final readonly class LimiterCoachAllowance implements CoachAllowance
     ) {
     }
 
-    public function pace(Visitor $visitor): void
+    public function pace(NetworkAddress $from): void
     {
-        $limit = $this->coachLimiter->create($visitor->key)->consume();
+        $limit = $this->coachLimiter->create($from->key)->consume();
         if (!$limit->isAccepted()) {
             throw new AskedTooOften(max(1, $limit->getRetryAfter()->getTimestamp() - time()));
         }
@@ -58,16 +58,16 @@ final readonly class LimiterCoachAllowance implements CoachAllowance
         }
     }
 
-    public function take(Visitor $visitor, string $deal): int
+    public function take(NetworkAddress $from, string $deal): int
     {
-        return $this->count($visitor, $deal, function (int $asked): int {
+        return $this->count($from, $deal, function (int $asked): int {
             return $asked < $this->perDeal ? $asked + 1 : throw new DealSpent();
         });
     }
 
-    public function giveBack(Visitor $visitor, string $deal): int
+    public function giveBack(NetworkAddress $from, string $deal): int
     {
-        return $this->count($visitor, $deal, static fn (int $asked): int => max(0, $asked - 1));
+        return $this->count($from, $deal, static fn (int $asked): int => max(0, $asked - 1));
     }
 
     /**
@@ -75,9 +75,9 @@ final readonly class LimiterCoachAllowance implements CoachAllowance
      *
      * @return int how many are left
      */
-    private function count(Visitor $visitor, string $deal, callable $change): int
+    private function count(NetworkAddress $from, string $deal, callable $change): int
     {
-        $key = 'coach.deal.'.hash('sha256', $visitor->key.'|'.$deal);
+        $key = 'coach.deal.'.hash('sha256', $from->key.'|'.$deal);
         $lock = $this->locks->createLock($key, self::LOCK_SECONDS);
         $lock->acquire(true);
         try {

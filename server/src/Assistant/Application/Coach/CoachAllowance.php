@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\Application\Coach;
 
-use Kabbout\Assistant\Domain\Visitor;
+use Kabbout\Identity\Domain\NetworkAddress;
 
 /**
  * How much the coach may be asked. Every question is a call to a model that is paid for, so three counts
@@ -14,7 +14,7 @@ use Kabbout\Assistant\Domain\Visitor;
 interface CoachAllowance
 {
     /** @throws AskedTooOften when this visitor asks faster than allowed */
-    public function pace(Visitor $visitor): void;
+    public function pace(NetworkAddress $from): void;
 
     /** @throws CoachResting when the day's questions, all visitors together, are spent */
     public function day(): void;
@@ -28,12 +28,12 @@ interface CoachAllowance
      *
      * @throws DealSpent when none is left
      */
-    public function take(Visitor $visitor, string $deal): int;
+    public function take(NetworkAddress $from, string $deal): int;
 
     /**
      * Gives back a question taken, when it turned out to cost nothing: the engine could not be asked, or the model gave no answer.
      *
      * @return int how many are left
      */
-    public function giveBack(Visitor $visitor, string $deal): int;
+    public function giveBack(NetworkAddress $from, string $deal): int;
 }

@@ -24,7 +24,9 @@ RUN composer dump-autoload --no-dev --classmap-authoritative
 
 # 3. what runs: FrankenPHP in classic mode (a fresh PHP for each request), as an unprivileged user
 FROM dunglas/frankenphp:1.13.5-php8.5
-ENV APP_ENV=prod APP_DEBUG=0
+# What the server keeps (the players, the coach's counts) goes to var/share, apart from what is built
+# here: the compose file puts a volume there. Read when the container is compiled, so it is set before.
+ENV APP_ENV=prod APP_DEBUG=0 APP_SHARE_DIR=var/share
 WORKDIR /app
 COPY server/composer.json ./
 COPY server/bin bin
@@ -35,7 +37,8 @@ COPY --from=vendor /app/vendor vendor
 COPY --from=web /src/app/web public
 COPY server/docker/Caddyfile /etc/frankenphp/Caddyfile
 COPY --chmod=755 server/docker/entrypoint.sh /usr/local/bin/kabbout-entrypoint
-RUN mkdir -p var \
+# a new volume takes the owner of the directory it is put on: var/share is there, and www-data's
+RUN mkdir -p var/share \
     && chown -R www-data:www-data var /data /config
 USER www-data
 # the container is built once, here, and not at the first request

@@ -11,12 +11,14 @@
         "symfony/ai-bundle": "1.0.0-BETA1",
         "symfony/ai-generic-platform": "1.0.0-BETA1",
         "symfony/ai-platform": "1.0.0-BETA1",
+        "symfony/clock": "8.1.*",
         "symfony/console": "8.1.*",
         "symfony/framework-bundle": "8.1.*",
         "symfony/http-client": "8.1.*",
         "symfony/lock": "8.1.*",
         "symfony/rate-limiter": "8.1.*",
         "symfony/runtime": "8.1.*",
+        "symfony/security-bundle": "8.1.*",
         "symfony/yaml": "8.1.*"
     },
     "autoload": {

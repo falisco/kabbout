@@ -27,6 +27,20 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm run conformity
+
+  # On its own, and nothing waits for it: an advisory is news from outside, published on a day of its own,
+  # and may have no fixed version to move to. It must be seen (this job goes red) without keeping the
+  # tests of the code from running.
+  audit:
+    name: Advisories against the npm packages
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
       - run: npm audit --audit-level=moderate
 
   unit:
@@ -108,20 +122,38 @@ jobs:
       - run: |
           if out=$(ANTHROPIC_API_KEY='sk-ant-canary' KABBOUT_AI_MODEL=' ' docker compose run --rm --no-deps app true 2>&1); then echo 'a key with no model did not stop the start'; exit 1; fi
           echo "$out"
-          ! echo "$out" | grep -E 'sk-ant-canary'
+          if echo "$out" | grep -q 'sk-ant-canary'; then echo 'the line that stops the start repeats the key'; exit 1; fi
       # with a key, neither the answer nor the logs hold it
       - run: |
           ANTHROPIC_API_KEY='sk-ant-canary' docker compose up --detach --wait
           curl --fail --silent --show-error http://localhost:8080/api/capabilities | tee /tmp/capabilities.json
           grep -q '"configured":true' /tmp/capabilities.json
-          ! grep -q sk-ant-canary /tmp/capabilities.json
-          ! docker compose logs 2>&1 | grep -q sk-ant-canary
+          # written as tests that stop the script: a command negated with ! never does
+          if grep -q sk-ant-canary /tmp/capabilities.json; then echo 'the key is in the answer'; exit 1; fi
+          if docker compose logs 2>&1 | grep -q sk-ant-canary; then echo 'the key is in the logs'; exit 1; fi
           docker compose down
       # what a juror runs after a clone, with no .env: both services must come up healthy
       - run: docker compose up --detach --wait
       - run: curl --fail --silent --show-error http://localhost:8080/api/capabilities
       # an address the API does not know is answered in JSON, not with a page
       - run: test "$(curl --silent --output /dev/null --write-out '%{http_code} %{content_type}' http://localhost:8080/api/nothing-here)" = "404 application/json"
+      # A guest is given a name and keeps it when the server is replaced by a new one. Their secret is in no
+      # log: looked for before the container that handed it out is removed, and again in the one that reads it.
+      # A client that is no browser says what a browser says by itself: where it asks from, and the page's header.
+      - run: |
+          page=(--header 'Origin: http://localhost:8080' --header 'csrf-token: csrf-token')
+          curl --fail --silent --show-error --cookie-jar /tmp/guest.txt --request POST "${page[@]}" http://localhost:8080/api/session | tee /tmp/entered.json
+          grep -Eq '"name":"C[0-9]{7}"' /tmp/entered.json
+          secret=$(awk '$6 == "kabbout_guest" { print $7 }' /tmp/guest.txt)
+          test -n "$secret"
+          if docker compose logs 2>&1 | grep -q "$secret"; then echo 'the secret is in the logs of the server that made it'; exit 1; fi
+          docker compose up --detach --wait --force-recreate app
+          curl --fail --silent --show-error --cookie /tmp/guest.txt http://localhost:8080/api/session | tee /tmp/recognised.json
+          cmp /tmp/entered.json /tmp/recognised.json
+          if docker compose logs 2>&1 | grep -q "$secret"; then echo 'the secret is in the logs of the server that read it'; exit 1; fi
+      # a request that does not show it comes from the game's own page changes nothing
+      - run: |
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --request POST --header 'Origin: https://elsewhere.example' --header 'csrf-token: csrf-token' http://localhost:8080/api/session)" = "401"
       # the browser tests, against the game as Symfony serves it
       - run: npx playwright test --project=desktop
         env:

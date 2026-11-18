@@ -1,9 +1,8 @@
 // What the page says about the AI, from what the server answers on api/capabilities.
 // The static server of these tests has no API; E2E_BASE_URL points the same tests at the Kabbout server.
 
-import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page } from '@playwright/test';
-import { openGame, test } from './helpers.ts';
+import { audit, openGame, test } from './helpers.ts';
 
 const SERVED = !!process.env.E2E_BASE_URL;
 const FEATURES = ['coach', 'spoken_bids', 'referee', 'agent_seat'];
@@ -56,8 +55,7 @@ for (const lang of ['fr', 'en', 'ar'] as const) {
       const notice = page.locator(NOTICE);
       await expect(notice).toContainText(WORDS[lang][state]);
       await expect(notice.locator('code')).toHaveText('ANTHROPIC_API_KEY');
-      const report = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
-      expect(report.violations.map((v) => `${v.impact} ${v.id}`)).toEqual([]);
+      expect(await audit(page)).toEqual([]);
       expect(errors).toEqual([]);
     });
   }

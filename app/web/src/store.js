@@ -91,6 +91,9 @@ export function resetDebrief() {
 /** What the server adds to the game, as server.js read it; nothing until a server answers. */
 export const capabilities = /** @type {{ server: boolean, variable: string, features: Record<string, string> }} */ ({ ...NO_SERVER });
 
+/** Who the visitor is for the server: the name it gave them; none ('') until a server answers, and with no server. */
+export const player = { name: '' };
+
 /** The last human action, while it can still be taken back. */
 export const undoState = {
   /** what the action replaced: the game and the cards on the table */

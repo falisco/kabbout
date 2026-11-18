@@ -2,14 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Kabbout\Assistant\Domain;
+namespace Kabbout\Identity\Domain;
 
 /**
- * Who is asking, for what is counted per person: the questions to the coach, its memory of a deal.
- * Until players have accounts a visitor is a network address; an account will be one more way to name
- * a visitor, and nothing that counts per visitor will change.
+ * Where a request comes from, on the network. It is the one thing known of whoever asks before they are
+ * a player, and the one thing a guest cannot change at will, so it is what is counted against: the
+ * questions to the coach, the guests who come in. A guest costs nothing to make: a count per guest
+ * would be no limit at all. The counts move to the player when players have accounts.
+ *
+ * What the server keeps for somebody is kept under the player, never under an address.
  */
-final readonly class Visitor
+final readonly class NetworkAddress
 {
     /** an IPv6 site is handed a block of this many leading bits: all of its addresses are one visitor */
     private const int IPV6_PREFIX_BYTES = 8;
@@ -22,10 +25,10 @@ final readonly class Visitor
     }
 
     /**
-     * The visitor behind a network address. Every address of one IPv6 block (/64) is the same visitor:
-     * whoever holds the block can take a new address at will. What is no address at all is one visitor too.
+     * The address as it is counted against. Every address of one IPv6 block (/64) is the same one:
+     * whoever holds the block can take a new address at will. What is no address at all is one address too.
      */
-    public static function atAddress(?string $address): self
+    public static function of(?string $address): self
     {
         $packed = null === $address ? false : @inet_pton($address);
         if (false === $packed) {

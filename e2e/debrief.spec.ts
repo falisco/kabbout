@@ -2,9 +2,8 @@
 // it points at. The static server of these tests has no API: the page's own origin is made to answer
 // as the Kabbout server does, so what is checked here is the screen, not the coach.
 
-import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, type Route } from '@playwright/test';
-import { newGame, openGame, playUntil, test } from './helpers.ts';
+import { audit, newGame, openGame, playUntil, test } from './helpers.ts';
 
 const SERVED = !!process.env.E2E_BASE_URL;
 const WORDS = {
@@ -75,11 +74,6 @@ async function dealPlayed(page: Page, state: 'on' | 'off', lang: Lang = 'fr'): P
   return errors;
 }
 
-async function axe(page: Page): Promise<string[]> {
-  const report = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
-  return report.violations.map((v) => `${v.impact} ${v.id}`);
-}
-
 for (const lang of ['fr', 'en', 'ar'] as const) {
   test(`after a deal, the coach is asked by keyboard and its answer opens the trick it names (${lang})`, async ({ page }) => {
     const words = WORDS[lang];
@@ -96,7 +90,7 @@ for (const lang of ['fr', 'en', 'ar'] as const) {
     // the question the screen proposes is ready to be sent as it is
     await expect(page.locator(QUESTION)).toHaveValue(words.question);
     await expect(page.locator(ANSWER)).toHaveCount(0);
-    expect(await axe(page)).toEqual([]);
+    expect(await audit(page)).toEqual([]);
     await page.locator(QUESTION).press('Enter');
 
     await expect(page.locator(ANSWER)).toHaveText(`${words.title}: 10 ♣.`);
@@ -106,7 +100,7 @@ for (const lang of ['fr', 'en', 'ar'] as const) {
     expect(questions[0]).toMatchObject({ seat: 0, lang, question: words.question });
     expect(questions[0].record.tricks.map((plays) => plays.length)).toEqual(Array(8).fill(4));
     expect(new Set(questions[0].record.tricks.flat().map((p) => p.card)).size).toBe(32);
-    expect(await axe(page)).toEqual([]);
+    expect(await audit(page)).toEqual([]);
 
     // the trick the answer names, then back to the answer with Escape
     const trick = page.locator('#sheet [data-action="trick"]');
@@ -117,7 +111,7 @@ for (const lang of ['fr', 'en', 'ar'] as const) {
     await expect(page.locator('#sheet .lt figure.w')).toHaveCount(1);
     const fourth = questions[0].record.tricks[3].map((p) => p.card);
     expect(await page.locator('#sheet .lt .card').evaluateAll((cards) => cards.map((c) => (c as HTMLElement).dataset.card))).toEqual(fourth);
-    expect(await axe(page)).toEqual([]);
+    expect(await audit(page)).toEqual([]);
     await page.keyboard.press('Escape');
     await expect(page.locator(ANSWER)).toBeVisible();
 
@@ -133,7 +127,7 @@ for (const lang of ['fr', 'en', 'ar'] as const) {
     await expect(hint).toContainText(WORDS[lang].off);
     await expect(hint.locator('code')).toHaveText('ANTHROPIC_API_KEY');
     await expect(page.locator(ENTRY)).toHaveCount(0);
-    expect(await axe(page)).toEqual([]);
+    expect(await audit(page)).toEqual([]);
     expect(errors).toEqual([]);
   });
 }
@@ -191,7 +185,7 @@ test('a coach that cannot answer says why, and can be asked again', async ({ pag
 
   await ask.click();
   await expect(page.locator('#debriefError')).toContainText(WORDS.fr.busy);
-  expect(await axe(page)).toEqual([]);
+  expect(await audit(page)).toEqual([]);
   status = 422;
   await ask.click();
   await expect(page.locator('#debriefError')).toContainText('rejouer cette donne');
@@ -262,7 +256,7 @@ test('a deal is a short conversation: each question once, and as many as the ser
   await expect(page.locator(QUESTION)).toHaveValue('');
   await expect(page.locator('#debriefLeft')).toContainText('1 question');
   await expect(ask).toHaveAttribute('aria-disabled', 'true');
-  expect(await axe(page)).toEqual([]);
+  expect(await audit(page)).toEqual([]);
 
   // nothing to send, and the same question again: neither is asked of the server
   await ask.click({ force: true });
@@ -288,7 +282,7 @@ test('a deal is a short conversation: each question once, and as many as the ser
   await expect(page.locator('#debriefSpent')).toBeVisible();
   await expect(page.locator(QUESTION)).toHaveCount(0);
   await expect(ask).toHaveCount(0);
-  expect(await axe(page)).toEqual([]);
+  expect(await audit(page)).toEqual([]);
   expect(questions).toHaveLength(2);
   expect(errors).toEqual([]);
 });

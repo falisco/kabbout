@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Kabbout\Api\UserInterface\Http;
 
+use Kabbout\Api\Domain\Envelope;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /**
- * Every error of the API is answered in JSON, in the one shape the bridge already uses:
+ * Every error of the API is answered in JSON, in the one shape the bridge already uses (Envelope):
  * `{ "error": { "code", "message" } }`. This server only answers under /api: no HTML page has a reader.
  * The message is the name of the status, never the text of an exception: that text is for the log.
  */
@@ -19,6 +20,8 @@ final readonly class ErrorController
 {
     private const array CODES = [
         Response::HTTP_BAD_REQUEST => 'bad_request',
+        // a POST that does not show it comes from the game's own page (FromThePage)
+        Response::HTTP_UNAUTHORIZED => 'unauthorized',
         Response::HTTP_NOT_FOUND => 'not_found',
         Response::HTTP_METHOD_NOT_ALLOWED => 'method_not_allowed',
         Response::HTTP_UNPROCESSABLE_ENTITY => 'unprocessable',
@@ -31,10 +34,6 @@ final readonly class ErrorController
         $status = $http ? $exception->getStatusCode() : Response::HTTP_INTERNAL_SERVER_ERROR;
         $code = self::CODES[$status] ?? ($status >= 500 ? 'server_error' : 'client_error');
 
-        return new JsonResponse(
-            ['error' => ['code' => $code, 'message' => Response::$statusTexts[$status] ?? 'Error']],
-            $status,
-            [...($http ? $exception->getHeaders() : []), 'Cache-Control' => 'no-store'],
-        );
+        return new JsonResponse(Envelope::error($code, Response::$statusTexts[$status] ?? 'Error'), $status, $http ? $exception->getHeaders() : []);
     }
 }

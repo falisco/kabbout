@@ -11,7 +11,7 @@ import { consultableTrick } from '../selectors.js';
 import { aiNotice } from '../server.js';
 import { loadStats } from '../storage.js';
 import { starSVG } from '../star.js';
-import { capabilities, overlay, prefs, tableState, tutorial } from '../store.js';
+import { capabilities, overlay, player, prefs, tableState, tutorial } from '../store.js';
 import { historyHTML, valuesTable } from './bidding.js';
 import { debriefButton, debriefDialog, debriefHint, debriefState, debriefTrickDialog } from './debrief.js';
 import { multiplierMark } from './table.js';
@@ -96,6 +96,11 @@ function aiLine() {
   return notice ? `<p class="sub" id="aiNotice">${t(notice === 'off' ? 'aiOff' : 'aiPlanned', variable)}</p>` : '';
 }
 
+/** one line saying under which name the visitor plays, when the page comes from a server that gave them one */
+function playerLine() {
+  return player.name ? `<p class="sub" id="playerName">${t('playingAs', `<b><bdi>${esc(player.name)}</bdi></b>`)}</p>` : '';
+}
+
 function menuDialog() {
   const stats = loadStats();
   const inGame = view && view.phase !== 'gameEnd';
@@ -108,7 +113,7 @@ function menuDialog() {
       ${actionButton('new', inGame ? 'pass' : 'take', t('newGame'))}
     </div>
     ${levelRow()}${scoringRow()}${langRow()}
-    ${aiLine()}
+    ${playerLine()}${aiLine()}
     ${stats.played ? `<p class="stats">${t('stats', stats.won, stats.played)}</p>` : ''}`;
 }
 

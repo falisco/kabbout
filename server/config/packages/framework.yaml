@@ -20,12 +20,24 @@ framework:
   trusted_proxies: '%env(KABBOUT_TRUSTED_PROXIES)%'
   trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port']
 
+  # A request that changes something must come from the game's own page: Symfony's same-origin check,
+  # with no session. Kabbout\Api\Domain\FromThePage says what a client sends; the doors that take a POST
+  # ask for the check with #[IsCsrfTokenValid].
+  csrf_protection:
+    stateless_token_ids: [api]
+
+  # Locks are files, on every machine: left to itself the framework takes semaphores where PHP has them.
+  lock: flock
+
   cache:
     pools:
       # the coach's counts and its memory of a deal, apart from the rest so that they can be cleared of what has expired
       cache.coach:
         adapter: cache.adapter.filesystem
         default_lifetime: 86400
+      # the players the server knows; CachePlayers says how long each one is kept
+      cache.players:
+        adapter: cache.adapter.filesystem
 
   # Every count is changed under a lock, so two questions at the same instant are two questions. The locks
   # come from StripedLockFactory (config/services.yaml): a fixed number of files, however many visitors.
@@ -39,6 +51,13 @@ framework:
       interval: '1 minute'
       cache_pool: cache.coach
       lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
+    # New guests from one address. Counted under a lock of LimiterEntryAllowance's own, so none is asked for here.
+    guests:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_GUESTS_LIMIT)%'
+      interval: '1 minute'
+      cache_pool: cache.players
+      lock_factory: null
     coach_day:
       policy: fixed_window
       limit: '%env(int:KABBOUT_COACH_DAILY)%'

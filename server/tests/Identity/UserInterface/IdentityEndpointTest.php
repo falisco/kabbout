@@ -1,0 +1,354 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Kabbout\Tests\Identity\UserInterface;
+
+use Kabbout\Identity\Application\EnterAsGuest;
+use Kabbout\Identity\Domain\Chance;
+use Kabbout\Identity\Domain\Players;
+use Kabbout\Identity\Infrastructure\CachePlayers;
+use Kabbout\Identity\Infrastructure\Security\GuestCookie;
+use Kabbout\Tests\Identity\Domain\ListedPlayers;
+use Kabbout\Tests\Identity\Domain\ScriptedChance;
+use Kabbout\Tests\Identity\Domain\Secrets;
+use Kabbout\Tests\Support\ListedLog;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Clock\MockClock;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
+
+/** The two routes of /api/session, through Symfony Security: who comes in, who is recognised, and what never leaves the server. */
+final class IdentityEndpointTest extends WebTestCase
+{
+    private const string NAME = '/^C[0-9]{7}$/D';
+    /** what a browser sends with a request the game's own page made, and the header the page adds */
+    private const array FROM_THE_PAGE = ['HTTP_SEC_FETCH_SITE' => 'same-origin', 'HTTP_CSRF_TOKEN' => 'csrf-token'];
+
+    /** the address the requests come from: a new one for each test, so that no test meets the count of another */
+    private static string $from = '';
+
+    protected function setUp(): void
+    {
+        self::$from = '2001:db8:'.bin2hex(random_bytes(2)).':'.bin2hex(random_bytes(2)).'::1';
+    }
+
+    protected function tearDown(): void
+    {
+        unset($_SERVER['KABBOUT_GUESTS_LIMIT']);
+        parent::tearDown();
+    }
+
+    public function testWhoeverComesInIsGivenANameAndTheirSecretInACookieThePageCannotRead(): void
+    {
+        $client = self::client();
+
+        $answer = self::ask($client, 'POST');
+
+        self::assertResponseStatusCodeSame(201);
+        self::assertResponseHeaderSame('Cache-Control', 'no-store, private');
+        self::assertSame(['version', 'player'], array_keys($answer));
+        self::assertSame(1, $answer['version']);
+        self::assertIsArray($answer['player']);
+        self::assertSame(['name'], array_keys($answer['player']));
+        self::assertIsString($answer['player']['name']);
+        self::assertMatchesRegularExpression(self::NAME, $answer['player']['name']);
+
+        $cookies = $client->getResponse()->headers->getCookies();
+        self::assertCount(1, $cookies);
+        self::assertSame(GuestCookie::NAME, $cookies[0]->getName());
+        self::assertMatchesRegularExpression('/^[0-9a-f]{64}$/D', (string) $cookies[0]->getValue());
+        self::assertSame([true, 'strict', '/api'], [$cookies[0]->isHttpOnly(), $cookies[0]->getSameSite(), $cookies[0]->getPath()]);
+        // over plain HTTP, as the game is served on a player's own machine, the cookie must not ask for HTTPS
+        self::assertFalse($cookies[0]->isSecure());
+    }
+
+    public function testOverHttpsTheCookieOnlyTravelsOverHttps(): void
+    {
+        $client = self::client();
+
+        self::ask($client, 'POST', ['HTTPS' => 'on']);
+
+        self::assertTrue($client->getResponse()->headers->getCookies()[0]->isSecure());
+    }
+
+    public function testTheSameCookieIsTheSamePlayerEveryTimeAndComingInTwiceMakesNoSecondGuest(): void
+    {
+        $client = self::client();
+        $entered = self::ask($client, 'POST');
+        $secret = self::secretOf($client);
+
+        $first = self::ask($client, 'GET');
+        $second = self::ask($client, 'GET');
+        self::assertResponseStatusCodeSame(200);
+        self::assertResponseHeaderSame('Cache-Control', 'no-store, private');
+        $again = self::ask($client, 'POST');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertSame([$entered, $entered, $entered], [$first, $second, $again]);
+        // the secret is sent once: who is already a player gets no cookie again
+        self::assertSame([], $client->getResponse()->headers->getCookies());
+        self::assertSame($secret, self::secretOf($client));
+    }
+
+    public function testWithoutACookieNobodyIsAskingEvenRightAfterSomebodyWas(): void
+    {
+        $client = self::client();
+        self::assertSame(['version' => 1, 'player' => null], self::ask($client, 'GET'));
+        self::assertResponseStatusCodeSame(200);
+
+        self::ask($client, 'POST');
+        self::assertNotNull(self::ask($client, 'GET')['player']);
+        // the same server, the next request, from somebody else: who was recognised a moment ago does not stay
+        $client->getCookieJar()->clear();
+
+        self::assertSame(['version' => 1, 'player' => null], self::ask($client, 'GET'));
+    }
+
+    public function testTwoVisitorsAreTwoPlayersUnderTwoNames(): void
+    {
+        $client = self::client();
+        $ana = self::ask($client, 'POST');
+        $hers = self::secretOf($client);
+        $client->getCookieJar()->clear();
+        $ben = self::ask($client, 'POST');
+
+        self::assertNotSame($ana, $ben);
+        self::assertNotSame($hers, self::secretOf($client));
+        self::holding($client, $hers);
+        self::assertSame($ana, self::ask($client, 'GET'));
+    }
+
+    public function testAnUnknownAnAlteredAndAnExpiredSecretAreNobodyAndAreAnsweredAlike(): void
+    {
+        $client = self::client();
+        $clock = new MockClock();
+        self::getContainer()->set(Players::class, new CachePlayers(new ArrayAdapter(clock: $clock), new LockFactory(new InMemoryStore()), $clock));
+        self::ask($client, 'POST');
+        $secret = self::secretOf($client);
+        $nobody = self::answerTo($client, null);
+
+        $unknown = self::answerTo($client, str_repeat('ab', 32));
+        $altered = self::answerTo($client, Secrets::altered($secret));
+        $noSecret = self::answerTo($client, 'not a secret');
+        // 30 days is how long a guest nobody sees is kept, give or take the day their last visit was written
+        $clock->modify('+32 days');
+        $expired = self::answerTo($client, $secret);
+
+        self::assertSame([200, '{"version":1,"player":null}'], [$nobody[0], $nobody[1]]);
+        self::assertSame([$nobody, $nobody, $nobody, $nobody], [$unknown, $altered, $noSecret, $expired]);
+    }
+
+    public function testASecretThatIsNobodysDoesNotKeepAVisitorOut(): void
+    {
+        $client = self::client();
+        // what a browser still holds of a guest the server has forgotten
+        self::holding($client, str_repeat('ab', 32));
+
+        $answer = self::ask($client, 'POST');
+
+        self::assertResponseStatusCodeSame(201);
+        self::assertNotSame(str_repeat('ab', 32), self::secretOf($client));
+        self::assertSame($answer, self::ask($client, 'GET'));
+    }
+
+    public function testTheSecretIsInNoAnswerAndInNoLineOfTheLog(): void
+    {
+        $client = self::client();
+        $log = self::getContainer()->get('logger');
+        self::assertInstanceOf(ListedLog::class, $log);
+
+        $said = [(string) json_encode(self::ask($client, 'POST'))];
+        $secret = self::secretOf($client);
+        $said[] = (string) json_encode(self::ask($client, 'GET'));
+        $said[] = (string) json_encode(self::ask($client, 'POST'));
+        // a cookie turned away, one digit from the real one: what is written of it would show the secret too
+        self::holding($client, Secrets::altered($secret));
+        $said[] = (string) json_encode(self::ask($client, 'GET'));
+        $said[] = (string) json_encode(self::ask($client, 'POST'));
+
+        $written = implode("\n", [...$said, ...$log->lines]);
+        self::assertStringNotContainsString($secret, $written);
+        // nor a piece of it: its start, as a trace cuts a text, or its middle
+        self::assertStringNotContainsString(substr($secret, 0, 12), $written);
+        self::assertStringNotContainsString(substr($secret, 20, 20), $written);
+        // the log was listening while all of this happened
+        self::assertNotSame([], $log->lines);
+    }
+
+    public function testWhenThePlayersCannotBeReadWhoeverAsksIsNobodyTheOtherRoutesStillAnswerAndTheLogSaysWhy(): void
+    {
+        $client = self::client();
+        $players = new ListedPlayers();
+        self::getContainer()->set(Players::class, $players);
+        $log = self::getContainer()->get('logger');
+        self::assertInstanceOf(ListedLog::class, $log);
+        self::ask($client, 'POST');
+        $players->unavailable = true;
+
+        self::assertSame(['version' => 1, 'player' => null], self::ask($client, 'GET'));
+        self::assertResponseStatusCodeSame(200);
+        $client->request('GET', '/api/capabilities');
+        self::assertResponseStatusCodeSame(200);
+        self::assertStringContainsString('[error] The players cannot be read', implode("\n", $log->lines));
+
+        // and nobody comes in: no name is given that would not be kept
+        $answer = self::ask($client, 'POST');
+        self::assertResponseStatusCodeSame(503);
+        self::assertSame(['error' => ['code' => 'players_unavailable', 'message' => 'Nobody can come in right now; try again.']], $answer);
+        self::assertSame([], $client->getResponse()->headers->getCookies());
+    }
+
+    /** @return iterable<string, array{array<string, string>, int}> what a request says of where it comes from, and the status it gets */
+    public static function whereARequestComesFrom(): iterable
+    {
+        $token = ['HTTP_CSRF_TOKEN' => 'csrf-token'];
+        yield 'the page itself, as a browser says it' => [['HTTP_SEC_FETCH_SITE' => 'same-origin'] + $token, 201];
+        yield 'the page itself, from a browser that only says its origin' => [['HTTP_ORIGIN' => 'http://localhost'] + $token, 201];
+        yield 'the page itself, from a browser that only says its referer' => [['HTTP_REFERER' => 'http://localhost/?lang=fr'] + $token, 201];
+        yield 'a client that is no browser and names the server' => [['HTTP_ORIGIN' => 'http://localhost'] + $token, 201];
+        yield 'another site' => [['HTTP_SEC_FETCH_SITE' => 'cross-site'] + $token, 401];
+        yield 'another site of the same domain' => [['HTTP_SEC_FETCH_SITE' => 'same-site'] + $token, 401];
+        yield 'another site, from a browser that only says its origin' => [['HTTP_ORIGIN' => 'https://evil.example'] + $token, 401];
+        yield 'another site whose name starts like ours' => [['HTTP_ORIGIN' => 'http://localhost.evil.example'] + $token, 401];
+        yield 'another site, whatever origin it claims besides' => [['HTTP_SEC_FETCH_SITE' => 'cross-site', 'HTTP_ORIGIN' => 'http://localhost'] + $token, 401];
+        yield 'the address typed by hand' => [['HTTP_SEC_FETCH_SITE' => 'none'] + $token, 401];
+        yield 'nothing said of where it comes from' => [$token, 401];
+        yield 'the page, without the header only it can add' => [['HTTP_SEC_FETCH_SITE' => 'same-origin'], 401];
+        yield 'the header with another value' => [['HTTP_SEC_FETCH_SITE' => 'same-origin', 'HTTP_CSRF_TOKEN' => 'x'], 401];
+    }
+
+    /** @param array<string, string> $says */
+    #[DataProvider('whereARequestComesFrom')]
+    public function testOnlyTheGamesOwnPageMayComeInForItsVisitor(array $says, int $status): void
+    {
+        $client = self::client();
+
+        $client->request('POST', '/api/session', server: ['REMOTE_ADDR' => self::$from, ...$says]);
+
+        self::assertResponseStatusCodeSame($status);
+        if (401 === $status) {
+            self::assertSame('{"error":{"code":"unauthorized","message":"Unauthorized"}}', $client->getResponse()->getContent());
+            self::assertSame([], $client->getResponse()->headers->getCookies());
+            self::assertResponseHeaderSame('Cache-Control', 'no-store, private');
+        }
+    }
+
+    public function testAskingWhoIsAskingChangesNothingAndNeedsNoSuchProof(): void
+    {
+        $client = self::client();
+
+        $client->request('GET', '/api/session', server: ['HTTP_SEC_FETCH_SITE' => 'cross-site']);
+
+        self::assertResponseStatusCodeSame(200);
+    }
+
+    public function testWhenEveryNameDrawnIsTakenTheServerSaysSoAndNobodyComesIn(): void
+    {
+        $client = self::client();
+        $players = new ListedPlayers();
+        self::getContainer()->set(Players::class, $players);
+        // one draw for the first guest, then every draw the second is allowed
+        self::getContainer()->set(Chance::class, new ScriptedChance(array_fill(0, 1 + EnterAsGuest::DRAWS, 5)));
+        self::ask($client, 'POST');
+        $client->getCookieJar()->clear();
+
+        $answer = self::ask($client, 'POST');
+
+        self::assertResponseStatusCodeSame(503);
+        self::assertSame(['error' => ['code' => 'no_name_free', 'message' => 'No name could be found for a new guest; try again.']], $answer);
+        self::assertSame([], $client->getResponse()->headers->getCookies());
+        self::assertCount(1, $players->known);
+    }
+
+    public function testSoManyGuestsComeInFromOneAddressInAMinuteAndWhoIsAPlayerAlreadyIsNotCounted(): void
+    {
+        $_SERVER['KABBOUT_GUESTS_LIMIT'] = '2';
+        $client = self::client();
+        self::ask($client, 'POST');
+        // asking again as the same player makes no guest and counts for nothing
+        self::ask($client, 'POST');
+        self::ask($client, 'POST');
+        $client->getCookieJar()->clear();
+        self::ask($client, 'POST');
+        self::assertResponseStatusCodeSame(201);
+        $client->getCookieJar()->clear();
+
+        $answer = self::ask($client, 'POST');
+
+        self::assertResponseStatusCodeSame(429);
+        self::assertSame(['error' => ['code' => 'too_many_requests', 'message' => 'Too Many Requests']], $answer);
+        self::assertGreaterThanOrEqual(1, (int) $client->getResponse()->headers->get('Retry-After'));
+        self::assertSame([], $client->getResponse()->headers->getCookies());
+        // from another address a guest still comes in
+        self::ask($client, 'POST', ['REMOTE_ADDR' => '2001:db8:ffff:'.bin2hex(random_bytes(2)).'::1']);
+        self::assertResponseStatusCodeSame(201);
+    }
+
+    public function testTheSessionIsOnlyAskedByGetAndEnteredByPost(): void
+    {
+        $client = self::client();
+
+        $answer = self::ask($client, 'DELETE');
+
+        self::assertResponseStatusCodeSame(405);
+        self::assertSame(['error' => ['code' => 'method_not_allowed', 'message' => 'Method Not Allowed']], $answer);
+    }
+
+    private static function client(): KernelBrowser
+    {
+        $client = self::createClient();
+        // one kernel for the whole test: what is put in the container stays
+        $client->disableReboot();
+
+        return $client;
+    }
+
+    /**
+     * @param array<string, string> $server
+     *
+     * @return array<array-key, mixed>
+     */
+    private static function ask(KernelBrowser $client, string $method, array $server = []): array
+    {
+        $client->request($method, '/api/session', server: ['REMOTE_ADDR' => self::$from, ...self::FROM_THE_PAGE, ...$server]);
+        $answer = json_decode((string) $client->getResponse()->getContent(), true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($answer);
+
+        return $answer;
+    }
+
+    /** the secret the browser holds, as the server sent it */
+    private static function secretOf(KernelBrowser $client): string
+    {
+        $cookie = $client->getCookieJar()->get(GuestCookie::NAME, '/api');
+        self::assertNotNull($cookie);
+
+        return $cookie->getValue();
+    }
+
+    private static function holding(KernelBrowser $client, string $presented): void
+    {
+        $client->getCookieJar()->clear();
+        $client->getCookieJar()->set(new Cookie(GuestCookie::NAME, $presented, path: '/api'));
+    }
+
+    /** @return array{int, string, array<string, list<string|null>>} what GET /api/session answers to a cookie, or to none: status, body and headers, the date apart */
+    private static function answerTo(KernelBrowser $client, ?string $presented): array
+    {
+        $client->getCookieJar()->clear();
+        if (null !== $presented) {
+            self::holding($client, $presented);
+        }
+        $client->request('GET', '/api/session', server: ['REMOTE_ADDR' => self::$from]);
+        $response = $client->getResponse();
+        $headers = $response->headers->all();
+        unset($headers['date']);
+
+        return [$response->getStatusCode(), (string) $response->getContent(), $headers];
+    }
+}

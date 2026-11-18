@@ -133,6 +133,7 @@ export default {
   },
 
   // menu
+  playingAs: (name) => `قاعد تلعب باسم ${name}.`,
   aiPlanned: (variable) => `في الثنية: طلبات تقولها بصوتك، وحكم يجاوبك على القوانين. يفيقو بـ ${variable}.`,
   aiOff: (variable) => `الذكاء الاصطناعي راقد في السرفور هذا: اكتب ${variable} في .env وعاود شعّلو.`,
   // the coach of the server, after a deal

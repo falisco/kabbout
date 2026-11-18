@@ -12,7 +12,12 @@ export const sideOf = (seat) => (team(seat) === US ? 'us' : 'them');
 
 /** how many seats after this screen's player a seat is, in the order of play: 0 for the player, 2 for the partner */
 export const placeOf = (seat) => (seat - ME + SEAT_COUNT) % SEAT_COUNT;
-/** "Vous" / "You" for this screen's player; the three regulars of the café have their names in each language */
+/**
+ * What a sentence or a caption calls a seat: "Vous" / "You" for this screen's player, and the three
+ * regulars of the café by their names in each language. The player's own name, when the server gave
+ * one, is written in one place only, at their seat (seatLabel in render/table.js): everywhere else
+ * the screen speaks to the player, and says "you".
+ */
 export const nameOf = (seat) => (seat === ME ? t('you') : t('robots')[placeOf(seat)]);
 /** the same inside a sentence: "vous" / "you" */
 export const who = (seat) => (seat === ME ? t('youLower') : nameOf(seat));

@@ -1,0 +1,12 @@
+# Who is asking. Symfony Security carries it for every route under /api, and no route is closed to
+# anybody: there is no access_control, and a request nobody is recognised behind goes on as nobody's.
+security:
+  firewalls:
+    api:
+      pattern: ^/api
+      # nothing is kept between two requests: each one says who it is from
+      stateless: true
+      # The ways in. A guest's cookie today; signing in will be a second line here. The authenticator
+      # finds the player itself, so there is no user provider.
+      custom_authenticators:
+        - Kabbout\Identity\Infrastructure\Security\GuestAuthenticator

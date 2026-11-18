@@ -13,17 +13,24 @@ import { render } from './render/index.js';
 import { renderHand } from './render/table.js';
 import { say, toast } from './render/transient.js';
 import { turnKey } from './selectors.js';
-import { askCoach, loadCapabilities } from './server.js';
+import { askCoach, enter, loadCapabilities } from './server.js';
 import { clearBubbles } from './speech.js';
-import { capabilities, debrief, overlay, prefs, resetDebrief, selection, tableState, undoState } from './store.js';
+import { capabilities, debrief, overlay, player, prefs, resetDebrief, selection, tableState, undoState } from './store.js';
 
 /** the one thing the table is waiting to do by itself */
 let pendingStep = null;
 
-/** Asks the server, if there is one, what it adds; the menu says it once the answer is in. */
+/**
+ * Asks the server, if there is one, what it adds and who the visitor is, coming in as a guest on a
+ * first visit. Each answer shows as soon as it is in: the menu's line about the AI, the player's name.
+ */
 export async function askServer() {
-  Object.assign(capabilities, await loadCapabilities());
-  render();
+  /** keeps an answer once it is in, and draws the screen again */
+  const learn = async (asking, keep) => {
+    keep(await asking);
+    render();
+  };
+  await Promise.all([learn(loadCapabilities(), (answer) => Object.assign(capabilities, answer)), learn(enter(), (name) => (player.name = name))]);
 }
 
 /**

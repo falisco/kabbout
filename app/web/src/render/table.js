@@ -9,7 +9,7 @@ import { lang, t } from '../i18n/index.js';
 import { bidHTML, cardHTML, cardName, sortHand } from '../labels.js';
 import { isAwaitingMove, lastBidOf } from '../selectors.js';
 import { starSVG } from '../star.js';
-import { overlay, prefs, selection, speech, tableState, undoState } from '../store.js';
+import { overlay, player, prefs, selection, speech, tableState, undoState } from '../store.js';
 import { restartAnimation, say } from './transient.js';
 
 /** how far each card of the fanned hand tilts from its neighbour (degrees), and how much the fan's ends drop (share of a card's width per step²) */
@@ -98,6 +98,11 @@ function chipsHTML(seat) {
   }
   return chips;
 }
+/**
+ * What a seat is labelled with. The robots have their names; the player has the name the server gave
+ * them, and "You" with no server. Sentences about the player keep saying "you" (nameOf).
+ */
+const seatLabel = (seat) => (seat === ME && player.name ? `<bdi>${esc(player.name)}</bdi>` : nameOf(seat));
 export function renderSeats() {
   for (const seat of SEATS) {
     const active = !!view && !tableState.pause && view.turn === seat && isAwaitingMove(view);
@@ -106,7 +111,7 @@ export function renderSeats() {
     const partnerMark = seat === PARTNER ? ` <small>${t('partner')}</small>` : '';
     const el = $('#seat' + seat);
     el.className = `seat ${posOf(seat)} team${sideOf(seat) === 'us' ? 0 : 1}${active ? ' active' : ''}`;
-    el.innerHTML = `<div class="avatar">${avatarSVG(placeOf(seat)) || myInitial()}${chipsHTML(seat)}</div><div class="name">${nameOf(seat)}${partnerMark}</div>${fan}${bubbleHTML(seat)}`;
+    el.innerHTML = `<div class="avatar">${avatarSVG(placeOf(seat)) || myInitial()}${chipsHTML(seat)}</div><div class="name">${seatLabel(seat)}${partnerMark}</div>${fan}${bubbleHTML(seat)}`;
   }
 }
 

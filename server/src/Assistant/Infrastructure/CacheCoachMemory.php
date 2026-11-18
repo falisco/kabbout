@@ -6,6 +6,7 @@ namespace Kabbout\Assistant\Infrastructure;
 
 use Kabbout\Assistant\Application\Coach\CoachMemory;
 use Kabbout\Assistant\Application\Coach\Exchange;
+use Kabbout\Identity\Domain\PlayerId;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -21,9 +22,9 @@ final readonly class CacheCoachMemory implements CoachMemory
     {
     }
 
-    public function earlier(string $thread): array
+    public function earlier(PlayerId $player, string $deal): array
     {
-        $kept = $this->cache->getItem(self::key($thread))->get();
+        $kept = $this->cache->getItem(self::key($player, $deal))->get();
         if (!\is_array($kept)) {
             return [];
         }
@@ -37,18 +38,18 @@ final readonly class CacheCoachMemory implements CoachMemory
         return $exchanges;
     }
 
-    public function remember(string $thread, Exchange $exchange): void
+    public function remember(PlayerId $player, string $deal, Exchange $exchange): void
     {
-        $all = \array_slice([...$this->earlier($thread), $exchange], -self::MAX_EXCHANGES);
-        $item = $this->cache->getItem(self::key($thread));
+        $all = \array_slice([...$this->earlier($player, $deal), $exchange], -self::MAX_EXCHANGES);
+        $item = $this->cache->getItem(self::key($player, $deal));
         $item->set(array_map(static fn (Exchange $e): array => [$e->question, $e->answer], $all));
         $item->expiresAfter(self::SECONDS_KEPT);
         $this->cache->save($item);
     }
 
-    /** a cache key holds no reserved character, whatever names the thread */
-    private static function key(string $thread): string
+    /** a cache key holds no reserved character, whatever names the deal */
+    private static function key(PlayerId $player, string $deal): string
     {
-        return 'coach.thread.'.hash('sha256', $thread);
+        return 'coach.thread.'.hash('sha256', $player->toString().'|'.$deal);
     }
 }
