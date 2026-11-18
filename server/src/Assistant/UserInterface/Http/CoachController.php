@@ -10,7 +10,6 @@ use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Coach\DealSpent;
 use Kabbout\Assistant\Domain\AiConfiguration;
 use Kabbout\Assistant\Domain\InvalidAiSettings;
-use Kabbout\Assistant\Domain\Visitor;
 use Kabbout\Assistant\Infrastructure\EnvAiConfiguration;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\EngineRefused;
@@ -19,6 +18,7 @@ use Kabbout\Game\Domain\Exception\InvalidDealRecord;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Identity\Application\CurrentPlayer;
+use Kabbout\Identity\Domain\NetworkAddress;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -55,7 +55,7 @@ final readonly class CoachController
             if (null === $this->configuration->settings()) {
                 return self::error(Response::HTTP_SERVICE_UNAVAILABLE, 'ai_off', \sprintf('The coach is off: set %s in .env and start again.', EnvAiConfiguration::VARIABLE));
             }
-            $answered = ($this->answerVisitor)(Visitor::atAddress($request->getClientIp()), $this->current->player()?->id, $record, $seat, $lang, $question);
+            $answered = ($this->answerVisitor)(NetworkAddress::of($request->getClientIp()), $this->current->player()?->id, $record, $seat, $lang, $question);
         } catch (InvalidDealRecord|\InvalidArgumentException $e) {
             return self::error(Response::HTTP_BAD_REQUEST, 'bad_request', $e->getMessage());
         } catch (InvalidAiSettings $e) {

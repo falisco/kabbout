@@ -27,7 +27,8 @@ final class CachePlayersTest extends TestCase
         $this->clock = new MockClock('2026-11-18 12:00:00');
         $this->cache = new WatchedCache($this->clock);
         $this->locks = new WatchedLocks($this->cache);
-        $this->players = new CachePlayers($this->cache, new LockFactory($this->locks), $this->clock);
+        // 'never' here: the clearing has a test of its own
+        $this->players = new CachePlayers($this->cache, new LockFactory($this->locks), $this->clock, \PHP_INT_MAX);
     }
 
     public function testAPlayerTakenInIsRecognisedByTheProofOfTheirSecretAndByNoOther(): void
@@ -63,6 +64,19 @@ final class CachePlayersTest extends TestCase
         $this->cache->journal = [];
         $this->players->admit(self::guest('C4821973'), Proof::of(Secret::random()));
         self::assertSame(['lock', 'unlock'], $this->cache->journal);
+    }
+
+    public function testWhatHasExpiredIsClearedFromTheDiskOnceInAWhileAsGuestsComeIn(): void
+    {
+        $everyTime = new CachePlayers($this->cache, new LockFactory($this->locks), $this->clock, 1);
+
+        $everyTime->admit(self::guest('C4821973'), Proof::of(Secret::random()));
+        self::assertSame(['lock', 'write', 'write', 'prune', 'unlock'], $this->cache->journal);
+
+        // a guest turned away clears nothing, and neither does being seen
+        $this->cache->journal = [];
+        $everyTime->admit(self::guest('C4821973'), Proof::of(Secret::random()));
+        self::assertNotContains('prune', $this->cache->journal);
     }
 
     public function testWhatIsKeptOfASecretIsItsProof(): void

@@ -6,6 +6,7 @@ namespace Kabbout\Tests\Identity\Application;
 
 use Kabbout\Identity\Application\EnterAsGuest;
 use Kabbout\Identity\Application\RecogniseGuest;
+use Kabbout\Identity\Domain\NetworkAddress;
 use Kabbout\Tests\Identity\Domain\ListedPlayers;
 use Kabbout\Tests\Identity\Domain\ScriptedChance;
 use Kabbout\Tests\Identity\Domain\Secrets;
@@ -30,7 +31,7 @@ final class RecogniseGuestTest extends TestCase
     public function testWhatIsNobodysSecretIsNobody(string $presented): void
     {
         $players = new ListedPlayers();
-        (new EnterAsGuest($players, new ScriptedChance([1])))(null);
+        (new EnterAsGuest($players, new ScriptedChance([1]), new CountingEntries()))(NetworkAddress::of('203.0.113.1'), null);
 
         self::assertNull((new RecogniseGuest($players))($presented));
     }
@@ -38,7 +39,7 @@ final class RecogniseGuestTest extends TestCase
     public function testASecretAlteredByOneDigitIsNobody(): void
     {
         $players = new ListedPlayers();
-        $secret = (new EnterAsGuest($players, new ScriptedChance([1])))(null)->secret?->reveal();
+        $secret = (new EnterAsGuest($players, new ScriptedChance([1]), new CountingEntries()))(NetworkAddress::of('203.0.113.1'), null)->secret?->reveal();
         self::assertNotNull($secret);
 
         self::assertNull((new RecogniseGuest($players))(Secrets::altered($secret)));

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kabbout\Identity\Application;
 
 use Kabbout\Identity\Domain\Chance;
+use Kabbout\Identity\Domain\NetworkAddress;
 use Kabbout\Identity\Domain\Player;
 use Kabbout\Identity\Domain\PlayerId;
 use Kabbout\Identity\Domain\PlayerName;
@@ -18,28 +19,32 @@ use Kabbout\Identity\Domain\Secret;
  * prove it is them next time. The name is drawn at random, and drawn again while another player holds it.
  *
  * Whoever is a player already stays who they are: asking twice does not make two guests of one person.
- * Every door says who is asking, and none has to know that rule.
+ * New guests are counted against the address they come from. Every door says who is asking and from
+ * where, and none has to know these rules.
  */
 final readonly class EnterAsGuest
 {
     /** with ten million names, a second draw is rare; this many in a row means chance is broken or the names are spent */
     public const int DRAWS = 20;
 
-    public function __construct(private Players $players, private Chance $chance)
+    public function __construct(private Players $players, private Chance $chance, private EntryAllowance $allowance)
     {
     }
 
     /**
-     * @param Player|null $already who is asking, when the server knows them
+     * @param NetworkAddress $from    where the request comes from: what a new guest is counted against
+     * @param Player|null    $already who is asking, when the server knows them
      *
+     * @throws EnteredTooOften
      * @throws NoNameFree
      * @throws PlayersUnavailable
      */
-    public function __invoke(?Player $already): Entered
+    public function __invoke(NetworkAddress $from, ?Player $already): Entered
     {
         if (null !== $already) {
             return new Entered($already, null);
         }
+        $this->allowance->pace($from);
         $id = PlayerId::random();
         $secret = Secret::random();
         for ($draw = 0; $draw < self::DRAWS; ++$draw) {

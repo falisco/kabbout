@@ -12,6 +12,7 @@ use Kabbout\Identity\Domain\Players;
 use Kabbout\Identity\Domain\PlayersUnavailable;
 use Kabbout\Identity\Domain\Proof;
 use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Component\Cache\PruneableInterface;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Lock\Exception\ExceptionInterface as LockFailed;
@@ -26,6 +27,9 @@ use Symfony\Component\Lock\LockFactory;
  * written again, and expire together. They are kept a day longer than Players::DAYS_KEPT, so that a guest
  * last seen at the end of such a day still has the days promised.
  *
+ * What has expired stays on the disk until it is cleared: that is done as guests come in, once in a
+ * while, and at each start of the server (cache:pool:prune).
+ *
  * A name is taken, and kept, under one lock: two guests drawing the same name at the same instant are
  * told apart, and a name freed by time is not taken back by the guest who let it go.
  */
@@ -35,10 +39,15 @@ final readonly class CachePlayers implements Players
     private const int SECONDS_KEPT = (Players::DAYS_KEPT + 1) * self::DAY;
     private const string LOCK = 'identity.players';
 
+    /**
+     * @param int $pruneOneIn one guest in this many also clears what has expired from the pool: a file
+     *                        cache never forgets by itself, and the server may run for months
+     */
     public function __construct(
         #[Autowire(service: 'cache.players')] private CacheItemPoolInterface $cache,
         private LockFactory $locks,
         private ClockInterface $clock,
+        private int $pruneOneIn = 200,
     ) {
     }
 
@@ -51,6 +60,9 @@ final readonly class CachePlayers implements Players
             // a disk that is full or closed to the server says so here: nobody comes in under a name that was not kept
             if (!$this->keep($player, $proof)) {
                 throw new PlayersUnavailable();
+            }
+            if ($this->cache instanceof PruneableInterface && 0 === random_int(0, max(0, $this->pruneOneIn - 1))) {
+                $this->cache->prune();
             }
 
             return true;

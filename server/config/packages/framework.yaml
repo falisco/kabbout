@@ -45,6 +45,13 @@ framework:
       interval: '1 minute'
       cache_pool: cache.coach
       lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
+    # New guests from one address. Counted under a lock of LimiterEntryAllowance's own, so none is asked for here.
+    guests:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_GUESTS_LIMIT)%'
+      interval: '1 minute'
+      cache_pool: cache.players
+      lock_factory: null
     coach_day:
       policy: fixed_window
       limit: '%env(int:KABBOUT_COACH_DAILY)%'

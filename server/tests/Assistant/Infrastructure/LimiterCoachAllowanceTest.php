@@ -7,9 +7,9 @@ namespace Kabbout\Tests\Assistant\Infrastructure;
 use Kabbout\Assistant\Application\Coach\AskedTooOften;
 use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Coach\DealSpent;
-use Kabbout\Assistant\Domain\Visitor;
 use Kabbout\Assistant\Infrastructure\LimiterCoachAllowance;
 use Kabbout\Assistant\Infrastructure\StripedLockFactory;
+use Kabbout\Identity\Domain\NetworkAddress;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
@@ -24,7 +24,7 @@ final class LimiterCoachAllowanceTest extends TestCase
     public function testAVisitorHasSoManyQuestionsOnADealAndAnotherDealOrVisitorHasItsOwn(): void
     {
         $allowance = self::allowance(perDeal: 2);
-        [$ana, $ben] = [Visitor::atAddress('203.0.113.1'), Visitor::atAddress('203.0.113.2')];
+        [$ana, $ben] = [NetworkAddress::of('203.0.113.1'), NetworkAddress::of('203.0.113.2')];
 
         self::assertSame(1, $allowance->take($ana, 'deal'));
         self::assertSame(0, $allowance->take($ana, 'deal'));
@@ -37,7 +37,7 @@ final class LimiterCoachAllowanceTest extends TestCase
     public function testAQuestionGivenBackMayBeAskedAgainAndNothingIsGivenThatWasNotTaken(): void
     {
         $allowance = self::allowance(perDeal: 2);
-        $ana = Visitor::atAddress('203.0.113.1');
+        $ana = NetworkAddress::of('203.0.113.1');
 
         self::assertSame(2, $allowance->giveBack($ana, 'deal'));
         $allowance->take($ana, 'deal');
@@ -49,10 +49,10 @@ final class LimiterCoachAllowanceTest extends TestCase
     public function testAVisitorAskingTooFastIsToldWhenToComeBack(): void
     {
         $allowance = self::allowance(perMinute: 2);
-        $ana = Visitor::atAddress('203.0.113.1');
+        $ana = NetworkAddress::of('203.0.113.1');
         $allowance->pace($ana);
         $allowance->pace($ana);
-        $allowance->pace(Visitor::atAddress('203.0.113.2'));
+        $allowance->pace(NetworkAddress::of('203.0.113.2'));
 
         try {
             $allowance->pace($ana);

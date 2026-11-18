@@ -27,6 +27,20 @@ final class IdentityEndpointTest extends WebTestCase
 {
     private const string NAME = '/^C[0-9]{7}$/D';
 
+    /** the address the requests come from: a new one for each test, so that no test meets the count of another */
+    private static string $from = '';
+
+    protected function setUp(): void
+    {
+        self::$from = '2001:db8:'.bin2hex(random_bytes(2)).':'.bin2hex(random_bytes(2)).'::1';
+    }
+
+    protected function tearDown(): void
+    {
+        unset($_SERVER['KABBOUT_GUESTS_LIMIT']);
+        parent::tearDown();
+    }
+
     public function testWhoeverComesInIsGivenANameAndTheirSecretInACookieThePageCannotRead(): void
     {
         $client = self::client();
@@ -231,6 +245,30 @@ final class IdentityEndpointTest extends WebTestCase
         self::assertCount(1, $players->known);
     }
 
+    public function testSoManyGuestsComeInFromOneAddressInAMinuteAndWhoIsAPlayerAlreadyIsNotCounted(): void
+    {
+        $_SERVER['KABBOUT_GUESTS_LIMIT'] = '2';
+        $client = self::client();
+        self::ask($client, 'POST');
+        // asking again as the same player makes no guest and counts for nothing
+        self::ask($client, 'POST');
+        self::ask($client, 'POST');
+        $client->getCookieJar()->clear();
+        self::ask($client, 'POST');
+        self::assertResponseStatusCodeSame(201);
+        $client->getCookieJar()->clear();
+
+        $answer = self::ask($client, 'POST');
+
+        self::assertResponseStatusCodeSame(429);
+        self::assertSame(['error' => ['code' => 'too_many_requests', 'message' => 'Too Many Requests']], $answer);
+        self::assertGreaterThanOrEqual(1, (int) $client->getResponse()->headers->get('Retry-After'));
+        self::assertSame([], $client->getResponse()->headers->getCookies());
+        // from another address a guest still comes in
+        self::ask($client, 'POST', ['REMOTE_ADDR' => '2001:db8:ffff:'.bin2hex(random_bytes(2)).'::1']);
+        self::assertResponseStatusCodeSame(201);
+    }
+
     public function testTheSessionIsOnlyAskedByGetAndEnteredByPost(): void
     {
         $client = self::client();
@@ -257,7 +295,7 @@ final class IdentityEndpointTest extends WebTestCase
      */
     private static function ask(KernelBrowser $client, string $method, array $server = []): array
     {
-        $client->request($method, '/api/session', server: $server);
+        $client->request($method, '/api/session', server: ['REMOTE_ADDR' => self::$from, ...$server]);
         $answer = json_decode((string) $client->getResponse()->getContent(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($answer);
 
@@ -286,7 +324,7 @@ final class IdentityEndpointTest extends WebTestCase
         if (null !== $presented) {
             self::holding($client, $presented);
         }
-        $client->request('GET', '/api/session');
+        $client->request('GET', '/api/session', server: ['REMOTE_ADDR' => self::$from]);
         $response = $client->getResponse();
         $headers = $response->headers->all();
         unset($headers['date']);

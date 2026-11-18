@@ -11,6 +11,8 @@ parameters:
   env(KABBOUT_COACH_PER_DEAL): '2'
   # questions to the coach all visitors together may ask in a day
   env(KABBOUT_COACH_DAILY): '500'
+  # new guests that may come in from one address in a minute
+  env(KABBOUT_GUESTS_LIMIT): '120'
   # the reverse proxies in front of the server, if any: addresses or ranges, comma separated
   env(KABBOUT_TRUSTED_PROXIES): ''
 
@@ -27,7 +29,7 @@ services:
       # Values and exceptions of the application layer, which knows nothing of Symfony. An adapter that is
       # no service says so itself, with #[Exclude].
       - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary,Exchange,Answered,AskedTooOften,CoachResting,DealSpent}.php'
-      - '../src/Identity/Application/{Entered,NoNameFree}.php'
+      - '../src/Identity/Application/{Entered,NoNameFree,EnteredTooOften}.php'
 
   # the coach's locks: files in the system's temporary directory, a fixed number of them
   Kabbout\Assistant\Infrastructure\StripedLockFactory:
@@ -52,6 +54,7 @@ services:
   Kabbout\Identity\Domain\Players: '@Kabbout\Identity\Infrastructure\CachePlayers'
   Kabbout\Identity\Domain\Chance: '@Kabbout\Identity\Infrastructure\SystemChance'
   Kabbout\Identity\Application\CurrentPlayer: '@Kabbout\Identity\Infrastructure\Security\SecurityCurrentPlayer'
+  Kabbout\Identity\Application\EntryAllowance: '@Kabbout\Identity\Infrastructure\LimiterEntryAllowance'
 
 when@test:
   services:
