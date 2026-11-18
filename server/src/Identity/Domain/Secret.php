@@ -6,8 +6,11 @@ namespace Kabbout\Identity\Domain;
 
 /**
  * What a guest holds to be recognised: 256 random bits, given once to whoever enters and never kept by
- * the server, which keeps a Proof of it instead. It has no public property and is no string by itself,
- * so that it is written nowhere by accident: reveal() is the one way out, for the one who hands it over.
+ * the server, which keeps a Proof of it instead. reveal() is the way out, for the one who hands it over.
+ *
+ * The rest is made hard to do by accident. A secret has no public property and is no string by itself;
+ * a dump of it (var_dump, print_r) and its JSON show nothing; it refuses to be serialised, so it ends in
+ * no cache, queue or session. var_export is the one dump PHP gives a class no say in.
  */
 final readonly class Secret
 {
@@ -31,5 +34,17 @@ final readonly class Secret
     public function reveal(): string
     {
         return $this->hex;
+    }
+
+    /** @return array{} */
+    public function __debugInfo(): array
+    {
+        return [];
+    }
+
+    /** @return never */
+    public function __serialize(): array
+    {
+        throw new \LogicException('A secret is not kept anywhere: keep its proof.');
     }
 }

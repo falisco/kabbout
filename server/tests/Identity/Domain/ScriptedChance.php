@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kabbout\Tests\Identity\Application;
+namespace Kabbout\Tests\Identity\Domain;
 
 use Kabbout\Identity\Domain\Chance;
 

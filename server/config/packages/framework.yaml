@@ -20,6 +20,9 @@ framework:
   trusted_proxies: '%env(KABBOUT_TRUSTED_PROXIES)%'
   trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port']
 
+  # Locks are files, on every machine: left to itself the framework takes semaphores where PHP has them.
+  lock: flock
+
   cache:
     pools:
       # the coach's counts and its memory of a deal, apart from the rest so that they can be cleared of what has expired

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Kabbout\Tests\Identity\Domain;
 
 use Kabbout\Identity\Domain\PlayerName;
-use Kabbout\Tests\Identity\Application\ScriptedChance;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

@@ -223,7 +223,7 @@ final class CoachEndpointTest extends WebTestCase
         self::ask($client, self::question());
         $ben = self::enter($client);
         self::ask($client, self::question());
-        self::assertNotSame($ana, $ben);
+        self::assertNotSame($ana->getValue(), $ben->getValue());
         // whoever asks with no cookie at all is answered, and has no conversation to go on with
         $client->getCookieJar()->clear();
         self::ask($client, self::question());

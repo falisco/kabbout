@@ -28,11 +28,6 @@ final readonly class PlayerId
         return '' !== $hex && 1 === preg_match(self::PATTERN, $hex) ? new self($hex) : throw new \InvalidArgumentException('A player id is 32 hexadecimal digits.');
     }
 
-    public function equals(self $other): bool
-    {
-        return $this->hex === $other->hex;
-    }
-
     /** @return non-empty-string */
     public function toString(): string
     {

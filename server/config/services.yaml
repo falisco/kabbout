@@ -24,12 +24,10 @@ services:
     exclude:
       - '../src/Kernel.php'
       - '../src/*/Domain/'
-      # values and exceptions of the application layer
+      # Values and exceptions of the application layer, which knows nothing of Symfony. An adapter that is
+      # no service says so itself, with #[Exclude].
       - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary,Exchange,Answered,AskedTooOften,CoachResting,DealSpent}.php'
       - '../src/Identity/Application/{Entered,NoNameFree}.php'
-      # a player as Symfony Security holds it, and what the two routes of /api/session answer
-      - '../src/Identity/Infrastructure/Security/SecurityPlayer.php'
-      - '../src/Identity/UserInterface/Http/SessionAnswer.php'
 
   # the coach's locks: files in the system's temporary directory, a fixed number of them
   Kabbout\Assistant\Infrastructure\StripedLockFactory:
@@ -86,7 +84,8 @@ when@test:
     Kabbout\Identity\Domain\Chance:
       alias: Kabbout\Identity\Infrastructure\SystemChance
       public: true
-    # Every line the server would log, kept for the tests to read.
+    # Every line the server would log, kept for the tests to read instead of written to the error output.
+    # Nothing is lost for a failing test: PHPUnit reports PHP's own notices and warnings itself.
     logger:
       class: Kabbout\Tests\Support\ListedLog
       public: true

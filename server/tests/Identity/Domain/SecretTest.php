@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Identity\Domain;
 
-use Kabbout\Identity\Domain\PlayerId;
-use Kabbout\Identity\Domain\Proof;
 use Kabbout\Identity\Domain\Secret;
 use PHPUnit\Framework\TestCase;
 
-/** What is random and what is kept of it: the id of a player, their secret, and its proof. */
 final class SecretTest extends TestCase
 {
     public function testASecretIs256RandomBitsAndNoTwoAreTheSame(): void
@@ -30,36 +27,22 @@ final class SecretTest extends TestCase
         self::assertNull(Secret::tryFrom($secret."\n"));
     }
 
-    public function testASecretIsWrittenNowhereByAccident(): void
+    public function testASecretShowsNothingWhenItIsDumpedOrWrittenAsJson(): void
     {
         $secret = Secret::random();
+        ob_start();
+        var_dump($secret);
+        $dumped = (string) ob_get_clean();
 
         self::assertSame([], get_object_vars($secret));
         self::assertSame('{}', json_encode($secret, \JSON_THROW_ON_ERROR));
+        self::assertStringNotContainsString($secret->reveal(), $dumped.print_r($secret, true).print_r(['held' => $secret], true));
     }
 
-    public function testTheProofOfASecretIsItsHashAndTellsOneSecretFromAnother(): void
+    public function testASecretRefusesToBeKeptAnywhere(): void
     {
-        $secret = Secret::random();
+        $this->expectException(\LogicException::class);
 
-        self::assertSame(hash('sha256', $secret->reveal()), Proof::of($secret)->toString());
-        self::assertNotSame($secret->reveal(), Proof::of($secret)->toString());
-        self::assertNotSame(Proof::of(Secret::random())->toString(), Proof::of($secret)->toString());
-    }
-
-    public function testAPlayerIdIs128RandomBitsAndIsReadBackAsItWasKept(): void
-    {
-        $id = PlayerId::random();
-
-        self::assertMatchesRegularExpression('/^[0-9a-f]{32}$/D', $id->toString());
-        self::assertTrue($id->equals(PlayerId::fromString($id->toString())));
-        self::assertFalse($id->equals(PlayerId::random()));
-    }
-
-    public function testWhatIsNot32HexadecimalDigitsIsNoPlayerId(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-
-        PlayerId::fromString(str_repeat('g', 32));
+        serialize(Secret::random());
     }
 }

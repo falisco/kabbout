@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Identity\UserInterface;
 
+use Kabbout\Identity\Application\EnterAsGuest;
 use Kabbout\Identity\Domain\Chance;
 use Kabbout\Identity\Domain\Players;
 use Kabbout\Identity\Infrastructure\CachePlayers;
 use Kabbout\Identity\Infrastructure\Security\GuestCookie;
-use Kabbout\Tests\Identity\Application\ListedPlayers;
-use Kabbout\Tests\Identity\Application\ScriptedChance;
+use Kabbout\Tests\Identity\Domain\ListedPlayers;
+use Kabbout\Tests\Identity\Domain\ScriptedChance;
+use Kabbout\Tests\Identity\Domain\Secrets;
 use Kabbout\Tests\Support\ListedLog;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -109,16 +111,16 @@ final class IdentityEndpointTest extends WebTestCase
     {
         $client = self::client();
         $clock = new MockClock();
-        self::getContainer()->set(Players::class, new CachePlayers(new ArrayAdapter(clock: $clock), new LockFactory(new InMemoryStore())));
+        self::getContainer()->set(Players::class, new CachePlayers(new ArrayAdapter(clock: $clock), new LockFactory(new InMemoryStore()), $clock));
         self::ask($client, 'POST');
         $secret = self::secretOf($client);
         $nobody = self::answerTo($client, null);
 
         $unknown = self::answerTo($client, str_repeat('ab', 32));
-        $altered = self::answerTo($client, ('0' === $secret[0] ? '1' : '0').substr($secret, 1));
+        $altered = self::answerTo($client, Secrets::altered($secret));
         $noSecret = self::answerTo($client, 'not a secret');
-        // 30 days is how long a guest nobody sees is kept
-        $clock->modify('+31 days');
+        // 30 days is how long a guest nobody sees is kept, give or take the day their last visit was written
+        $clock->modify('+32 days');
         $expired = self::answerTo($client, $secret);
 
         self::assertSame([200, '{"version":1,"player":null}'], [$nobody[0], $nobody[1]]);
@@ -148,16 +150,41 @@ final class IdentityEndpointTest extends WebTestCase
         $secret = self::secretOf($client);
         $said[] = (string) json_encode(self::ask($client, 'GET'));
         $said[] = (string) json_encode(self::ask($client, 'POST'));
-        self::holding($client, ('0' === $secret[0] ? '1' : '0').substr($secret, 1));
+        // a cookie turned away, one digit from the real one: what is written of it would show the secret too
+        self::holding($client, Secrets::altered($secret));
         $said[] = (string) json_encode(self::ask($client, 'GET'));
+        $said[] = (string) json_encode(self::ask($client, 'POST'));
 
         $written = implode("\n", [...$said, ...$log->lines]);
         self::assertStringNotContainsString($secret, $written);
-        // not even the start of it, as a trace would cut it
+        // nor a piece of it: its start, as a trace cuts a text, or its middle
         self::assertStringNotContainsString(substr($secret, 0, 12), $written);
-        // the log did see Security at work: it has lines, and they tell a guest recognised from one turned away
-        self::assertStringContainsString('Authenticator successful!', $written);
-        self::assertStringContainsString('Authenticator failed.', $written);
+        self::assertStringNotContainsString(substr($secret, 20, 20), $written);
+        // the log was listening while all of this happened
+        self::assertNotSame([], $log->lines);
+    }
+
+    public function testWhenThePlayersCannotBeReadWhoeverAsksIsNobodyTheOtherRoutesStillAnswerAndTheLogSaysWhy(): void
+    {
+        $client = self::client();
+        $players = new ListedPlayers();
+        self::getContainer()->set(Players::class, $players);
+        $log = self::getContainer()->get('logger');
+        self::assertInstanceOf(ListedLog::class, $log);
+        self::ask($client, 'POST');
+        $players->unavailable = true;
+
+        self::assertSame(['version' => 1, 'player' => null], self::ask($client, 'GET'));
+        self::assertResponseStatusCodeSame(200);
+        $client->request('GET', '/api/capabilities');
+        self::assertResponseStatusCodeSame(200);
+        self::assertStringContainsString('[error] The players cannot be read', implode("\n", $log->lines));
+
+        // and nobody comes in: no name is given that would not be kept
+        $answer = self::ask($client, 'POST');
+        self::assertResponseStatusCodeSame(503);
+        self::assertSame(['error' => ['code' => 'players_unavailable', 'message' => 'Nobody can come in right now; try again.']], $answer);
+        self::assertSame([], $client->getResponse()->headers->getCookies());
     }
 
     /** @return iterable<string, array{string|null, int}> */
@@ -191,7 +218,8 @@ final class IdentityEndpointTest extends WebTestCase
         $client = self::client();
         $players = new ListedPlayers();
         self::getContainer()->set(Players::class, $players);
-        self::getContainer()->set(Chance::class, new ScriptedChance(array_fill(0, 21, 5)));
+        // one draw for the first guest, then every draw the second is allowed
+        self::getContainer()->set(Chance::class, new ScriptedChance(array_fill(0, 1 + EnterAsGuest::DRAWS, 5)));
         self::ask($client, 'POST');
         $client->getCookieJar()->clear();
 

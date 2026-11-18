@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Kabbout\Tests\Identity\Application;
 
 use Kabbout\Identity\Application\EnterAsGuest;
-use Kabbout\Identity\Application\RecogniseVisitor;
+use Kabbout\Identity\Application\RecogniseGuest;
+use Kabbout\Tests\Identity\Domain\ListedPlayers;
+use Kabbout\Tests\Identity\Domain\ScriptedChance;
+use Kabbout\Tests\Identity\Domain\Secrets;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class RecogniseVisitorTest extends TestCase
+final class RecogniseGuestTest extends TestCase
 {
     /** @return iterable<string, array{string}> */
     public static function whatIsNobodysSecret(): iterable
@@ -27,18 +30,18 @@ final class RecogniseVisitorTest extends TestCase
     public function testWhatIsNobodysSecretIsNobody(string $presented): void
     {
         $players = new ListedPlayers();
-        (new EnterAsGuest($players, new ScriptedChance([1])))();
+        (new EnterAsGuest($players, new ScriptedChance([1])))(null);
 
-        self::assertNull((new RecogniseVisitor($players))($presented));
+        self::assertNull((new RecogniseGuest($players))($presented));
     }
 
     public function testASecretAlteredByOneDigitIsNobody(): void
     {
         $players = new ListedPlayers();
-        $secret = (new EnterAsGuest($players, new ScriptedChance([1])))()->secret->reveal();
-        $altered = ('0' === $secret[0] ? '1' : '0').substr($secret, 1);
+        $secret = (new EnterAsGuest($players, new ScriptedChance([1])))(null)->secret?->reveal();
+        self::assertNotNull($secret);
 
-        self::assertNull((new RecogniseVisitor($players))($altered));
-        self::assertNotNull((new RecogniseVisitor($players))($secret));
+        self::assertNull((new RecogniseGuest($players))(Secrets::altered($secret)));
+        self::assertNotNull((new RecogniseGuest($players))($secret));
     }
 }

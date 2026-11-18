@@ -18,9 +18,16 @@ interface Players
      * Takes a new player in, known from now on by this proof.
      *
      * @return bool false when another player holds the name: nothing was kept
+     *
+     * @throws PlayersUnavailable when the player could not be kept: they are not in
      */
     public function admit(Player $player, Proof $proof): bool;
 
-    /** The player this proof is the proof of, if any. Seeing a player is what keeps them known. */
-    public function provenBy(Proof $proof): ?Player;
+    /**
+     * The player this proof is the proof of, if any, seen once more. This is no plain question: being
+     * seen is what keeps a guest known, so asking it counts the DAYS_KEPT days again.
+     *
+     * @throws PlayersUnavailable
+     */
+    public function seenAgain(Proof $proof): ?Player;
 }

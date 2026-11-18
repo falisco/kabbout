@@ -10,8 +10,8 @@ namespace Kabbout\Identity\Domain;
  */
 final readonly class PlayerName
 {
-    private const string GUEST = '/^C[0-9]{7}$/D';
     private const int GUEST_DIGITS = 7;
+    private const string GUEST = '/^C[0-9]{'.self::GUEST_DIGITS.'}$/D';
     /** how many names a guest's can be drawn from */
     private const int GUEST_NAMES = 10 ** self::GUEST_DIGITS;
 
