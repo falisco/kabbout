@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { NO_SERVER, aiNotice, askCoach, loadCapabilities } from '../src/server.js';
+import { NO_SERVER, aiNotice, askCoach, enter, loadCapabilities } from '../src/server.js';
 
 const answer = (features, ai = { variable: 'ANTHROPIC_API_KEY' }) => ({ version: 1, ai, features });
 /** a fetch that answers once with the given status and body */
@@ -49,6 +49,83 @@ test('the menu says one thing about the AI, or nothing', () => {
   assert.equal(aiNotice(having({ coach: 'on', referee: 'off' })), 'off');
   assert.equal(aiNotice(having({ coach: 'on', referee: 'planned' })), null);
   assert.equal(aiNotice(having({ coach: 'on' })), null);
+});
+
+/* ---------- who is playing ---------- */
+
+const session = (player) => ({ version: 1, player });
+/** a fetch that answers each request in turn, and writes down what was asked */
+function answeringInTurn(...answers) {
+  const asked = [];
+  const fetchFn = /** @type {any} */ (
+    async (url, init) => {
+      asked.push([init.method ?? 'GET', url]);
+      const next = answers.shift();
+      if (next instanceof Error) throw next;
+      if (!next) throw new Error('asked more often than the test said');
+      return { status: next[0], json: async () => (next[1] instanceof Error ? Promise.reject(next[1]) : next[1]) };
+    }
+  );
+  return { fetchFn, asked };
+}
+
+test('a visitor the server knows plays under their name, and is not made to come in again', async () => {
+  const { fetchFn, asked } = answeringInTurn([200, session({ name: 'C4821973' })]);
+  assert.equal(await enter(fetchFn), 'C4821973');
+  assert.deepEqual(asked, [['GET', 'api/session']]);
+});
+
+test('a visitor the server does not know comes in as a guest, once, and plays under the name they are given', async () => {
+  const { fetchFn, asked } = answeringInTurn([200, session(null)], [201, session({ name: 'C0000007' })]);
+  assert.equal(await enter(fetchFn), 'C0000007');
+  assert.deepEqual(asked, [
+    ['GET', 'api/session'],
+    ['POST', 'api/session'],
+  ]);
+});
+
+test('a guest who came in from another tab meanwhile is the same guest', async () => {
+  const { fetchFn } = answeringInTurn([200, session(null)], [200, session({ name: 'C0000007' })]);
+  assert.equal(await enter(fetchFn), 'C0000007');
+});
+
+test('with no server nobody comes in: there is no name, and nothing is posted', async () => {
+  const cases = {
+    'a static server': [204, null],
+    'a missing page': [404, 'not found'],
+    'a server error': [500, {}],
+    'an answer that is not JSON': [200, new SyntaxError('no')],
+    'no network': new TypeError('failed'),
+    'JSON of another shape': [200, { hello: 'world' }],
+    'a page served for every address': [200, '<!doctype html>'],
+    nothing: [200, null],
+    'a player with no name': [200, session({})],
+    'a name that is no text': [200, session({ name: 7 })],
+    'an empty name': [200, session({ name: '' })],
+    'a name too long to be one': [200, session({ name: 'C'.repeat(33) })],
+    'a player that is no player': [200, session('C4821973')],
+  };
+  for (const [name, said] of Object.entries(cases)) {
+    const { fetchFn, asked } = answeringInTurn(said);
+    assert.equal(await enter(fetchFn), '', name);
+    assert.deepEqual(asked, [['GET', 'api/session']], name);
+  }
+});
+
+test('a visitor the server will not let in plays with no name, and it is never an error', async () => {
+  const cases = {
+    'refused as coming from another site': [403, { error: { code: 'cross_site' } }],
+    'no name free': [503, { error: { code: 'no_name_free' } }],
+    'the network down': new TypeError('failed'),
+    'an answer that is not JSON': [201, new SyntaxError('no')],
+    'nobody, again': [201, session(null)],
+    'an answer of another shape': [201, { hello: 'world' }],
+  };
+  for (const [name, said] of Object.entries(cases)) {
+    const { fetchFn, asked } = answeringInTurn([200, session(null)], said);
+    assert.equal(await enter(fetchFn), '', name);
+    assert.equal(asked.length, 2, name);
+  }
 });
 
 /* ---------- the coach ---------- */

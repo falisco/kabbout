@@ -85,6 +85,8 @@ test('a browser that speaks neither language gets English', async ({ browser }) 
 });
 
 test('the language is switched mid-game, everywhere at once, and kept after a reload', async ({ page }) => {
+  // the words checked here are the game's own: with no server answering, the player's seat says "you"
+  await page.route('**/api/session', (route) => route.fulfill({ status: 204 }));
   const errors = await openGame(page, { storage: PLAY_BY_HAND });
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   await newGame(page);

@@ -134,6 +134,7 @@ export default {
   },
 
   // menu
+  playingAs: (name) => `Vous jouez sous le nom ${name}.`,
   aiPlanned: (variable) =>
     `En chemin : des annonces dites à voix haute, et un arbitre pour vos questions de règles. Ils se réveilleront avec ${variable}.`,
   aiOff: (variable) => `L’IA dort sur ce serveur : renseignez ${variable} dans .env, puis relancez-le.`,

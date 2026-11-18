@@ -59,6 +59,23 @@ for (const [name, opts, names] of [
   });
 }
 
+for (const lang of ['fr', 'ar'] as const) {
+  test(`a guest's name at their seat leaves room for what they announce (${lang})`, async ({ page }) => {
+    // a name is wider than "Vous": the seat, and the bubble beside it, must still fit the narrowest phone
+    await page.route('**/api/session', (route) => route.fulfill({ json: { version: 1, player: { name: 'C4821973' } } }));
+    await openGame(page, { seed: 7, lang });
+    await newGame(page);
+    await playUntil(page, 'bid');
+    await expect(page.locator('#seat0 .name')).toHaveText('C4821973');
+    await page.locator('#bid [data-suit="S"]').click();
+    await page.locator('#bid [data-action="bid"]').click();
+    await expect(page.locator('#seat0 .bubble')).toBeVisible();
+    await inViewport(page, page.locator('#seat0 .name, #seat0 .bubble'), 'the player’s name and announcement');
+    await uncovered(page, '#seat0 .name', 'the player’s name');
+    await noHorizontalScroll(page);
+  });
+}
+
 test('the font files are served by the app itself', async ({ page, baseURL }) => {
   const foreign: string[] = [];
   page.on('request', (r) => {

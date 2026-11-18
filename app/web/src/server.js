@@ -47,6 +47,46 @@ export function aiNotice(capabilities) {
   return states.every((state) => state === 'planned') ? 'planned' : null;
 }
 
+/* ---------- who is playing ---------- */
+
+/** No name is longer than this. What a name is made of is the server's business: the page shows it as plain text. */
+const NAME_MAX = 32;
+
+/**
+ * @param {unknown} body an answer of api/session
+ * @returns {string | null | undefined} the player's name; null when the server says nobody is asking;
+ *   undefined when this is not an answer of the Kabbout server
+ */
+function readPlayer(body) {
+  const answer = /** @type {any} */ (body);
+  if (typeof answer !== 'object' || answer === null || answer.player === undefined) return undefined;
+  if (answer.player === null) return null;
+  const name = answer.player.name;
+  return typeof name === 'string' && name !== '' && name.length <= NAME_MAX ? name : undefined;
+}
+
+/**
+ * The name the visitor plays under. The server is asked who is asking: it knows the visitor by a cookie
+ * the page cannot read. When it says nobody, and only then, the page comes in as a new guest. Never
+ * fails: with no server, or with anything that is not its answer, there is no name ('') and nothing is posted.
+ * @param {typeof fetch} [fetchFn]
+ * @returns {Promise<string>}
+ */
+export async function enter(fetchFn = (url, init) => fetch(url, init)) {
+  const headers = { accept: 'application/json' };
+  try {
+    const asked = await fetchFn('api/session', { headers });
+    const known = asked.status === 200 ? readPlayer(await asked.json()) : undefined;
+    if (known !== null) return known ?? '';
+    const entered = await fetchFn('api/session', { method: 'POST', headers });
+    return ([200, 201].includes(entered.status) && readPlayer(await entered.json())) || '';
+  } catch {
+    return '';
+  }
+}
+
+/* ---------- the coach ---------- */
+
 /**
  * How long the page waits for the coach. The server gives a question about 55 seconds at the very worst
  * (its tools stop after 30, a call to the model lasts 25 at most): the page waits longer than that, so
