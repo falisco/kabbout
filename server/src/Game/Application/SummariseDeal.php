@@ -16,6 +16,9 @@ use Kabbout\Game\Domain\Seat;
  */
 final readonly class SummariseDeal
 {
+    /** what this tells, in the words every door that offers it to a model uses */
+    public const string ABOUT = 'The deal in short: the auction, the contract, whether it was made, and what each team made (tricks, card points, score-sheet points).';
+
     public function __construct(private DealAnalysis $analysis)
     {
     }

@@ -1,0 +1,21 @@
+# The MCP server: any MCP client can sit at a table, play a seat against the robots and review its deal.
+# Its tools are the classes of src/Game/UserInterface/Mcp/, each a few lines over a capability.
+mcp:
+  servers:
+    kabbout:
+      version: '1.0.0'
+      description: 'Belote contrée against robots, and a review of your own play by the engine.'
+      instructions: !php/const Kabbout\Game\UserInterface\Mcp\Rules::TEXT
+      transports:
+        # `php bin/console mcp:server`: one process, one client, one guest
+        stdio: true
+        # the same server under /mcp, for whoever sends a guest's secret (config/packages/security.yaml)
+        http: true
+      http:
+        path: /mcp
+      session:
+        # Nothing of ours is kept in an MCP session: who is asking comes from the process or from the
+        # request. Clients of the older protocol revisions still open one, and it must outlive a long
+        # game: a silent hour would otherwise end a stdio client's session under it.
+        ttl: 86400
+      registry: ['Kabbout\Game\UserInterface\Mcp\']

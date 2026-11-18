@@ -18,6 +18,9 @@ use Kabbout\Game\Domain\Seat;
  */
 final readonly class TryWhatIf
 {
+    /** what this tells, in the words every door that offers it to a model uses */
+    public const string ABOUT = 'How the deal ends if the player plays another card in one trick, next to how it ends from the card really played; both finished by the same four experts.';
+
     public function __construct(private DealAnalysis $analysis)
     {
     }

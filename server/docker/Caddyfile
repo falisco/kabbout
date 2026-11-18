@@ -26,8 +26,8 @@
 		-Server
 	}
 
-	# Symfony answers under /api and nowhere else
-	@api path /api /api/*
+	# Symfony answers under /api (the page's) and /mcp (the MCP server), and nowhere else
+	@api path /api /api/* /mcp /mcp/*
 	handle @api {
 		rewrite * /index.php
 		php

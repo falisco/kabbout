@@ -51,6 +51,11 @@ services:
   Kabbout\Game\Application\Table\TableAllowance: '@Kabbout\Game\Infrastructure\LimiterTableAllowance'
   Kabbout\Game\Application\Table\Now: '@Kabbout\Game\Infrastructure\ClockNow'
 
+  # Who is asking an MCP tool: whoever Security recognised over HTTP, the process's own guest over stdio.
+  Kabbout\Game\UserInterface\Mcp\Asker:
+    arguments:
+      $current: '@Kabbout\Identity\Infrastructure\ProcessGuest'
+
   Kabbout\Assistant\Application\Coach\CoachModel: '@Kabbout\Assistant\Infrastructure\Ai\SymfonyAiCoachModel'
   Kabbout\Assistant\Domain\AiConfiguration: '@Kabbout\Assistant\Infrastructure\EnvAiConfiguration'
   Kabbout\Assistant\Infrastructure\EnvAiConfiguration:

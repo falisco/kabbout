@@ -16,6 +16,9 @@ use Kabbout\Game\Domain\Seat;
  */
 final readonly class RankSwings
 {
+    /** what this tells, in the words every door that offers it to a model uses */
+    public const string ABOUT = 'The player\'s decisions the expert would have made otherwise, the costliest first, each with its trick, the card played, the expert\'s card and the loss on average. A decision that is not in this list is not a mistake.';
+
     public function __construct(private DealAnalysis $analysis)
     {
     }

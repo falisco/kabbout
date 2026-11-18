@@ -17,6 +17,9 @@ use Kabbout\Game\Domain\Seat;
  */
 final readonly class ReviewTrick
 {
+    /** what this tells, in the words every door that offers it to a model uses */
+    public const string ABOUT = 'One trick as it was played: the four cards in order, who led, who won, the card points in it, and the card the player put in it.';
+
     public function __construct(private DealAnalysis $analysis)
     {
     }
