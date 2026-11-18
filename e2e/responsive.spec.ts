@@ -18,8 +18,13 @@ async function inViewport(page: Page, loc: Locator, what: string) {
   }
 }
 
+/**
+ * Nothing is wider than the screen once what moves has come to rest. A card played by a robot flies in
+ * to the trick from beyond the edge: for a frame the page measures wider than the screen, though nothing
+ * can be scrolled. So the width is asked until it holds, and a page that stays too wide still fails.
+ */
 async function noHorizontalScroll(page: Page) {
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), { timeout: 3000 }).toBe(true);
 }
 
 /** The elements are really what is drawn at a point of theirs (their centre by default): nothing lies on top of them. */
