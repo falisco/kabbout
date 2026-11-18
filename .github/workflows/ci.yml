@@ -151,6 +151,26 @@ jobs:
           curl --fail --silent --show-error --cookie /tmp/guest.txt http://localhost:8080/api/session | tee /tmp/recognised.json
           cmp /tmp/entered.json /tmp/recognised.json
           if docker compose logs 2>&1 | grep -q "$secret"; then echo 'the secret is in the logs of the server that read it'; exit 1; fi
+      # The MCP server over stdio, as a client starts it: it offers its tools, and nothing but the protocol is on its output.
+      - run: |
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"ci","version":"1"}}}' \
+            '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+            '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+            '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"new_game","arguments":{}}}' \
+            | docker compose exec -T app php -d display_errors=stderr bin/console mcp:server > /tmp/mcp.jsonl
+          grep -q '"name":"play_card"' /tmp/mcp.jsonl
+          grep -q '"handSizes"' /tmp/mcp.jsonl
+          if grep -qv '^{"jsonrpc":"2.0"' /tmp/mcp.jsonl; then echo 'something that is not the protocol is on the output'; exit 1; fi
+      # Over HTTP: nobody comes in without a guest's secret; with one the server answers, and the secret is in no log.
+      - run: |
+          mcp=(--silent --request POST --header 'Content-Type: application/json' --header 'Accept: application/json, text/event-stream')
+          hello='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"ci","version":"1"}}}'
+          test "$(curl "${mcp[@]}" --output /dev/null --write-out '%{http_code}' --data "$hello" http://localhost:8080/mcp)" = "401"
+          secret=$(docker compose exec -T app php bin/console kabbout:guest | awk '$1 == "secret:" { print $2 }')
+          test -n "$secret"
+          curl "${mcp[@]}" --fail --header "Authorization: Bearer $secret" --data "$hello" http://localhost:8080/mcp | grep -q '"name":"kabbout"'
+          if docker compose logs 2>&1 | grep -q "$secret"; then echo 'the secret is in the logs'; exit 1; fi
       # a request that does not show it comes from the game's own page changes nothing
       - run: |
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' --request POST --header 'Origin: https://elsewhere.example' --header 'csrf-token: csrf-token' http://localhost:8080/api/session)" = "401"
