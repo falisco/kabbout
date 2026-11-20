@@ -171,6 +171,9 @@ jobs:
           test -n "$secret"
           curl "${mcp[@]}" --fail --header "Authorization: Bearer $secret" --data "$hello" http://localhost:8080/mcp | grep -q '"name":"kabbout"'
           if docker compose logs 2>&1 | grep -q "$secret"; then echo 'the secret is in the logs'; exit 1; fi
+          # what a client says of itself is kept in a file: megabytes of it are refused before they get that far
+          python3 -c "import json; print(json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': 'initialize', 'params': {'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'a' * 3000000, 'version': '1'}}}))" > /tmp/large.json
+          test "$(curl "${mcp[@]}" --output /dev/null --write-out '%{http_code}' --header "Authorization: Bearer $secret" --data-binary @/tmp/large.json http://localhost:8080/mcp)" = "413"
       # a request that does not show it comes from the game's own page changes nothing
       - run: |
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' --request POST --header 'Origin: https://elsewhere.example' --header 'csrf-token: csrf-token' http://localhost:8080/api/session)" = "401"
