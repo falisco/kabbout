@@ -41,13 +41,11 @@ framework:
       # the games played at the server's tables, and the pace of the calls to them; CacheTables says how long a table is kept
       cache.tables:
         adapter: cache.adapter.filesystem
-        default_lifetime: 86400
 
   # Every count is changed under a lock, so two questions at the same instant are two questions. The locks
   # come from StripedLockFactory (config/services.yaml): a fixed number of files, however many visitors.
   # Questions to the coach: a visitor's pace, and what all visitors together may ask in a day. The
-  # questions of one deal are counted in LimiterCoachAllowance. Other doors to the model (MCP, the hosted
-  # demo) go through the same CoachAllowance.
+  # questions of one deal are counted in LimiterCoachAllowance.
   rate_limiter:
     coach:
       policy: sliding_window
@@ -68,13 +66,28 @@ framework:
       interval: '1 day'
       cache_pool: cache.coach
       lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
-    # Calls to the tables (the MCP server) from one address: each is work for the engine.
+    # The MCP server. Calls to the tables from one address, each of them work for the engine; tables
+    # opened from one address, each of them kept a day; and requests to the HTTP endpoint, whatever
+    # they ask (Game\Infrastructure\Mcp\EndpointGuard). None is counted under a lock: these are paces,
+    # and two requests at the same instant counted as one do no harm.
     tables:
       policy: sliding_window
       limit: '%env(int:KABBOUT_TABLES_LIMIT)%'
       interval: '1 minute'
       cache_pool: cache.tables
-      lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
+      lock_factory: null
+    tables_opened:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_TABLES_OPENED)%'
+      interval: '1 hour'
+      cache_pool: cache.tables
+      lock_factory: null
+    mcp:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_TABLES_LIMIT)%'
+      interval: '1 minute'
+      cache_pool: cache.tables
+      lock_factory: null
 
 when@test:
   framework:

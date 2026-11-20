@@ -56,6 +56,20 @@ final class HttpServerTest extends McpServerTestCase
         self::assertResponseStatusCodeSame(401);
     }
 
+    public function testARequestLargerThanACallCanBeIsRefusedBeforeTheServerReadsIt(): void
+    {
+        $client = $this->browser = self::createClient();
+        $secret = self::guest();
+
+        // what a client says of itself is kept in a file by the SDK: megabytes of it must not get that far
+        self::call($client, $secret, 'initialize', ['protocolVersion' => '2025-11-25', 'capabilities' => new \stdClass(), 'clientInfo' => ['name' => str_repeat('a', 20_000), 'version' => '1']]);
+        self::assertResponseStatusCodeSame(413);
+
+        // and whoever is not recognised is told so first, whatever they send
+        self::call($client, null, 'initialize', ['clientInfo' => ['name' => str_repeat('a', 20_000)]]);
+        self::assertResponseStatusCodeSame(401);
+    }
+
     public function testASecretIsWrittenInNoLineOfTheLog(): void
     {
         $this->browser = self::createClient();

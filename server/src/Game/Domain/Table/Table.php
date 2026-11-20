@@ -2,22 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Kabbout\Game\Application\Table;
+namespace Kabbout\Game\Domain\Table;
 
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\GameState;
 use Kabbout\Game\Domain\Level;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Domain\Seed;
-use Kabbout\Identity\Domain\PlayerId;
 
 /**
  * A game the server holds for one player: they sit at one seat, robots play the three others. The
  * whole game is here, the four hands included, and it never leaves the server: what the player is
  * sent is their seat's view.
  *
- * One player and one seat today. A table with several players will hold a seat for each; nothing here
- * is keyed by anything but the player's id.
+ * One player and one seat today. A table with several players will hold a seat for each.
  */
 final readonly class Table
 {
@@ -32,7 +30,7 @@ final readonly class Table
      */
     public function __construct(
         public TableId $id,
-        public PlayerId $owner,
+        public Owner $owner,
         public Seat $seat,
         public Level $level,
         #[\SensitiveParameter] public Seed $secret,
@@ -43,9 +41,9 @@ final readonly class Table
     ) {
     }
 
-    public function isOf(PlayerId $player): bool
+    public function isOf(Owner $somebody): bool
     {
-        return hash_equals($this->owner->toString(), $player->toString());
+        return $this->owner->is($somebody);
     }
 
     public function isOverAt(int $now): bool

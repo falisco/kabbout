@@ -6,6 +6,7 @@ namespace Kabbout\Tests\Game\Application\Table;
 
 use Kabbout\Game\Application\Table\ActAtTable;
 use Kabbout\Game\Application\Table\FinishedDeal;
+use Kabbout\Game\Application\Table\ListMoves;
 use Kabbout\Game\Application\Table\MoveRefused;
 use Kabbout\Game\Application\Table\NoFinishedDeal;
 use Kabbout\Game\Application\Table\NoSuchTable;
@@ -15,7 +16,6 @@ use Kabbout\Game\Application\Table\PlayedTooFast;
 use Kabbout\Game\Application\Table\ReadScore;
 use Kabbout\Game\Application\Table\RobotsPlay;
 use Kabbout\Game\Application\Table\SeeTable;
-use Kabbout\Game\Application\Table\Table;
 use Kabbout\Game\Application\Table\TableExpired;
 use Kabbout\Game\Application\Table\Turn;
 use Kabbout\Game\Domain\Action;
@@ -24,11 +24,11 @@ use Kabbout\Game\Domain\Card;
 use Kabbout\Game\Domain\Level;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Domain\Seed;
+use Kabbout\Game\Domain\Table\Owner;
+use Kabbout\Game\Domain\Table\Table;
 use Kabbout\Game\Infrastructure\ClockNow;
 use Kabbout\Identity\Domain\NetworkAddress;
-use Kabbout\Identity\Domain\Player;
 use Kabbout\Identity\Domain\PlayerId;
-use Kabbout\Identity\Domain\PlayerName;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
 
@@ -39,8 +39,8 @@ final class TableCapabilitiesTest extends TestCase
     private ListedTables $tables;
     private CountingPace $pace;
     private MockClock $clock;
-    private Player $ana;
-    private Player $ben;
+    private PlayerId $ana;
+    private PlayerId $ben;
 
     protected function setUp(): void
     {
@@ -48,8 +48,8 @@ final class TableCapabilitiesTest extends TestCase
         $this->tables = new ListedTables();
         $this->pace = new CountingPace();
         $this->clock = new MockClock('2026-11-18 12:00:00');
-        $this->ana = Player::guest(PlayerId::random(), PlayerName::fromString('C0000001'));
-        $this->ben = Player::guest(PlayerId::random(), PlayerName::fromString('C0000002'));
+        $this->ana = PlayerId::random();
+        $this->ben = PlayerId::random();
     }
 
     public function testSittingDownDealsAGameAndTheRobotsPlayUntilItIsThePlayersTurn(): void
@@ -57,9 +57,10 @@ final class TableCapabilitiesTest extends TestCase
         $turn = $this->open($this->ana, Level::Expert);
 
         // seats 1, 2 and 3 acted, each from what a robot of the chosen level would do, and the player is to act
-        self::assertSame([1, 2, 3], array_column(array_filter($this->engine->drawn, static fn (array $call): bool => 'apply' === $call[0]), 1));
-        self::assertSame(['expert en', 'expert en', 'expert en'], array_column(array_filter($this->engine->drawn, static fn (array $call): bool => 'robot' === $call[0]), 2));
+        self::assertSame([1, 2, 3], $this->seatsThatActed());
+        self::assertSame(['expert fr', 'expert fr', 'expert fr'], array_column(array_filter($this->engine->drawn, static fn (array $call): bool => 'robot' === $call[0]), 2));
         self::assertSame(0, $turn->view->toArray()['turn']);
+        self::assertSame(Seat::First, $turn->view->seat());
         self::assertSame([['type' => 'pass']], $turn->legal->bids);
         self::assertSame(['dealt', 'acted', 'acted', 'acted'], array_column($turn->events, 'type'));
         // a robot's reason goes back to the engine with its bid, and nowhere else
@@ -67,31 +68,51 @@ final class TableCapabilitiesTest extends TestCase
         self::assertStringNotContainsString('jack of spades', json_encode($turn->toArray(), \JSON_THROW_ON_ERROR));
 
         $kept = $this->tables->kept[$turn->table->toString()];
-        self::assertTrue($kept->isOf($this->ana->id));
-        self::assertFalse($kept->isOf($this->ben->id));
+        self::assertTrue($kept->isOf(Owner::of($this->ana->toString())));
+        self::assertFalse($kept->isOf(Owner::of($this->ben->toString())));
         self::assertSame([3, Seat::First, Level::Expert], [$kept->moves, $kept->seat, $kept->level]);
         self::assertSame(['address:203.0.113.1'], $this->pace->from);
+        self::assertSame(1, $this->pace->opened);
+    }
+
+    public function testThePlayerSitsWhereTheyChoseAndTheRobotsPlayTheThreeOtherSeats(): void
+    {
+        $turn = $this->open($this->ana, seat: Seat::Third);
+        $table = $turn->table->toString();
+
+        // seat 1 speaks first: one robot, and it is seat 2's turn
+        self::assertSame([1], $this->seatsThatActed());
+        self::assertSame([Seat::Third, 2], [$turn->view->seat(), $turn->view->toArray()['turn']]);
+        self::assertSame([['type' => 'pass']], $turn->legal->bids);
+        self::assertSame(Seat::Third, $this->see()($this->ana, self::home(), $table)->seat());
+        self::assertSame([['type' => 'pass']], $this->moves()($this->ana, self::home(), $table)->bids);
+        self::assertSame(0, $this->score()($this->ana, self::home(), $table)->toArray()['team']);
+
+        // the player acts as seat 2, then seats 3, 0 and 1 are the robots'
+        $turn = $this->act()($this->ana, self::home(), $table, Action::bid(Bid::pass()));
+        self::assertSame([1, 2, 3, 0, 1], $this->seatsThatActed());
+        self::assertSame(2, $turn->view->toArray()['turn']);
+
+        $this->act()($this->ana, self::home(), $table, Action::bid(Bid::pass()));
+        self::assertSame(Seat::Third, ($this->finished())($this->ana, self::home(), $table)->seat);
     }
 
     public function testEveryCallThatDrawsHasASeedOfItsOwnAndTheSameSeedGivesTheSameOnes(): void
     {
         $seed = Seed::fromHex(str_repeat('ab', 16));
-        $turn = $this->open($this->ana, seed: $seed);
-        $this->act()($this->ana, self::home(), $turn->table->toString(), Action::bid(Bid::pass()));
-        $first = array_column($this->engine->drawn, 3);
+        $first = $this->seedsOfTwoDeals($this->ana, $seed);
 
+        // the player acted four times, robots in between: no seed served twice
         self::assertCount(\count($first), array_unique($first));
+        self::assertGreaterThan(12, \count($first));
         self::assertNotContains($seed->toHex(), $first, 'The secret itself is never sent to the engine.');
 
         $this->engine = new TurnsEngine();
-        $again = $this->open($this->ben, seed: $seed);
-        $this->act()($this->ben, self::home(), $again->table->toString(), Action::bid(Bid::pass()));
-        self::assertSame($first, array_column($this->engine->drawn, 3));
+        self::assertSame($first, $this->seedsOfTwoDeals($this->ben, $seed));
 
         // and a table opened with no seed draws from a secret nobody chose
         $this->engine = new TurnsEngine();
-        $this->open($this->ana);
-        self::assertSame([], array_intersect($first, array_column($this->engine->drawn, 3)));
+        self::assertSame([], array_intersect($first, $this->seedsOfTwoDeals($this->ana, null)));
     }
 
     public function testThePlayerActsThenTheRobotsUntilTheDealIsOverAndTheDealIsKeptForAReview(): void
@@ -121,6 +142,24 @@ final class TableCapabilitiesTest extends TestCase
         self::assertEquals($deal, ($this->finished())($this->ana, self::home(), $table));
     }
 
+    public function testAnActionIsReadPlayedAndWrittenWhileNothingElseCanPlayAtTheTable(): void
+    {
+        $table = $this->open($this->ana)->table->toString();
+        $this->tables->journal = [];
+
+        $this->act()($this->ana, self::home(), $table, Action::bid(Bid::pass()));
+
+        // Two cards sent at the same instant must not both be played from the same game: the second
+        // reads the table only once the first has written it. ListedTables refuses a table held twice.
+        self::assertSame(['find held', 'save held'], $this->tables->journal);
+
+        // looking at a table holds nothing
+        $this->tables->journal = [];
+        $this->see()($this->ana, self::home(), $table);
+        $this->score()($this->ana, self::home(), $table);
+        self::assertSame(['find free', 'find free'], $this->tables->journal);
+    }
+
     public function testWhatTheEngineRefusesChangesNothingAndThePlayerIsToldWhatTheyMayDo(): void
     {
         $turn = $this->open($this->ana);
@@ -132,19 +171,13 @@ final class TableCapabilitiesTest extends TestCase
             self::fail('The next deal was dealt in the middle of one.');
         } catch (MoveRefused $refused) {
             self::assertSame([['type' => 'pass']], $refused->legal->bids);
-            self::assertStringContainsString('Refused: not now Nothing has changed.', $refused->getMessage());
-            self::assertStringContainsString('{"bids":[{"type":"pass"}],"cards":[],"next":false}', $refused->getMessage());
+            self::assertSame('not now', $refused->getMessage());
         }
         self::assertSame($saved, $this->tables->saved);
         self::assertSame($before, $this->tables->kept[$turn->table->toString()]);
-
-        try {
-            $this->act()($this->ana, self::home(), $turn->table->toString(), Action::play(Card::fromCode('7S')));
-            $this->act()($this->ana, self::home(), $turn->table->toString(), Action::play(Card::fromCode('7S')));
-            self::fail('The player acted twice in a row.');
-        } catch (MoveRefused) {
-            self::assertSame($saved + 1, $this->tables->saved);
-        }
+        // the table is let go of when a move is refused: the next one is not kept waiting
+        $this->act()($this->ana, self::home(), $turn->table->toString(), Action::play(Card::fromCode('7S')));
+        self::assertSame($saved + 1, $this->tables->saved);
     }
 
     public function testTheTableOfSomebodyElseAndATableThatDoesNotExistAreToldAlike(): void
@@ -160,11 +193,17 @@ final class TableCapabilitiesTest extends TestCase
             } catch (NoSuchTable $none) {
                 $refusals[] = $none->getMessage();
             }
+            try {
+                $own->alone($player, self::home(), $named, static fn (Table $table): Table => $table);
+                self::fail('A table was handed to somebody it is not the table of, to play at.');
+            } catch (NoSuchTable $none) {
+                $refusals[] = $none->getMessage();
+            }
         }
         self::assertCount(1, array_unique($refusals));
         self::assertSame($this->tables->kept[$table], $own($this->ana, self::home(), $table));
 
-        foreach ([$this->see(), $this->score(), $this->finished()] as $capability) {
+        foreach ([$this->see(), $this->moves(), $this->score(), $this->finished()] as $capability) {
             try {
                 $capability($this->ben, self::home(), $table);
                 self::fail($capability::class.' answered somebody else about a table.');
@@ -178,7 +217,7 @@ final class TableCapabilitiesTest extends TestCase
         $table = $this->open($this->ana)->table->toString();
 
         $this->clock->sleep(Table::SECONDS_OPEN);
-        self::assertSame($table, $this->see()($this->ana, self::home(), $table)->table->toString());
+        self::assertSame(Seat::First, $this->see()($this->ana, self::home(), $table)->seat());
 
         // playing keeps a table open: the three hours run from the last action
         $this->act()($this->ana, self::home(), $table, Action::bid(Bid::pass()));
@@ -193,6 +232,11 @@ final class TableCapabilitiesTest extends TestCase
             self::assertStringContainsString('expired', $expired->getMessage());
             self::assertStringContainsString('3 hours', $expired->getMessage());
         }
+        try {
+            $this->act()($this->ana, self::home(), $table, Action::next());
+            self::fail('Something was played at a table that has expired.');
+        } catch (TableExpired) {
+        }
         $this->expectException(NoSuchTable::class);
         $this->see()($this->ben, self::home(), $table);
     }
@@ -205,6 +249,7 @@ final class TableCapabilitiesTest extends TestCase
         foreach ([
             fn (): Turn => $this->open($this->ana),
             fn (): mixed => $this->see()($this->ana, self::home(), $table),
+            fn (): mixed => $this->moves()($this->ana, self::home(), $table),
             fn (): mixed => $this->score()($this->ana, self::home(), $table),
             fn (): mixed => $this->finished()($this->ana, self::home(), $table),
             fn (): mixed => $this->act()($this->ana, self::home(), $table, Action::bid(Bid::pass())),
@@ -221,17 +266,52 @@ final class TableCapabilitiesTest extends TestCase
         self::assertCount(1, $this->tables->kept);
     }
 
+    public function testTablesAreCountedApartFromTheCallsAndTheOneTooManyIsNotOpened(): void
+    {
+        $this->pace = new CountingPace(tablesLeft: 2);
+        $this->open($this->ana);
+        $table = $this->open($this->ana)->table->toString();
+
+        try {
+            $this->open($this->ana);
+            self::fail('A third table was opened.');
+        } catch (PlayedTooFast $tooMany) {
+            self::assertSame(600, $tooMany->retryAfter);
+        }
+        self::assertCount(2, $this->tables->kept);
+        // the tables that are open are played at as before
+        self::assertSame(Seat::First, $this->see()($this->ana, self::home(), $table)->seat());
+    }
+
     public function testTheScoreIsTheCountAndNothingOfTheCards(): void
     {
         $table = $this->open($this->ana, seat: Seat::Second)->table->toString();
 
         $score = $this->score()($this->ana, self::home(), $table)->toArray();
 
-        self::assertSame(['table', 'yourTeam', 'phase', 'round', 'scoring', 'scores'], array_keys($score));
-        self::assertSame([$table, 1, [0, 0]], [$score['table'], $score['yourTeam'], $score['scores']]);
+        self::assertSame(['table', 'team', 'phase', 'round', 'scoring', 'scores'], array_keys($score));
+        self::assertSame([$table, 1, [0, 0]], [$score['table'], $score['team'], $score['scores']]);
     }
 
-    private function open(Player $player, Level $level = Level::Easy, Seat $seat = Seat::First, ?Seed $seed = null): Turn
+    /** @return list<string> the seeds of every call that drew, over a deal, the next one asked for, and the player's first word in it */
+    private function seedsOfTwoDeals(PlayerId $player, ?Seed $seed): array
+    {
+        $table = $this->open($player, seed: $seed)->table->toString();
+        $this->act()($player, self::home(), $table, Action::bid(Bid::pass()));
+        $this->act()($player, self::home(), $table, Action::next());
+        $this->act()($player, self::home(), $table, Action::bid(Bid::pass()));
+        $this->act()($player, self::home(), $table, Action::next());
+
+        return array_column($this->engine->drawn, 3);
+    }
+
+    /** @return list<int> */
+    private function seatsThatActed(): array
+    {
+        return array_column(array_filter($this->engine->drawn, static fn (array $call): bool => 'apply' === $call[0]), 1);
+    }
+
+    private function open(PlayerId $player, Level $level = Level::Easy, Seat $seat = Seat::First, ?Seed $seed = null): Turn
     {
         return (new OpenTable($this->engine, $this->robots(), $this->pace, new ClockNow($this->clock)))($player, self::home(), $level, $seat, $seed);
     }
@@ -254,6 +334,11 @@ final class TableCapabilitiesTest extends TestCase
     private function see(): SeeTable
     {
         return new SeeTable($this->own(), $this->engine);
+    }
+
+    private function moves(): ListMoves
+    {
+        return new ListMoves($this->own(), $this->engine);
     }
 
     private function score(): ReadScore

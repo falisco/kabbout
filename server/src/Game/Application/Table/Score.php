@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Kabbout\Game\Application\Table;
 
 use Kabbout\Game\Domain\SeatView;
+use Kabbout\Game\Domain\Table\TableId;
 
 /**
  * The count at a table, as everybody at it may read it: both teams' scores, the contract, the sheet of
- * the deal just played, the deals before it, and who won once somebody has.
+ * the deal just played, the deals before it, and who won once somebody has; with the team of the seat
+ * it is read from.
  */
 final readonly class Score
 {
@@ -28,6 +30,6 @@ final readonly class Score
     /** @return array<string, mixed> */
     public function toArray(): array
     {
-        return ['table' => $this->table->toString(), 'yourTeam' => $this->team, ...$this->count];
+        return ['table' => $this->table->toString(), 'team' => $this->team, ...$this->count];
     }
 }

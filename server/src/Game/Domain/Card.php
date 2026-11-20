@@ -11,6 +11,8 @@ namespace Kabbout\Game\Domain;
 final readonly class Card
 {
     private const string RANKS = '789TJQKA';
+    /** how a card is written, for whoever must say it to a client: a rank, then a suit (Suit) */
+    public const string FORMAT = '^['.self::RANKS.'][SHDC]$';
 
     private function __construct(private string $rank, private Suit $suit)
     {

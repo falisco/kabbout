@@ -6,8 +6,9 @@ namespace Kabbout\Game\Application\Table;
 
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Domain\Exception\EngineUnavailable;
+use Kabbout\Game\Domain\Table\TablesUnavailable;
 use Kabbout\Identity\Domain\NetworkAddress;
-use Kabbout\Identity\Domain\Player;
+use Kabbout\Identity\Domain\PlayerId;
 
 /** The count at the player's table, as the engine made it. */
 final readonly class ReadScore
@@ -23,7 +24,7 @@ final readonly class ReadScore
      * @throws EngineUnavailable
      * @throws TablesUnavailable
      */
-    public function __invoke(Player $player, NetworkAddress $from, string $named): Score
+    public function __invoke(PlayerId $player, NetworkAddress $from, string $named): Score
     {
         $table = ($this->own)($player, $from, $named);
 

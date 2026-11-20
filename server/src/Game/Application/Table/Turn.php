@@ -6,6 +6,7 @@ namespace Kabbout\Game\Application\Table;
 
 use Kabbout\Game\Domain\LegalMoves;
 use Kabbout\Game\Domain\SeatView;
+use Kabbout\Game\Domain\Table\TableId;
 
 /**
  * Where a player stands after something was played at their table: what the table heard since their

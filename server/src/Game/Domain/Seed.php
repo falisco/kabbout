@@ -15,7 +15,9 @@ namespace Kabbout\Game\Domain;
  */
 final readonly class Seed
 {
-    private const string PATTERN = '/^[0-9a-f]{32,64}$/D';
+    /** how a seed is written, for whoever must say it to a client */
+    public const string FORMAT = '^[0-9a-f]{32,64}$';
+    private const string PATTERN = '/'.self::FORMAT.'/D';
 
     private function __construct(private string $hex)
     {
@@ -31,6 +33,12 @@ final readonly class Seed
     public static function fromHex(#[\SensitiveParameter] string $hex): self
     {
         return 1 === preg_match(self::PATTERN, $hex) ? new self($hex) : throw new \InvalidArgumentException('A seed is 32 to 64 hexadecimal digits.');
+    }
+
+    /** The seed somebody chose, when they chose one. */
+    public static function fromHexOrNone(#[\SensitiveParameter] ?string $hex): ?self
+    {
+        return null === $hex ? null : self::fromHex($hex);
     }
 
     /**

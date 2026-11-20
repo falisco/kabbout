@@ -16,9 +16,10 @@ use Kabbout\Game\Domain\Analysis\TrickNumber;
 use Kabbout\Game\Domain\Card;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Identity\Domain\NetworkAddress;
-use Kabbout\Identity\Domain\Player;
+use Kabbout\Identity\Domain\PlayerId;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Capability\Attribute\Schema;
+use Mcp\Schema\Result\CallToolResult;
 use Mcp\Schema\ToolAnnotations;
 
 /**
@@ -32,7 +33,7 @@ final readonly class ReviewTools
     private const string WHICH = ' About the last deal played to its end at your table; "the player" is you. Changes nothing.';
 
     public function __construct(
-        private Asker $asker,
+        private Door $door,
         private FinishedDeal $finished,
         private SummariseDeal $summarise,
         private ReviewTrick $reviewTrick,
@@ -45,11 +46,9 @@ final readonly class ReviewTools
 
     /**
      * @param string $table the table, as new_game named it
-     *
-     * @return array<string, mixed>
      */
-    #[McpTool(name: 'deal_summary', description: SummariseDeal::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true))]
-    public function dealSummary(string $table): array
+    #[McpTool(name: 'deal_summary', description: SummariseDeal::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true, openWorldHint: false))]
+    public function dealSummary(string $table): CallToolResult
     {
         return $this->review($table, fn (PlayedDeal $deal): array => ($this->summarise)($deal->record, $deal->seat)->toArray());
     }
@@ -57,11 +56,9 @@ final readonly class ReviewTools
     /**
      * @param string $table the table, as new_game named it
      * @param int    $n     the trick, from 1 to 8
-     *
-     * @return array<string, mixed>
      */
-    #[McpTool(name: 'trick', description: ReviewTrick::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true))]
-    public function trick(string $table, #[Schema(minimum: 1, maximum: 8)] int $n): array
+    #[McpTool(name: 'trick', description: ReviewTrick::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true, openWorldHint: false))]
+    public function trick(string $table, #[Schema(minimum: TrickNumber::FIRST, maximum: TrickNumber::LAST)] int $n): CallToolResult
     {
         return $this->review($table, fn (PlayedDeal $deal): array => ($this->reviewTrick)($deal->record, $deal->seat, TrickNumber::of($n))->toArray());
     }
@@ -69,11 +66,9 @@ final readonly class ReviewTools
     /**
      * @param string $table the table, as new_game named it
      * @param int    $n     the trick, from 1 to 8
-     *
-     * @return array<string, mixed>
      */
-    #[McpTool(name: 'expert_choice', description: AskExpertChoice::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true))]
-    public function expertChoice(string $table, #[Schema(minimum: 1, maximum: 8)] int $n): array
+    #[McpTool(name: 'expert_choice', description: AskExpertChoice::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true, openWorldHint: false))]
+    public function expertChoice(string $table, #[Schema(minimum: TrickNumber::FIRST, maximum: TrickNumber::LAST)] int $n): CallToolResult
     {
         return $this->review($table, fn (PlayedDeal $deal): array => ($this->askExpertChoice)($deal->record, $deal->seat, TrickNumber::of($n))->toArray());
     }
@@ -82,44 +77,34 @@ final readonly class ReviewTools
      * @param string $table the table, as new_game named it
      * @param int    $n     the trick, from 1 to 8
      * @param string $card  the card to play instead, rank then suit, for example QH
-     *
-     * @return array<string, mixed>
      */
-    #[McpTool(name: 'what_if', description: TryWhatIf::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true))]
-    public function whatIf(string $table, #[Schema(minimum: 1, maximum: 8)] int $n, #[Schema(pattern: '^[789TJQKA][SHDC]$')] string $card): array
+    #[McpTool(name: 'what_if', description: TryWhatIf::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true, openWorldHint: false))]
+    public function whatIf(string $table, #[Schema(minimum: TrickNumber::FIRST, maximum: TrickNumber::LAST)] int $n, #[Schema(pattern: Card::FORMAT)] string $card): CallToolResult
     {
         return $this->review($table, fn (PlayedDeal $deal): array => ($this->tryWhatIf)($deal->record, $deal->seat, TrickNumber::of($n), Card::fromCode($card))->toArray());
     }
 
     /**
      * @param string $table the table, as new_game named it
-     *
-     * @return array<string, mixed>
      */
-    #[McpTool(name: 'expert_bids', description: ReviewBids::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true))]
-    public function expertBids(string $table): array
+    #[McpTool(name: 'expert_bids', description: ReviewBids::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true, openWorldHint: false))]
+    public function expertBids(string $table): CallToolResult
     {
         return $this->review($table, fn (PlayedDeal $deal): array => ($this->reviewBids)($deal->record, $deal->seat, Lang::En)->toArray());
     }
 
     /**
      * @param string $table the table, as new_game named it
-     *
-     * @return array<string, mixed>
      */
-    #[McpTool(name: 'biggest_swings', description: RankSwings::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true))]
-    public function biggestSwings(string $table): array
+    #[McpTool(name: 'biggest_swings', description: RankSwings::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true, openWorldHint: false))]
+    public function biggestSwings(string $table): CallToolResult
     {
         return $this->review($table, fn (PlayedDeal $deal): array => ($this->rankSwings)($deal->record, $deal->seat)->toArray());
     }
 
-    /**
-     * @param \Closure(PlayedDeal): array<string, mixed> $look
-     *
-     * @return array<string, mixed>
-     */
-    private function review(string $table, \Closure $look): array
+    /** @param \Closure(PlayedDeal): array<string, mixed> $look */
+    private function review(string $table, \Closure $look): CallToolResult
     {
-        return ($this->asker)(fn (Player $player, NetworkAddress $from): array => $look(($this->finished)($player, $from, $table)));
+        return ($this->door)(fn (PlayerId $player, NetworkAddress $from): array => $look(($this->finished)($player, $from, $table)));
     }
 }

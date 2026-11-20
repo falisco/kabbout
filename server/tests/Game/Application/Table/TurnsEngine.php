@@ -32,6 +32,8 @@ final class TurnsEngine implements Engine
     public array $drawn = [];
     /** @var list<string|null> the reason each applied action carried */
     public array $reasons = [];
+    /** @var list<Action> every action applied, in order */
+    public array $applied = [];
 
     /** @param int $actions how many actions a deal lasts */
     public function __construct(private readonly int $actions = 6, private readonly int $firstToAct = 1)
@@ -54,6 +56,7 @@ final class TurnsEngine implements Engine
         }
         $this->drawn[] = ['apply', $seat->value, $action->kind->value, $seed->toHex()];
         $this->reasons[] = $action->reason;
+        $this->applied[] = $action;
         \assert(\is_int($data['left']) && \is_int($data['round']));
         if ($over) {
             return new Step(new GameState(['phase' => 'bidding', 'turn' => $this->firstToAct, 'left' => $this->actions, 'round' => $data['round'] + 1] + $data), [['type' => 'dealt', 'dealer' => 1]]);

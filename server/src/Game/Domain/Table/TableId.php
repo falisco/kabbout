@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kabbout\Game\Application\Table;
+namespace Kabbout\Game\Domain\Table;
 
 /**
  * The name of a table: 128 random bits. It says nothing and proves nothing: a table is its player's,

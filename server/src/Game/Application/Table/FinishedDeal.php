@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Kabbout\Game\Application\Table;
 
+use Kabbout\Game\Domain\Table\TablesUnavailable;
 use Kabbout\Identity\Domain\NetworkAddress;
-use Kabbout\Identity\Domain\Player;
+use Kabbout\Identity\Domain\PlayerId;
 
 /**
  * The last deal played to its end at the player's table. It is the deal the server holds, as the
@@ -24,7 +25,7 @@ final readonly class FinishedDeal
      * @throws NoFinishedDeal
      * @throws TablesUnavailable
      */
-    public function __invoke(Player $player, NetworkAddress $from, string $named): PlayedDeal
+    public function __invoke(PlayerId $player, NetworkAddress $from, string $named): PlayedDeal
     {
         $table = ($this->own)($player, $from, $named);
 

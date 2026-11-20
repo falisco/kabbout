@@ -8,14 +8,16 @@ use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\Exception\EngineUnavailable;
 use Kabbout\Game\Domain\GameState;
-use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Phase;
 use Kabbout\Game\Domain\Step;
+use Kabbout\Game\Domain\Table\Table;
+use Kabbout\Game\Domain\Table\Tables;
+use Kabbout\Game\Domain\Table\TablesUnavailable;
 
 /**
- * What happens at a table after its player's action, or after the cards are dealt: the robots bid and
- * play in turn until the player must act again or the deal is over. Then the table is kept, and the
- * player is told where they stand.
+ * What follows a player's action, or the dealing of the cards, at a table: the robots bid and play in
+ * turn until the player must act again or the deal is over; the table is kept; and the player is told
+ * where they stand. It is the second half of opening a table and of acting at one, said once for both.
  *
  * Each call to the engine draws from a seed of its own, derived from the table's secret and named
  * after the move it is for: the same table played the same way gives the same game.
@@ -45,15 +47,17 @@ final readonly class RobotsPlay
             if (self::MOST_MOVES === $played) {
                 throw new \LogicException('The robots play on and on: the player\'s turn never comes.');
             }
-            // the reasons a robot gives for its bids are read by the review, in English like the rest of what a client reads
-            $move = $this->engine->robotMove($state, $table->level, $table->secret->derive('robot '.$moves), Lang::En);
+            $move = $this->engine->robotMove($state, $table->level, $table->secret->derive('robot '.$moves));
             $step = $this->engine->apply($state, $move->seat, $move->action, $table->secret->derive('move '.$moves));
             $state = $step->state;
             $events = [...$events, ...$step->events];
             ++$moves;
         }
         $view = $this->engine->view($state, $table->seat);
-        $finished = Phase::RoundEnd === $state->phase() ? $view->dealRecord() : null;
+        // a deal that is over is all public: the view of it is its record, and a view that is not would
+        // leave the deal before it under review
+        $finished = Phase::RoundEnd === $state->phase()
+            ? $view->dealRecord() ?? throw new \LogicException('A deal is over and its view is no record of it.') : null;
         $this->tables->save($table->after($state, $moves, $finished, $this->now->seconds()));
 
         return new Turn($table->id, $events, $view, $this->engine->legalMoves($state, $table->seat));

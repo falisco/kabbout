@@ -14,4 +14,12 @@ interface TableAllowance
 {
     /** @throws PlayedTooFast */
     public function pace(NetworkAddress $from): void;
+
+    /**
+     * A new table, counted apart from the calls: each one is kept a day, and a script that only opened
+     * tables would fill the disk well within the pace of the calls.
+     *
+     * @throws PlayedTooFast
+     */
+    public function open(NetworkAddress $from): void;
 }

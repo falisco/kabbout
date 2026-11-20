@@ -10,6 +10,7 @@ use Kabbout\Game\Domain\Bid;
 use Kabbout\Game\Domain\BidType;
 use Kabbout\Game\Domain\Card;
 use Kabbout\Game\Domain\DealRecord;
+use Kabbout\Game\Domain\Exception\InvalidBid;
 use Kabbout\Game\Domain\Exception\InvalidDealRecord;
 use Kabbout\Game\Domain\GameState;
 use Kabbout\Game\Domain\LegalMoves;
@@ -253,5 +254,61 @@ final class ValueObjectsTest extends TestCase
     {
         $this->expectException(InvalidDealRecord::class);
         DealRecord::fromArray([...self::record(), $field => $damaged]);
+    }
+
+    public function testABidIsBuiltFromItsPartsAndARaiseNamesItsValueAndItsSuit(): void
+    {
+        self::assertEquals(Bid::pass(), Bid::of(BidType::Pass));
+        self::assertEquals(Bid::contre(), Bid::of(BidType::Contre));
+        self::assertEquals(Bid::surcontre(), Bid::of(BidType::Surcontre));
+        self::assertEquals(Bid::raise(110, Suit::Hearts), Bid::of(BidType::Raise, 110, Suit::Hearts));
+        // what is said with a pass that a pass has no use for is not kept
+        self::assertEquals(Bid::pass(), Bid::of(BidType::Pass, 110, Suit::Hearts));
+
+        foreach ([[110, null], [null, Suit::Hearts], [null, null]] as [$value, $suit]) {
+            try {
+                Bid::of(BidType::Raise, $value, $suit);
+                self::fail('A raise was built without its value or its suit.');
+            } catch (InvalidBid $invalid) {
+                self::assertStringContainsString('names its value and its trump suit', $invalid->getMessage());
+            }
+        }
+    }
+
+    public function testTheWrittenFormOfACardAndOfASeedIsTheOneTheClassesAccept(): void
+    {
+        foreach (['7S', 'TH', 'JD', 'AC'] as $code) {
+            self::assertSame(1, preg_match('/'.Card::FORMAT.'/D', $code));
+            self::assertNotNull(Card::tryFromCode($code));
+        }
+        foreach (['10H', 'jh', '1S', 'JX', 'JHH', ''] as $code) {
+            self::assertSame(0, preg_match('/'.Card::FORMAT.'/D', $code));
+            self::assertNull(Card::tryFromCode($code));
+        }
+        self::assertSame(1, preg_match('/'.Seed::FORMAT.'/D', Seed::random()->toHex()));
+        self::assertSame(0, preg_match('/'.Seed::FORMAT.'/D', str_repeat('A', 32)));
+        self::assertNull(Seed::fromHexOrNone(null));
+        self::assertSame(str_repeat('ab', 16), Seed::fromHexOrNone(str_repeat('ab', 16))?->toHex());
+    }
+
+    public function testTheViewOfADealThatIsOverIsItsRecordAndBeforeThatThereIsNone(): void
+    {
+        $plays = array_map(static fn (int $seat): array => ['seat' => $seat, 'card' => '7S'], [1, 2, 3, 0]);
+        $over = [
+            'seat' => 2, 'hand' => [], 'scoring' => 'tunisian', 'dealer' => 3,
+            'bids' => [['seat' => 0, 'type' => 'bid', 'value' => 90, 'suit' => 'D'], ['seat' => 1, 'type' => 'pass']],
+            'tricks' => array_fill(0, 8, ['leader' => 1, 'winner' => 2, 'plays' => $plays]),
+        ];
+
+        $record = new SeatView($over)->dealRecord();
+
+        self::assertNotNull($record);
+        self::assertSame(['scoring' => 'tunisian', 'dealer' => 3, 'bids' => $over['bids'], 'tricks' => array_fill(0, 8, $plays)], $record->toArray());
+        // seven tricks, a trick still on the table, no auction, no count: no deal to record
+        self::assertNull(new SeatView(['tricks' => array_fill(0, 7, ['plays' => $plays])] + $over)->dealRecord());
+        self::assertNull(new SeatView(['tricks' => [...array_fill(0, 7, ['plays' => $plays]), ['plays' => \array_slice($plays, 0, 3)]]] + $over)->dealRecord());
+        self::assertNull(new SeatView(['tricks' => 'none'] + $over)->dealRecord());
+        self::assertNull(new SeatView(array_diff_key($over, ['bids' => 0]))->dealRecord());
+        self::assertNull(new SeatView(array_diff_key($over, ['scoring' => 0]))->dealRecord());
     }
 }

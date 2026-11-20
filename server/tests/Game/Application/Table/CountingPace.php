@@ -8,13 +8,15 @@ use Kabbout\Game\Application\Table\PlayedTooFast;
 use Kabbout\Game\Application\Table\TableAllowance;
 use Kabbout\Identity\Domain\NetworkAddress;
 
-/** A pace for tests: it lets so many calls through, and writes down where each came from. */
+/** A pace for tests: it lets so many calls through and so many tables be opened, and writes down where each came from. */
 final class CountingPace implements TableAllowance
 {
     /** @var list<string> */
     public array $from = [];
 
-    public function __construct(private int $left = 999)
+    public int $opened = 0;
+
+    public function __construct(private int $left = 999, private int $tablesLeft = 999)
     {
     }
 
@@ -25,5 +27,14 @@ final class CountingPace implements TableAllowance
         }
         --$this->left;
         $this->from[] = $from->key;
+    }
+
+    public function open(NetworkAddress $from): void
+    {
+        if ($this->tablesLeft <= 0) {
+            throw new PlayedTooFast(600);
+        }
+        --$this->tablesLeft;
+        ++$this->opened;
     }
 }

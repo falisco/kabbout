@@ -6,10 +6,12 @@ namespace Kabbout\Game\Application\Table;
 
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Domain\Exception\EngineUnavailable;
+use Kabbout\Game\Domain\SeatView;
+use Kabbout\Game\Domain\Table\TablesUnavailable;
 use Kabbout\Identity\Domain\NetworkAddress;
-use Kabbout\Identity\Domain\Player;
+use Kabbout\Identity\Domain\PlayerId;
 
-/** Where the player stands at their table: what their seat sees and what they may do. Nothing is played. */
+/** What the player's seat sees at their table. Nothing is played. */
 final readonly class SeeTable
 {
     public function __construct(private OwnTable $own, private Engine $engine)
@@ -23,10 +25,10 @@ final readonly class SeeTable
      * @throws EngineUnavailable
      * @throws TablesUnavailable
      */
-    public function __invoke(Player $player, NetworkAddress $from, string $named): Turn
+    public function __invoke(PlayerId $player, NetworkAddress $from, string $named): SeatView
     {
         $table = ($this->own)($player, $from, $named);
 
-        return new Turn($table->id, [], $this->engine->view($table->state, $table->seat), $this->engine->legalMoves($table->state, $table->seat));
+        return $this->engine->view($table->state, $table->seat);
     }
 }

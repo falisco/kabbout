@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kabbout\Game\Application\Table;
+namespace Kabbout\Game\Domain\Table;
 
 /** The tables cannot be read or written. */
 final class TablesUnavailable extends \RuntimeException

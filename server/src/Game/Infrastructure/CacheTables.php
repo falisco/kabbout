@@ -4,21 +4,23 @@ declare(strict_types=1);
 
 namespace Kabbout\Game\Infrastructure;
 
-use Kabbout\Game\Application\Table\Table;
-use Kabbout\Game\Application\Table\TableId;
-use Kabbout\Game\Application\Table\Tables;
-use Kabbout\Game\Application\Table\TablesUnavailable;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\InvalidDealRecord;
 use Kabbout\Game\Domain\GameState;
 use Kabbout\Game\Domain\Level;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Domain\Seed;
-use Kabbout\Identity\Domain\PlayerId;
+use Kabbout\Game\Domain\Table\Owner;
+use Kabbout\Game\Domain\Table\Table;
+use Kabbout\Game\Domain\Table\TableId;
+use Kabbout\Game\Domain\Table\Tables;
+use Kabbout\Game\Domain\Table\TablesUnavailable;
 use Psr\Cache\CacheException;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\PruneableInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Lock\Exception\ExceptionInterface as LockFailed;
+use Symfony\Component\Lock\LockFactory;
 
 /**
  * The tables in a cache pool of their own, on disk. A table is one entry, written whole after each
@@ -29,19 +31,26 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * (Table::SECONDS_OPEN): a player who comes back to a table left too long is told it has expired,
  * which could not be told from a table that never was if the entry went when the table closed.
  *
- * Two calls for one table at the same instant each play from the game they read, and the last one
- * written stays. Either is a game the engine allowed, and only the table's own player can do it.
+ * What plays at a table holds one of a fixed number of locks, chosen by the table's name: a lock per
+ * table would be a file per table, kept for ever by a store made of files. Two tables may share a
+ * lock; one of them waits the moment a move takes.
  */
 final readonly class CacheTables implements Tables
 {
     private const int SECONDS_KEPT = 24 * 3600;
+    private const int LOCKS = 64;
+    /** a move is three robots at most between two turns; a lock nobody released is given up after this long */
+    private const float LOCK_SECONDS = 60.0;
 
     /**
      * @param int $pruneOneIn one write in this many also clears what has expired from the pool: a file
      *                        cache never forgets by itself
      */
-    public function __construct(#[Autowire(service: 'cache.tables')] private CacheItemPoolInterface $cache, private int $pruneOneIn = 200)
-    {
+    public function __construct(
+        #[Autowire(service: 'cache.tables')] private CacheItemPoolInterface $cache,
+        private LockFactory $locks,
+        private int $pruneOneIn = 200,
+    ) {
     }
 
     public function find(TableId $id): ?Table
@@ -58,7 +67,7 @@ final readonly class CacheTables implements Tables
         try {
             return new Table(
                 $id,
-                PlayerId::fromString(\is_string($owner) ? $owner : ''),
+                Owner::of(\is_string($owner) ? $owner : ''),
                 Seat::from(\is_int($seat) ? $seat : -1),
                 Level::from(\is_string($level) ? $level : ''),
                 Seed::fromHex(\is_string($secret) ? $secret : ''),
@@ -97,6 +106,21 @@ final readonly class CacheTables implements Tables
         }
         if ($this->cache instanceof PruneableInterface && 0 === random_int(0, max(0, $this->pruneOneIn - 1))) {
             $this->cache->prune();
+        }
+    }
+
+    public function alone(TableId $id, \Closure $play): mixed
+    {
+        try {
+            $lock = $this->locks->createLock('tables.'.(crc32($id->toString()) % self::LOCKS), self::LOCK_SECONDS);
+            $lock->acquire(true);
+        } catch (LockFailed $failed) {
+            throw new TablesUnavailable($failed);
+        }
+        try {
+            return $play();
+        } finally {
+            $lock->release();
         }
     }
 

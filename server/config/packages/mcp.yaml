@@ -13,9 +13,7 @@ mcp:
         http: true
       http:
         path: /mcp
-      session:
-        # Nothing of ours is kept in an MCP session: who is asking comes from the process or from the
-        # request. Clients of the older protocol revisions still open one, and it must outlive a long
-        # game: a silent hour would otherwise end a stdio client's session under it.
-        ttl: 86400
+      # Nothing of ours is kept in an MCP session: who is asking comes from the process or from the
+      # request. Clients of the older protocol revisions still open one; the bundle keeps it in a file
+      # for an hour after its last request, and that is left as the bundle has it.
       registry: ['Kabbout\Game\UserInterface\Mcp\']

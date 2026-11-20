@@ -12,6 +12,6 @@ final class NoSuchTable extends \RuntimeException implements TableRefusal
 {
     public function __construct()
     {
-        parent::__construct('There is no such table. Open one with new_game.');
+        parent::__construct('There is no such table.');
     }
 }

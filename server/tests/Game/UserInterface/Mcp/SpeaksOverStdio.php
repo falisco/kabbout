@@ -16,6 +16,9 @@ use Mcp\Schema\Tool;
  */
 trait SpeaksOverStdio
 {
+    /** every process started here is counted against the one address that is none: the tests together would be refused */
+    private const array NO_PACE = ['KABBOUT_TABLES_LIMIT' => '100000', 'KABBOUT_TABLES_OPENED' => '100000', 'KABBOUT_GUESTS_LIMIT' => '100000'];
+
     /** @var list<Client> */
     private array $clients = [];
 
@@ -62,7 +65,7 @@ trait SpeaksOverStdio
     private function client(): Client
     {
         $client = Client::builder()->setClientInfo('kabbout-tests', '1.0.0')->setProtocolVersion(static::revision())->setRequestTimeout(60)->build();
-        $client->connect(new StdioTransport(\PHP_BINARY, ['bin/console', 'mcp:server'], \dirname(__DIR__, 4), [...getenv(), 'APP_ENV' => 'test', 'APP_DEBUG' => '0']));
+        $client->connect(new StdioTransport(\PHP_BINARY, ['bin/console', 'mcp:server'], \dirname(__DIR__, 4), [...getenv(), 'APP_ENV' => 'test', 'APP_DEBUG' => '0', ...self::NO_PACE]));
 
         return $this->clients[] = $client;
     }
