@@ -1,6 +1,6 @@
 {
   "name": "@kabbout/bridge",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "The rules engine behind a small internal HTTP service: stateless, JSON in and out, seeded randomness.",
