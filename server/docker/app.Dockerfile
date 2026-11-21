@@ -2,7 +2,7 @@
 # Build context: the repository root.
 
 # 1. the game's bundle, built as `npm run build:web` builds it
-FROM node:22.23.5-alpine AS web
+FROM node:26.13.1-alpine AS web
 WORKDIR /src
 COPY package.json package-lock.json ./
 COPY engine/package.json engine/
