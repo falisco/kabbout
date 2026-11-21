@@ -305,3 +305,24 @@ test('conventions: the advice given to the human is by the pair’s card', () =>
   }
   assert.fail('no deal where the two cards advise differently');
 });
+
+test('conventions: a game knows the card it started on, and that it started on none when the two had agreed on none', () => {
+  const none = make();
+  assert.equal(none.conventions(), null);
+  none.start();
+  assert.equal(none.conventions(), null);
+
+  let agreed = null;
+  const s = make(7, { conventions: () => agreed });
+  s.start();
+  assert.equal(s.conventions(), null);
+  // agreeing during a game changes nothing of it; the next game starts on the card
+  agreed = BOLD;
+  assert.equal(s.conventions(), null);
+  s.start();
+  assert.equal(s.conventions(), BOLD);
+  // agreeing on the classic card is an agreement, on that card
+  agreed = CLASSIC;
+  s.start();
+  assert.equal(s.conventions(), CLASSIC);
+});

@@ -6,12 +6,12 @@ namespace Kabbout\Assistant\UserInterface\Http;
 
 use Kabbout\Api\Domain\Envelope;
 use Kabbout\Api\Domain\FromThePage;
-use Kabbout\Assistant\Application\Coach\AskedTooOften;
-use Kabbout\Assistant\Application\Coach\CoachResting;
+use Kabbout\Assistant\Application\AskedTooOften;
 use Kabbout\Assistant\Application\Conventions\ConventionsModelFailed;
 use Kabbout\Assistant\Application\Conventions\InterpretForVisitor;
 use Kabbout\Assistant\Application\Conventions\InvalidSentence;
 use Kabbout\Assistant\Application\Conventions\NotUnderstood;
+use Kabbout\Assistant\Application\DaySpent;
 use Kabbout\Assistant\Domain\AiConfiguration;
 use Kabbout\Assistant\Domain\InvalidAiSettings;
 use Kabbout\Assistant\Infrastructure\EnvAiConfiguration;
@@ -65,7 +65,7 @@ final readonly class ConventionsController
             return self::error(Response::HTTP_SERVICE_UNAVAILABLE, 'invalid_ai_settings', $e->getMessage());
         } catch (AskedTooOften $tooOften) {
             throw new TooManyRequestsHttpException($tooOften->retryAfter);
-        } catch (CoachResting) {
+        } catch (DaySpent) {
             return self::error(Response::HTTP_TOO_MANY_REQUESTS, 'daily_quota', 'The day\'s questions are spent.');
         } catch (NotUnderstood) {
             return self::error(Response::HTTP_UNPROCESSABLE_ENTITY, 'not_understood', 'The sentence describes no conventions card.');

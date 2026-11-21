@@ -87,10 +87,44 @@ final class SymfonyAiConventionsModelTest extends KernelTestCase
         self::assertSame('never', $reading->settings['aces']);
     }
 
-    public function testAnAnswerThatIsNotTheSchemasOrNoAnswerAtAllIsAFailureThatNamesNeitherTheKeyNorThePlatformsWords(): void
+    public function testAnAnswerOutsideTheSchemaIsASentenceNotUnderstoodAndNeverACard(): void
     {
         $notText = AnthropicMock::text((string) json_encode(['unplaced' => ['a', 7]] + self::DRAFT));
-        foreach ([AnthropicMock::text('Voici votre carte : valet 30.'), AnthropicMock::text('{"jack": 30}'), AnthropicMock::text('{"understood": "yes"}'), $notText, 401, 529] as $answer) {
+        $noJack = self::DRAFT;
+        unset($noJack['jack']);
+        foreach ([AnthropicMock::text('Voici votre carte : valet 30.'), AnthropicMock::text('{"jack": 30}'), AnthropicMock::text('{"understood": "yes"}'), AnthropicMock::text((string) json_encode($noJack)), AnthropicMock::text((string) json_encode(['jack' => 'thirty'] + self::DRAFT)), $notText] as $answer) {
+            AnthropicMock::willAnswer($answer);
+
+            $reading = self::model()->read(self::SENTENCE, Lang::Fr);
+
+            self::assertFalse($reading->understood);
+            self::assertSame([], $reading->settings);
+        }
+    }
+
+    public function testASettingTooManyIsLeftOutAndWhatIsLeftIsReadAsAnyAnswer(): void
+    {
+        AnthropicMock::willAnswer(AnthropicMock::text((string) json_encode(self::DRAFT + ['contre' => 20])));
+
+        self::assertSame(array_keys(ConventionCard::VALUES), array_keys(self::model()->read(self::SENTENCE, Lang::Fr)->settings));
+    }
+
+    public function testTheModelStartsFromTheClassicCardOfTheDomain(): void
+    {
+        AnthropicMock::willAnswer(AnthropicMock::text((string) json_encode(self::DRAFT)));
+        self::model()->read(self::SENTENCE, Lang::Fr);
+
+        $system = (string) json_encode(AnthropicMock::requests()[0]['body']['system'] ?? null);
+        self::assertStringContainsString('Start from the classic card: open 70, jack 20, nine 10, threeTrumps 10, belote 20, ace 10, aces atOnce.', $system);
+        $properties = (string) json_encode(AnthropicMock::requests()[0]['body']['output_config'] ?? null);
+        foreach (['open' => 70, 'jack' => 20, 'nine' => 10, 'threeTrumps' => 10, 'belote' => 20, 'ace' => 10] as $value) {
+            self::assertStringContainsString('Classic: '.$value.'.', $properties);
+        }
+    }
+
+    public function testAPlatformThatDoesNotAnswerIsAFailureThatNamesNeitherTheKeyNorThePlatformsWords(): void
+    {
+        foreach ([401, 529] as $answer) {
             AnthropicMock::willAnswer($answer);
             try {
                 self::model()->read(self::SENTENCE, Lang::Fr);

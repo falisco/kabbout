@@ -8,9 +8,9 @@ use Kabbout\Assistant\Application\Coach\AnswerSource;
 use Kabbout\Assistant\Application\Coach\AnswerVisitor;
 use Kabbout\Assistant\Application\Coach\AskCoach;
 use Kabbout\Assistant\Application\Coach\CoachModelFailed;
-use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Coach\DealSpent;
 use Kabbout\Assistant\Application\Coach\Exchange;
+use Kabbout\Assistant\Application\DaySpent;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\Lang;
@@ -148,7 +148,7 @@ final class AnswerVisitorTest extends TestCase
         try {
             $desk(NetworkAddress::of('203.0.113.1'), PlayerId::random(), RecordedDeal::record(), Seat::First, Lang::Fr, 'Qu’ai-je mal joué ?');
             self::fail('The coach rests for the day.');
-        } catch (CoachResting) {
+        } catch (DaySpent) {
             self::assertSame(['pace', 'take', 'giveBack'], $this->allowance->asked);
             self::assertSame([], $model->calls);
         }

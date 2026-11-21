@@ -19,7 +19,7 @@ export const session = createLocalSession({
   level: () => prefs.level,
   lang,
   scoring: () => prefs.scoring,
-  conventions: () => partnership.playing,
+  conventions: () => (partnership.agreed ? partnership.card : null),
   thinkMs: THINK_MS,
   onChange: (latest) => {
     view = latest;

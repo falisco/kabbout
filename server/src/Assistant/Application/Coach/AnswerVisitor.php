@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\Application\Coach;
 
+use Kabbout\Assistant\Application\AskedTooOften;
+use Kabbout\Assistant\Application\DaySpent;
 use Kabbout\Game\Application\SummariseDeal;
 use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
@@ -35,10 +37,10 @@ final readonly class AnswerVisitor
      * @param NetworkAddress $from   where the question comes from: what it is counted against
      * @param PlayerId|null  $player who asks, when the server knows them: whose conversation it is
      *
-     * @throws \InvalidArgumentException            for a question that is not one
-     * @throws AskedTooOften|CoachResting|DealSpent when the question may not be asked now
-     * @throws EngineRefused                        for a record the engine cannot play again
-     * @throws EngineUnavailable                    when the engine cannot be asked
+     * @throws \InvalidArgumentException        for a question that is not one
+     * @throws AskedTooOften|DaySpent|DealSpent when the question may not be asked now
+     * @throws EngineRefused                    for a record the engine cannot play again
+     * @throws EngineUnavailable                when the engine cannot be asked
      */
     public function __invoke(NetworkAddress $from, ?PlayerId $player, DealRecord $record, Seat $seat, Lang $lang, string $question, ?ConventionCard $card = null): Answered
     {
@@ -53,7 +55,7 @@ final readonly class AnswerVisitor
         try {
             // counted last: a question refused for its deal must not use up the day of everybody else
             $this->allowance->day();
-        } catch (CoachResting $e) {
+        } catch (DaySpent $e) {
             $this->allowance->giveBack($from, $deal);
             throw $e;
         }

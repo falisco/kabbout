@@ -11,7 +11,6 @@ export {
   BOLD,
   CAUTIOUS,
   CLASSIC,
-  CONVENTION_SETTINGS,
   CONVENTION_VALUES,
   READY_CONVENTIONS,
   describeConventions,

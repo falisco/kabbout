@@ -171,8 +171,8 @@ export default {
   agreeNames: { classic: 'Classic', cautious: 'Cautious', bold: 'Bold' },
   agreeOwn: 'Your own',
   agreeCard: (name) => `What the card says · ${name}`,
-  agreeClassic:
-    'The classic conventions of contrée: open on a hand worth 70; the partner raises by 20 for the jack, 10 for the nine, 10 for three trumps, 20 for the belote, 10 an ace, shown at once.',
+  agreeClassic: (c) =>
+    `The classic conventions of contrée: open on a hand worth ${c.open}; the partner raises by ${c.jack} for the jack, ${c.nine} for the nine, ${c.threeTrumps} for three trumps, ${c.belote} for the belote, ${c.ace} an ace, shown at once.`,
   agreeLabel: 'Your conventions, in your own words',
   agreeExample: 'E.g. raise by 20 with the jack, keep your aces',
   agreeSend: 'Send',

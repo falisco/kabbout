@@ -30,7 +30,7 @@ const ENTRY = '#sheet [data-action="agreeOpen"]';
 const CONFIRM = '#sheet [data-action="agree"]';
 const FIELD = '#agreeQ';
 const CARD = '#agreeCard li';
-const ready = (name: string) => `#sheet [data-setting="ready"][data-value="${name}"]`;
+const ready = (name: string) => `#sheet [data-action="ready"][data-value="${name}"]`;
 const stored = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('kabbout.conventions') ?? 'null') as unknown);
 
 /** the page's origin answers about the conventions as the Kabbout server would */
@@ -108,7 +108,7 @@ for (const lang of ['fr', 'en', 'ar'] as const) {
     await expect(page.locator(CARD)).toHaveCount(2);
     await expect(page.locator(CARD).first()).toHaveText(words.jack);
     // it is no ready card: it is the player's own
-    await expect(page.locator('#sheet [data-setting="ready"][aria-pressed="true"]')).toHaveCount(0);
+    await expect(page.locator('#sheet [data-action="ready"][aria-pressed="true"]')).toHaveCount(0);
     await expect(page.locator('#sheet .sec')).toContainText(words.own);
     // the player's own words come back as text, never as markup
     await expect(page.locator('#agreeUnplaced')).toContainText('et souris <b>quand</b> tu as le dix');

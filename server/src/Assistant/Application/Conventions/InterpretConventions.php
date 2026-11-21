@@ -55,7 +55,8 @@ final readonly class InterpretConventions
      */
     public static function sentence(string $said): string
     {
-        $sentence = trim($said);
+        // one line of plain text, as a question to the coach is: what a player types, never a page to slip lines into
+        $sentence = trim((string) preg_replace('/[\p{C}\s]+/u', ' ', $said));
         if ('' === $sentence || mb_strlen($sentence) > self::MAX_SENTENCE_LENGTH) {
             throw new InvalidSentence(\sprintf('The sentence is 1 to %d characters.', self::MAX_SENTENCE_LENGTH));
         }
@@ -74,8 +75,10 @@ final readonly class InterpretConventions
         foreach ($pieces as $piece) {
             $piece = trim($piece);
             $at = '' === $piece ? false : mb_stripos($sentence, $piece);
-            if (false !== $at) {
-                $kept[] = mb_substr($sentence, $at, mb_strlen($piece));
+            $found = false === $at ? '' : mb_substr($sentence, $at, mb_strlen($piece));
+            // kept only when what was cut out of the sentence is the piece, letter for letter but for their case
+            if ('' !== $found && mb_strtolower($found) === mb_strtolower($piece)) {
+                $kept[] = $found;
             }
         }
 

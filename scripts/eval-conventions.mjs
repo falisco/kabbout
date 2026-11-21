@@ -2,7 +2,7 @@
 // be and prints how often the card that comes back is the expected one, overall and for each way of
 // writing, with the model and the date. It runs in the server's own image, with the AI settings of .env
 // (ANTHROPIC_API_KEY, KABBOUT_AI_MODEL): what is measured is what players get. Each sentence is one
-// call to the model, on your key. Add `-- -v` to see nothing more: every sentence is listed already.
+// call to the model, on your key.
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 

@@ -1,5 +1,7 @@
-// The words the robots give their bidding reasons in. A reason is free text (see BidRecord), so
-// the language is chosen when the bid is made, not when it is shown.
+// The words the robots give their bidding reasons in, and those a conventions card is read back in.
+// A reason is free text (see BidRecord), so the language is chosen when the bid is made, not when it
+// is shown. The read-back is here and not with the page's texts because it is written from the card
+// alone, and tested against every value a card may hold.
 
 export const LANGS = ['fr', 'en', 'ar'] as const;
 export type Lang = (typeof LANGS)[number];

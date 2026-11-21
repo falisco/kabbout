@@ -105,8 +105,6 @@ function onBidClick(event) {
 const SETTINGS = {
   level: (value) => isLevel(value) && (prefs.level = value),
   scoring: (value) => isScoring(value) && (prefs.scoring = value),
-  /** one of the ready cards, looked at in the dialog where the player and their partner agree */
-  ready: (value) => pickReadyCard(value),
   lang(value) {
     if (!isLang(value)) return;
     prefs.lang = value;
@@ -143,6 +141,10 @@ const SHEET_ACTIONS = {
   debrief: () => openModal('debrief'),
   ask: () => askDebrief(),
   agreeOpen: () => openAgreement(),
+  ready(name) {
+    pickReadyCard(name);
+    render();
+  },
   interpret: () => interpretAgreement(),
   agree: () => confirmAgreement(),
   trick: (number) => showDebriefTrick(Number(number)),

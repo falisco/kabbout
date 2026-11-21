@@ -45,8 +45,9 @@ function recordOf(state) {
  * @param {() => ('easy'|'normal'|'expert')} [o.level] how well the robots play, asked at each card so it can change mid-game
  * @param {() => ('ffb'|'tunisian')} [o.scoring] how the game is counted, asked when a game starts and kept until its end
  * @param {() => ('fr'|'en'|'ar')} [o.lang] the language the robots give their bidding reasons in, asked at each bid
- * @param {() => object} [o.conventions] the card the human and their partner bid by, asked when a game starts and kept until its end:
- *   the partner bids by it, and so does the advice given to the human; the opponents keep the classic card
+ * @param {() => (object|null)} [o.conventions] the card the human and their partner agreed on, null when they agreed on none; asked when a
+ *   game starts and kept until its end: the partner bids by it, and so does the advice given to the human (by the classic card when there
+ *   is none); the opponents keep the classic card
  * @param {number} [o.thinkMs] longest a robot may think about a card (the expert then imagines fewer deals); no limit if absent
  * @param {(view: object|null) => void} [o.onChange] called with the new view whenever the game moves
  */
@@ -58,14 +59,14 @@ export function createLocalSession({
   level = () => 'normal',
   lang = () => 'fr',
   scoring = () => 'ffb',
-  conventions = () => CLASSIC,
+  conventions = () => null,
   thinkMs = 0,
   onChange = () => {},
 }) {
   let state = null;
   let cached = null;
-  /** the pair's card for the game being played */
-  let card = CLASSIC;
+  /** the card the pair agreed on for the game being played; null when they agreed on none */
+  let card = null;
 
   const view = () => (state ? (cached ??= viewFor(state, seat)) : null);
   /** the human's view when it is their turn in `phase`, else null */
@@ -105,7 +106,7 @@ export function createLocalSession({
     /** The robot whose turn it is bids or plays. A robot can only fail on a bug: it is not caught. */
     playRobot() {
       if (!robotToAct()) throw new Error('no robot to act');
-      return run(state.turn, robotAction(state, seat, card, { lang, level, rng, thinkMs }));
+      return run(state.turn, robotAction(state, seat, card ?? CLASSIC, { lang, level, rng, thinkMs }));
     },
     /** Solo only: the robots' reasons, one per bid of the auction (undefined for the human's). */
     reasons: () => (state ? state.bids.map((b) => (b.seat === seat ? undefined : b.why)) : []),
@@ -139,10 +140,12 @@ function robotAction(state, seat, card, { lang, level, rng, thinkMs }) {
 /** What a robot would do in the human's place. Asking never changes the game: advice has its own random source. */
 function advice({ humanTurnIn, lang, adviceRng, thinkMs, pairCard }) {
   return {
+    /** The card the human and their partner agreed on for this game; null when they agreed on none, and bid by the classic one. */
+    conventions: pairCard,
     /** The bid a robot would make, with its reason; null when the human is not to bid. */
     adviseBid() {
       const v = humanTurnIn('bidding');
-      return v ? aiBid(v, lang(), pairCard()) : null;
+      return v ? aiBid(v, lang(), pairCard() ?? CLASSIC) : null;
     },
     /** The card a robot would play, with a reason code; null when the human is not to play. */
     advisePlay() {

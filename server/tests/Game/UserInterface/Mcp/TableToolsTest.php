@@ -13,6 +13,7 @@ use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Domain\Suit;
 use Kabbout\Game\UserInterface\Mcp\TableTools;
 use Kabbout\Tests\Game\Application\Table\TurnsEngine;
+use Mcp\Capability\Attribute\Schema;
 use Mcp\Exception\ToolCallException;
 use Mcp\Schema\Result\CallToolResult;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -78,6 +79,14 @@ final class TableToolsTest extends KernelTestCase
             self::assertSame('The ready conventions cards are classic, cautious, bold.', $refused->getMessage());
         }
         self::assertSame([], $this->engine->drawn);
+    }
+
+    public function testTheToolOffersTheReadyCardsOfTheDomainAndNoOther(): void
+    {
+        $conventions = new \ReflectionParameter([TableTools::class, 'newGame'], 'conventions');
+        $schema = $conventions->getAttributes(Schema::class)[0]->newInstance();
+
+        self::assertSame(array_keys(ConventionCard::READY), $schema->enum);
     }
 
     public function testLeftToItselfATableIsSeatZeroAgainstNormalRobots(): void

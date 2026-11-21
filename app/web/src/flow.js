@@ -70,7 +70,8 @@ export async function askDebrief() {
   render();
   showLastTurn();
   // the expert the coach compares the player's bids with bids by the card of this game, when it is not the classic one
-  const conventions = sameConventions(partnership.playing, CLASSIC) ? {} : { conventions: partnership.playing };
+  const card = session.conventions();
+  const conventions = !card || sameConventions(card, CLASSIC) ? {} : { conventions: card };
   const reply = await askCoach({ record, seat: ME, lang: lang(), question, ...conventions });
   // the table moved on while the coach was thinking: this answer is about another deal
   if (asked !== debrief.asked) return;
@@ -96,7 +97,6 @@ export function showDebriefTrick(number) {
 }
 
 export function newGame() {
-  partnership.playing = partnership.card;
   resetDebrief();
   const events = session.start();
   overlay.modal = null;

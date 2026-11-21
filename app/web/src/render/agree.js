@@ -1,7 +1,7 @@
 // Agreeing with the partner on what the bids mean: the ready cards, the player's own sentence when the
 // server can read one, and the card read back. The read-back is written here from the card, by the
 // engine's own words: the server sends a card, never a sentence the player reads.
-import { READY_CONVENTIONS, describeConventions, sameConventions } from '../../../../engine/src/index.ts';
+import { CLASSIC, READY_CONVENTIONS, describeConventions, sameConventions } from '../../../../engine/src/index.ts';
 import { PARTNER, nameOf } from '../config.js';
 import { view } from '../game.js';
 import { esc } from '../html.js';
@@ -25,7 +25,7 @@ function readyRow() {
   const current = readyName(agreement.card);
   const buttons = Object.keys(READY_CONVENTIONS).map((name) => {
     const chosen = name === current;
-    return `<button data-setting="ready" data-value="${name}" aria-pressed="${chosen}" class="${chosen ? 'on' : ''}">${t('agreeNames')[name]}</button>`;
+    return `<button data-action="ready" data-value="${name}" aria-pressed="${chosen}" class="${chosen ? 'on' : ''}">${t('agreeNames')[name]}</button>`;
   });
   return `<div class="seg" role="group" aria-label="${esc(t('agreeReady'))}">${buttons.join('')}</div>`;
 }
@@ -33,7 +33,7 @@ function readyRow() {
 /** the card as the two will play it: every line the engine has for it, or the one line of the classic card */
 function readBack() {
   const lines = describeConventions(agreement.card, lang());
-  const items = (lines.length ? lines : [t('agreeClassic')]).map((line) => `<li>${esc(line)}</li>`).join('');
+  const items = (lines.length ? lines : [t('agreeClassic', CLASSIC)]).map((line) => `<li>${esc(line)}</li>`).join('');
   return `<p class="sec">${t('agreeCard', esc(cardName(agreement.card)))}</p><ul class="agreed" id="agreeCard">${items}</ul>`;
 }
 

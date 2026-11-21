@@ -32,7 +32,8 @@ services:
       - '../src/*/Domain/'
       # Values and exceptions of the application layer, which knows nothing of Symfony. An adapter that is
       # no service says so itself, with #[Exclude].
-      - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary,Exchange,Answered,AskedTooOften,CoachResting,DealSpent}.php'
+      - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary,Exchange,Answered,DealSpent}.php'
+      - '../src/Assistant/Application/{AskedTooOften,DaySpent}.php'
       - '../src/Assistant/Application/Conventions/{Reading,Interpreted,NotUnderstood,ConventionsModelFailed,InvalidSentence}.php'
       - '../src/Assistant/Infrastructure/Ai/{CardDraft,ConventionsPrompt}.php'
       - '../src/Identity/Application/{Entered,NoNameFree,EnteredTooOften}.php'
@@ -75,9 +76,12 @@ services:
 
 when@test:
   services:
-    # What the tests put something else behind: the engine's transport and the coach's model.
+    # What the tests put something else behind: the engine, its analysis, its transport and the models.
     Kabbout\Game\Domain\Engine:
       alias: Kabbout\Game\Infrastructure\Bridge\BridgeEngine
+      public: true
+    Kabbout\Game\Domain\DealAnalysis:
+      alias: Kabbout\Game\Infrastructure\Bridge\BridgeDealAnalysis
       public: true
     Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport:
       alias: Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport

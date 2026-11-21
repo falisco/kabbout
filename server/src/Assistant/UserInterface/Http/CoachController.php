@@ -6,10 +6,10 @@ namespace Kabbout\Assistant\UserInterface\Http;
 
 use Kabbout\Api\Domain\Envelope;
 use Kabbout\Api\Domain\FromThePage;
+use Kabbout\Assistant\Application\AskedTooOften;
 use Kabbout\Assistant\Application\Coach\AnswerVisitor;
-use Kabbout\Assistant\Application\Coach\AskedTooOften;
-use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Coach\DealSpent;
+use Kabbout\Assistant\Application\DaySpent;
 use Kabbout\Assistant\Domain\AiConfiguration;
 use Kabbout\Assistant\Domain\InvalidAiSettings;
 use Kabbout\Assistant\Infrastructure\EnvAiConfiguration;
@@ -71,7 +71,7 @@ final readonly class CoachController
             return self::error(Response::HTTP_SERVICE_UNAVAILABLE, 'invalid_ai_settings', $e->getMessage());
         } catch (AskedTooOften $tooOften) {
             throw new TooManyRequestsHttpException($tooOften->retryAfter);
-        } catch (CoachResting) {
+        } catch (DaySpent) {
             return self::error(Response::HTTP_TOO_MANY_REQUESTS, 'daily_quota', 'The coach has answered all it may today.');
         } catch (DealSpent) {
             return self::error(Response::HTTP_TOO_MANY_REQUESTS, 'deal_quota', 'No question left about this deal.', ['left' => 0]);

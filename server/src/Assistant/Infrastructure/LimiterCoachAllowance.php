@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\Infrastructure;
 
-use Kabbout\Assistant\Application\Coach\AskedTooOften;
+use Kabbout\Assistant\Application\AskedTooOften;
 use Kabbout\Assistant\Application\Coach\CoachAllowance;
-use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Coach\DealSpent;
+use Kabbout\Assistant\Application\DaySpent;
 use Kabbout\Identity\Domain\NetworkAddress;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\PruneableInterface;
@@ -54,7 +54,7 @@ final readonly class LimiterCoachAllowance implements CoachAllowance
             $this->pool->prune();
         }
         if (!$this->coachDayLimiter->create('all')->consume()->isAccepted()) {
-            throw new CoachResting();
+            throw new DaySpent();
         }
     }
 

@@ -115,32 +115,47 @@ export function evaluateSuit(hand: readonly Card[], trump: Suit): Evaluation {
   return { value: roundDownToLevel(value), reasons };
 }
 
-/** Which of what a hand holds its support counts: all of it, all but the outside aces, or those aces alone. */
-export type SupportShown = 'all' | 'withoutAces' | 'acesOnly';
-
 /**
- * What a hand adds to a partner who bid `trump`, by the pair's card. On a card that is not the
- * classic one each reason says what it added, so that the player sees the card at work.
+ * Adds up what a hand is worth by a card. On a card that is not the classic one each reason says what
+ * it added, so that the player sees the card at work; the classic card's reasons are what they always were.
  */
-export function evaluateSupport(hand: readonly Card[], trump: Suit, card: Conventions = CLASSIC, shown: SupportShown = 'all'): Evaluation {
+function counting(card: Conventions): Evaluation & { add: (points: number, reason: Reason) => void } {
+  const agreed = !sameConventions(card, CLASSIC);
+  const counted: Evaluation & { add: (points: number, reason: Reason) => void } = {
+    value: 0,
+    reasons: [],
+    add(points, reason) {
+      if (!points) return;
+      counted.value += points;
+      counted.reasons.push(agreed ? (p) => `${reason(p)} +${points}` : reason);
+    },
+  };
+  return counted;
+}
+
+/** What a hand adds to a partner who bid `trump` by what it holds in that suit: the jack, the nine, length, the belote. */
+export function trumpSupport(hand: readonly Card[], trump: Suit, card: Conventions = CLASSIC): Evaluation {
   const symbol = SUIT_SYMBOL[trump];
   const length = lengthIn(hand, trump);
-  const reasons: Reason[] = [];
-  let value = 0;
-  const agreed = !sameConventions(card, CLASSIC);
-  const add = (points: number, reason: Reason) => {
-    if (!points) return;
-    value += points;
-    reasons.push(agreed ? (p) => `${reason(p)} +${points}` : reason);
-  };
-  if (shown !== 'acesOnly') {
-    if (holds(hand, 'J', trump)) add(card.jack, (p) => `${p.jack} ${symbol}`);
-    if (holds(hand, '9', trump)) add(card.nine, () => `9 ${symbol}`);
-    if (length >= 3) add(card.threeTrumps, (p) => p.trumps(length));
-    if (hasBelote(hand, trump)) add(card.belote, (p) => p.belote);
-  }
-  if (shown !== 'withoutAces') for (const suit of outsideAces(hand, trump)) add(card.ace, aceOf(suit));
-  return { value, reasons };
+  const counted = counting(card);
+  if (holds(hand, 'J', trump)) counted.add(card.jack, (p) => `${p.jack} ${symbol}`);
+  if (holds(hand, '9', trump)) counted.add(card.nine, () => `9 ${symbol}`);
+  if (length >= 3) counted.add(card.threeTrumps, (p) => p.trumps(length));
+  if (hasBelote(hand, trump)) counted.add(card.belote, (p) => p.belote);
+  return { value: counted.value, reasons: counted.reasons };
+}
+
+/** What a hand adds to a partner who bid `trump` by its aces in the other suits. */
+export function aceSupport(hand: readonly Card[], trump: Suit, card: Conventions = CLASSIC): Evaluation {
+  const counted = counting(card);
+  for (const suit of outsideAces(hand, trump)) counted.add(card.ace, aceOf(suit));
+  return { value: counted.value, reasons: counted.reasons };
+}
+
+/** All a hand adds to a partner who bid `trump`, by the pair's card: its trumps, then its aces. */
+export function evaluateSupport(hand: readonly Card[], trump: Suit, card: Conventions = CLASSIC): Evaluation {
+  const [trumps, aces] = [trumpSupport(hand, trump, card), aceSupport(hand, trump, card)];
+  return { value: trumps.value + aces.value, reasons: [...trumps.reasons, ...aces.reasons] };
 }
 
 /**
@@ -226,11 +241,25 @@ function bidValue(points: number): BidValue {
 /** the points a hand is worth, as a bid: a whole level, 160 at most */
 const cappedBid = (points: number): number => Math.min(MAX_BID, roundDownToLevel(points));
 
-/** Whether `seat` made its bid at `index` over a contract the opponents held: it was answering them, not its partner. */
-function madeOverOpponents(view: PlayerView, index: number): boolean {
-  const before = view.bids.slice(0, index).filter((b): b is SuitBid => b.type === 'bid');
-  const standing = before[before.length - 1];
-  return standing !== undefined && team(standing.seat) !== team(view.bids[index].seat);
+/**
+ * The second round, on a card that keeps the aces back: what the aces add now that the opponents have
+ * bid over the pair, or null when there is no second round to bid.
+ *
+ * There is one only for a seat whose single bid was a raise of its partner's suit made while the pair
+ * held the contract: that raise left the aces out. A seat that named the suit itself counted its aces
+ * in its own hand's worth, and a raise made over the opponents kept nothing back: for those the aces
+ * have been said, and are not said again. Having bid twice, a seat has had its second round.
+ */
+function acesKeptBack(view: PlayerView, card: Conventions): (Evaluation & { suit: Suit; from: number }) | null {
+  const mine = suitBidsOf(view, view.seat);
+  if (card.aces !== 'whenOverbid' || mine.length !== 1) return null;
+  const [raise] = mine;
+  const heardBefore = view.bids.slice(0, view.bids.indexOf(raise)).filter((b): b is SuitBid => b.type === 'bid');
+  const raised = heardBefore[heardBefore.length - 1];
+  if (!raised || raised.seat !== partnerOf(view.seat) || raised.suit !== raise.suit) return null;
+  const aces = aceSupport(view.hand, raise.suit, card);
+  const partners = suitBidsOf(view, partnerOf(view.seat)).filter((b) => b.suit === raise.suit);
+  return aces.value > 0 ? { ...aces, suit: raise.suit, from: Math.max(raise.value, ...partners.map((b) => b.value)) } : null;
 }
 
 /**
@@ -259,15 +288,16 @@ export function aiBid(view: PlayerView, lang: Lang = 'fr', card: Conventions = C
   }
 
   const own = bestOwnSuit(hand);
-  const mine = suitBidsOf(view, seat);
-  const alreadyBid = mine.length > 0;
+  const alreadyBid = suitBidsOf(view, seat).length > 0;
   const support = (p: Phrases) => p.support;
 
   if (current && team(current.seat) === team(seat)) {
     // our side holds the contract: answer the partner once, with our own suit or with support
     if (current.seat === partnerOf(seat) && !alreadyBid) {
-      const help = evaluateSupport(hand, current.suit, card, card.aces === 'atOnce' ? 'all' : 'withoutAces');
-      const ownSuitIsBetter = own && own.suit !== current.suit && own.value >= current.value + OWN_SUIT_MARGIN && help.value < REAL_SUPPORT;
+      // whether to name another suit is judged on the whole hand; what is said now may leave the aces for later
+      const whole = evaluateSupport(hand, current.suit, card);
+      const help = card.aces === 'atOnce' ? whole : trumpSupport(hand, current.suit, card);
+      const ownSuitIsBetter = own && own.suit !== current.suit && own.value >= current.value + OWN_SUIT_MARGIN && whole.value < REAL_SUPPORT;
       if (ownSuitIsBetter) return bid(Math.min(MAX_BID, own.value), own.suit, own.reasons);
       const raised = cappedBid(current.value + help.value);
       if (raised > current.value) return bid(raised, current.suit, [support, ...help.reasons]);
@@ -285,13 +315,9 @@ export function aiBid(view: PlayerView, lang: Lang = 'fr', card: Conventions = C
       const raised = cappedBid(partnerBid.value + help.value);
       if (help.value >= REAL_SUPPORT && raised > current.value) return bid(raised, partnerBid.suit, [support, ...help.reasons]);
     }
-    if (partnerBid && card.aces === 'whenOverbid' && mine.length === 1 && mine[0].suit === partnerBid.suit) {
-      // the second round: I raised my partner without my aces, and the opponents bid over us. The aces
-      // are shown now, once: a raise made over the opponents had them in it already.
-      const keptBack = !madeOverOpponents(view, view.bids.indexOf(mine[0]));
-      const aces = evaluateSupport(hand, partnerBid.suit, card, 'acesOnly');
-      const raised = cappedBid(Math.max(mine[0].value, partnerBid.value) + aces.value);
-      if (keptBack && aces.value > 0 && raised > current.value) return bid(raised, partnerBid.suit, [(p) => p.acesNow, ...aces.reasons]);
+    const kept = acesKeptBack(view, card);
+    if (kept && cappedBid(kept.from + kept.value) > current.value) {
+      return bid(cappedBid(kept.from + kept.value), kept.suit, [(p) => p.acesNow, ...kept.reasons]);
     }
     if (own && own.value > current.value && current.value < MAX_BID) return bid(Math.min(MAX_BID, own.value), own.suit, own.reasons);
     return pass(phrases.cannotRaise);

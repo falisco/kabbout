@@ -174,8 +174,8 @@ export default {
   agreeNames: { classic: 'Classique', cautious: 'Prudente', bold: 'Audacieuse' },
   agreeOwn: 'La vôtre',
   agreeCard: (name) => `Ce que dit la carte · ${name}`,
-  agreeClassic:
-    'Les conventions classiques de la contrée : on ouvre avec 70 en main ; le partenaire monte de 20 pour le valet, 10 pour le neuf, 10 pour trois atouts, 20 pour la belote, 10 par as, annoncés tout de suite.',
+  agreeClassic: (c) =>
+    `Les conventions classiques de la contrée : on ouvre avec ${c.open} en main ; le partenaire monte de ${c.jack} pour le valet, ${c.nine} pour le neuf, ${c.threeTrumps} pour trois atouts, ${c.belote} pour la belote, ${c.ace} par as, annoncés tout de suite.`,
   agreeLabel: 'Vos conventions, avec vos mots',
   agreeExample: 'Ex. : monte de 20 si t’as le valet, garde tes as',
   agreeSend: 'Envoyer',

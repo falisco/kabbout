@@ -56,7 +56,7 @@ final readonly class EvalConventionsCommand
             $right[$writing][] = $hit;
             $io->writeln(\sprintf('  %02d  %-5s  %s  %s', $number + 1, $writing, $hit ? 'right' : (false === $got ? 'no answer from the model' : 'wrong'), $sentence));
             if (!$hit && false !== $got) {
-                $io->writeln(\sprintf('      expected %s, got %s', self::told($expected, $expected), self::told($got, $expected)));
+                $io->writeln(\sprintf('      expected %s, got %s', self::told($expected, $got), self::told($got, $expected)));
             }
         }
 
@@ -73,8 +73,10 @@ final readonly class EvalConventionsCommand
         if (null === $card) {
             return self::NONE;
         }
+        // the settings either card has that are not the classic one's, so that both are shown on the same settings
         $classic = ConventionCard::classic()->toArray();
-        $shown = array_diff_assoc($card->toArray(), $classic) + array_intersect_key($card->toArray(), array_diff_assoc($beside?->toArray() ?? [], $classic));
+        $told = array_diff_assoc($card->toArray(), $classic) + array_diff_assoc($beside?->toArray() ?? [], $classic);
+        $shown = array_intersect_key($card->toArray(), $told);
 
         return [] === $shown ? 'the classic card' : (string) json_encode($shown);
     }
@@ -95,7 +97,7 @@ final readonly class EvalConventionsCommand
             if (!\is_array($one) || !\is_string($one['writing'] ?? null) || !\is_string($one['sentence'] ?? null) || !\array_key_exists('expected', $one) || !(\is_array($one['expected']) || null === $one['expected'])) {
                 throw new \InvalidArgumentException($file.' holds something that is not a sentence of the set.');
             }
-            $lang = Lang::from(\is_string($one['lang'] ?? null) ? $one['lang'] : '');
+            $lang = Lang::tryFrom(\is_string($one['lang'] ?? null) ? $one['lang'] : '') ?? throw new \InvalidArgumentException($file.' holds a sentence with no language of the screen.');
             $set[] = [$one['writing'], $lang, $one['sentence'], null === $one['expected'] ? null : ConventionCard::fromArray($one['expected'])];
         }
 
