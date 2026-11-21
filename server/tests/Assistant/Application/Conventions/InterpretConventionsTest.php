@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Assistant\Application\Conventions;
 
+use Kabbout\Assistant\Application\Allowance\DaySpent;
 use Kabbout\Assistant\Application\Conventions\ConventionsModelFailed;
 use Kabbout\Assistant\Application\Conventions\InterpretConventions;
 use Kabbout\Assistant\Application\Conventions\InterpretForVisitor;
 use Kabbout\Assistant\Application\Conventions\InvalidSentence;
 use Kabbout\Assistant\Application\Conventions\NotUnderstood;
 use Kabbout\Assistant\Application\Conventions\Reading;
-use Kabbout\Assistant\Application\DaySpent;
 use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Identity\Domain\NetworkAddress;

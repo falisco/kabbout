@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\Application\Conventions;
 
-use Kabbout\Assistant\Application\AskedTooOften;
-use Kabbout\Assistant\Application\DaySpent;
-use Kabbout\Assistant\Application\ModelAllowance;
+use Kabbout\Assistant\Application\Allowance\AskedTooOften;
+use Kabbout\Assistant\Application\Allowance\DaySpent;
+use Kabbout\Assistant\Application\Allowance\ModelAllowance;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Identity\Domain\NetworkAddress;
 

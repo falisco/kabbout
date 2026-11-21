@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\Application\Coach;
 
-use Kabbout\Assistant\Application\AskedTooOften;
-use Kabbout\Assistant\Application\DaySpent;
-use Kabbout\Game\Application\SummariseDeal;
+use Kabbout\Assistant\Application\Allowance\AskedTooOften;
+use Kabbout\Assistant\Application\Allowance\DaySpent;
+use Kabbout\Game\Application\Analysis\SummariseDeal;
 use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\EngineRefused;

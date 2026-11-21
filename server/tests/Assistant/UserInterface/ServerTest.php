@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Assistant\UserInterface;
 
-use Kabbout\Assistant\Domain\Feature;
+use Kabbout\Assistant\Domain\Settings\Feature;
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Infrastructure\Bridge\BridgeEngine;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
