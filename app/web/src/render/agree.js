@@ -2,7 +2,6 @@
 // server can read one, and the card read back. The read-back is written here from the card, by the
 // engine's own words: the server sends a card, never a sentence the player reads.
 import { CLASSIC, READY_CONVENTIONS, describeConventions, sameConventions } from '../../../../engine/src/index.ts';
-import { PARTNER, nameOf } from '../config.js';
 import { view } from '../game.js';
 import { esc } from '../html.js';
 import { lang, t } from '../i18n/index.js';
@@ -15,7 +14,7 @@ export const cardName = (card) => (readyName(card) ? t('agreeNames')[readyName(c
 
 /** the way in from the menu, with the card the two bid by today */
 export const agreeEntry = () =>
-  `<button class="btn pass agree-entry" data-action="agreeOpen">${t('agreeOpen', nameOf(PARTNER))}</button>
+  `<button class="btn pass agree-entry" data-action="agreeOpen">${t('agreeOpen')}</button>
     <p class="sub" id="agreeNow">${t('agreeNow', `<b>${cardName(partnership.card)}</b>`)}</p>`;
 
 /** what the dialog shows depends on it: the dialog is drawn again when it changes, and only then, so what is being typed stays */
@@ -63,9 +62,9 @@ export function agreeDialog() {
   const close = `<button class="icon-x" data-action="menu" aria-label="${back}" title="${back}"><span aria-hidden="true">×</span></button>`;
   const inGame = view && view.phase !== 'gameEnd';
   return `<div class="dbf">
-    <div class="dbf-head"><h2>${t('agreeTitle', nameOf(PARTNER))}</h2>${close}</div>
+    <div class="dbf-head"><h2>${t('agreeTitle')}</h2>${close}</div>
     <div class="dbf-body">
-      <p class="sub">${t('agreeIntro', nameOf(PARTNER))}</p>
+      <p class="sub">${t('agreeIntro')}</p>
       ${readyRow()}
       ${readBack()}
       ${outcome()}

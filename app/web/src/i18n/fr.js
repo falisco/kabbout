@@ -165,11 +165,10 @@ export default {
   },
   menuSub: (partner, o1, o2, target) =>
     `Vous et <b>${partner}</b> contre <b>${o1}</b> et <b>${o2}</b>. Partie en <b>${target} points</b>, belote-rebelote comprise.`,
-  agreeOpen: (partner) => `S’entendre avec ${partner}`,
+  agreeOpen: 'S’entendre avec le partenaire',
   agreeNow: (card) => `Vos annonces à deux : ${card}.`,
-  agreeTitle: (partner) => `S’entendre avec ${partner}`,
-  agreeIntro: (partner) =>
-    `Comme à table, avant de jouer : dites à ${partner} ce que vos annonces veulent dire. ${partner} annoncera selon la carte.`,
+  agreeTitle: 'S’entendre avec le partenaire',
+  agreeIntro: 'Comme à table, avant de jouer : dites à votre partenaire ce que vos annonces veulent dire. Il annoncera selon la carte.',
   agreeReady: 'Cartes toutes prêtes',
   agreeNames: { classic: 'Classique', cautious: 'Prudente', bold: 'Audacieuse' },
   agreeOwn: 'La vôtre',

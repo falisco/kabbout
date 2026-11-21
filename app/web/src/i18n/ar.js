@@ -163,10 +163,10 @@ export default {
   },
   menuSub: (partner, o1, o2, target) =>
     `إنت و<b>${partner}</b> ضد <b>${o1}</b> و<b>${o2}</b>. البارتية بـ <b>${target} نقطة</b>، والبلوط-روبلوط محسوبة.`,
-  agreeOpen: (partner) => `تفاهم مع ${partner}`,
+  agreeOpen: 'تفاهم مع شريكك',
   agreeNow: (card) => `طلباتكم الزوز: ${card}.`,
-  agreeTitle: (partner) => `تفاهم مع ${partner}`,
-  agreeIntro: (partner) => `كيما على الطاولة، قبل ما تلعبو: قول لـ ${partner} آش معناها طلباتكم. ${partner} يطلب على حساب الكارطة.`,
+  agreeTitle: 'تفاهم مع شريكك',
+  agreeIntro: 'كيما على الطاولة، قبل ما تلعبو: قول لشريكك آش معناها طلباتكم. يطلب على حساب الكارطة.',
   agreeReady: 'كوارط حاضرين',
   agreeNames: { classic: 'كلاسيك', cautious: 'بالحذر', bold: 'جريئة' },
   agreeOwn: 'متاعك',

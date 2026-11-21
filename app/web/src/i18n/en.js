@@ -163,10 +163,10 @@ export default {
   },
   menuSub: (partner, o1, o2, target) =>
     `You and <b>${partner}</b> against <b>${o1}</b> and <b>${o2}</b>. First to <b>${target} points</b>, belote-rebelote included.`,
-  agreeOpen: (partner) => `Agree with ${partner}`,
+  agreeOpen: 'Agree with your partner',
   agreeNow: (card) => `How the two of you bid: ${card}.`,
-  agreeTitle: (partner) => `Agree with ${partner}`,
-  agreeIntro: (partner) => `As at the table, before playing: tell ${partner} what your bids mean. ${partner} will bid by the card.`,
+  agreeTitle: 'Agree with your partner',
+  agreeIntro: 'As at the table, before playing: tell your partner what your bids mean. They will bid by the card.',
   agreeReady: 'Ready cards',
   agreeNames: { classic: 'Classic', cautious: 'Cautious', bold: 'Bold' },
   agreeOwn: 'Your own',
