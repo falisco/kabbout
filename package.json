@@ -11,7 +11,7 @@
   },
   "scripts": {
     "test": "node --test \"engine/test/*.test.ts\" \"bridge/test/*.test.ts\" \"app/web/test/*.test.js\"",
-    "test:golden:update": "UPDATE_GOLDEN=1 node --test engine/test/golden.test.ts",
+    "test:golden:update": "UPDATE_GOLDEN=1 node --test engine/test/golden.test.ts engine/test/golden-bids.test.ts",
     "build:web": "esbuild app/web/src/main.js --bundle --format=iife --target=es2020 --outfile=app/web/app.js --log-level=warning",
     "pretest:e2e": "npm run build:web",
     "test:coverage": "node scripts/run-coverage.mjs",
