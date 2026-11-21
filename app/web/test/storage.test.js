@@ -2,7 +2,19 @@
 import { beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { KEYS, loadJSON, loadObj, loadStats, migrateStorage, recordGame, removeKey, saveJSON } from '../src/storage.js';
-import { coachAnswer, loadPrefs, markTutorialStep, prefs, resetTutorial, savePrefs, tutorial } from '../src/store.js';
+import { BOLD, CLASSIC } from '../../../engine/src/index.ts';
+import {
+  coachAnswer,
+  loadConventions,
+  loadPrefs,
+  markTutorialStep,
+  partnership,
+  prefs,
+  resetTutorial,
+  saveConventions,
+  savePrefs,
+  tutorial,
+} from '../src/store.js';
 
 /** a browser's localStorage, reduced to what the game uses */
 function fakeStorage(entries = {}) {
@@ -28,6 +40,7 @@ const DEFAULTS = structuredClone(prefs);
 function resetSettings() {
   Object.assign(prefs, DEFAULTS);
   Object.assign(tutorial, { done: {}, off: false });
+  Object.assign(partnership, { card: CLASSIC, agreed: false });
 }
 
 beforeEach(() => {
@@ -91,13 +104,15 @@ test('what was stored under the game’s former name is brought over once, witho
 });
 
 test('settings keep the names they were first stored under, so that an update loses none', () => {
-  Object.assign(prefs, { highlight: false, showReasons: true, autoPlayForced: false });
+  Object.assign(prefs, { highlight: false, learn: true, autoPlayForced: false });
   savePrefs();
   const stored = loadJSON(KEYS.prefs);
-  assert.deepEqual([stored.hl, stored.why, stored.autoForced], [false, true, false]);
+  assert.deepEqual([stored.hl, stored.learn, stored.autoForced], [false, true, false]);
+  // the switch that showed the robots' reasons is gone: nothing is stored under its name
+  assert.equal('why' in stored, false);
   resetSettings();
   loadPrefs();
-  assert.deepEqual([prefs.highlight, prefs.showReasons, prefs.autoPlayForced], [false, true, false]);
+  assert.deepEqual([prefs.highlight, prefs.learn, prefs.autoPlayForced], [false, true, false]);
 });
 
 test('settings survive a visit; unknown values keep the defaults', () => {
@@ -107,11 +122,13 @@ test('settings survive a visit; unknown values keep the defaults', () => {
   loadPrefs();
   assert.deepEqual([prefs.music, prefs.sound, prefs.level, prefs.scoring, prefs.lang], [true, false, 'expert', 'tunisian', 'ar']);
 
-  saveJSON(KEYS.prefs, { level: 'godlike', scoring: 7, lang: '<script>', sound: 'yes', undo: false, why: 1 });
+  saveJSON(KEYS.prefs, { level: 'godlike', scoring: 7, lang: '<script>', sound: 'yes', undo: false, learn: 1, why: true });
   resetSettings();
   loadPrefs();
   assert.deepEqual([prefs.level, prefs.scoring, prefs.lang], ['normal', 'ffb', null]);
-  assert.deepEqual([prefs.sound, prefs.undo, prefs.showReasons], [true, false, true], 'switches are read as on or off, nothing else');
+  assert.deepEqual([prefs.sound, prefs.undo, prefs.learn], [true, false, true], 'switches are read as on or off, nothing else');
+  // what an earlier version stored to show the robots' reasons switches nothing on
+  assert.equal('showReasons' in prefs, false);
 });
 
 test('with no settings saved, the sound switch of the former version is still honoured', () => {
@@ -143,4 +160,33 @@ test('the tutorial remembers the steps seen, as plain yes or no, and can be skip
   assert.deepEqual(loadJSON(KEYS.tutorial), { done: {}, off: false });
   markTutorialStep('round');
   assert.deepEqual(loadJSON(KEYS.tutorial), { done: { round: true }, off: false });
+});
+
+test('the card agreed with the partner is kept; what is stored and is not a card is no agreement', () => {
+  loadConventions();
+  assert.deepEqual(partnership, { card: CLASSIC, agreed: false });
+
+  Object.assign(partnership, { card: BOLD, agreed: true });
+  saveConventions();
+  Object.assign(partnership, { card: CLASSIC, agreed: false });
+  loadConventions();
+  assert.deepEqual(partnership, { card: BOLD, agreed: true });
+
+  // agreeing on the classic card is an agreement too
+  Object.assign(partnership, { card: CLASSIC, agreed: true });
+  saveConventions();
+  Object.assign(partnership, { card: CLASSIC, agreed: false });
+  loadConventions();
+  assert.equal(partnership.agreed, true);
+
+  for (const stored of ['"bold"', '{"open":70}', JSON.stringify({ ...BOLD, jack: 500 }), JSON.stringify({ ...BOLD, more: 1 }), '[', 'null']) {
+    useStorage(fakeStorage({ [KEYS.conventions]: stored }));
+    Object.assign(partnership, { card: CLASSIC, agreed: false });
+    loadConventions();
+    assert.deepEqual(partnership, { card: CLASSIC, agreed: false }, stored);
+  }
+  useStorage({ getItem: refusing, setItem: refusing, removeItem: refusing });
+  saveConventions();
+  loadConventions();
+  assert.equal(partnership.agreed, false);
 });

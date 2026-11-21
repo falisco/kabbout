@@ -21,6 +21,16 @@ ai:
       # rounds of tool calls in one answer: the six tools, and a few closer looks
       max_tool_calls: 8
 
+    # The conventions: a player's sentence about how the pair bids, turned into the settings of a card.
+    # No tool: one question, one answer in the schema of Infrastructure\Ai\CardDraft (structured output,
+    # asked for at each call with the `response_format` option). Its system prompt: Infrastructure\Ai\ConventionsPrompt.
+    conventions:
+      platform: 'ai.platform.anthropic'
+      model:
+        name: '%env(KABBOUT_AI_MODEL)%'
+        options:
+          max_tokens: 4096
+
 when@test:
   ai:
     platform:

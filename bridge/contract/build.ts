@@ -3,8 +3,8 @@
 // file is what the bridge answers today, and the PHP tests run the same calls through their adapter.
 // Only calls the typed PHP adapter can make are listed: malformed requests are the bridge tests' business.
 
-import type { Action, GameState, Seat } from '../../engine/src/index.ts';
-import { nextSeat } from '../../engine/src/index.ts';
+import type { Action, Conventions, GameState, Seat } from '../../engine/src/index.ts';
+import { BOLD, CAUTIOUS, CLASSIC, nextSeat } from '../../engine/src/index.ts';
 import type { Body } from '../src/handlers.ts';
 import { dispatch } from '../src/server.ts';
 
@@ -108,6 +108,33 @@ function addAnalysis(add: Add, over: GameState): void {
   add('refused: an analysis of a deal played out of turn', '/analysis/swings', { record: { ...record, tricks }, seat: 0 });
 }
 
+/**
+ * Calls that carry a conventions card. They are recorded last, so that the calls recorded before the
+ * card existed stay where they were, line for line.
+ */
+function addConventions(add: Add, over: GameState): void {
+  // a deal whose first seat to speak opens at 80 on the classic card: on a card that opens at 90 only, it passes
+  const opens = (dispatch('/games', { seed: seedOf(2) }).body as StepAnswer).state;
+  const asked = { state: opens, level: 'normal', lang: 'en', seed: seedOf(1) };
+  const quiet: Conventions = { ...CAUTIOUS, open: 90 };
+  add('a robot given no card opens', '/games/robot', asked);
+  add('a robot given the classic card bids as one given none', '/games/robot', { ...asked, conventions: CLASSIC });
+  add('a robot bids by the card its pair agreed on, and passes', '/games/robot', { ...asked, conventions: quiet });
+  add('the auction of a seat next to an expert who bids by the pair’s card', '/analysis/bids', {
+    record: recordOf(over),
+    seat: 0,
+    lang: 'fr',
+    conventions: BOLD,
+  });
+}
+
+/** what is asked about a deal once it is over; the calls that carry a card come last */
+function addAfterTheDeal(add: Add, over: GameState): void {
+  addReplays(add, over);
+  addAnalysis(add, over);
+  addConventions(add, over);
+}
+
 export function buildCases(): Case[] {
   const cases: Case[] = [];
   const add: Add = (name, path, request) => {
@@ -169,8 +196,7 @@ export function buildCases(): Case[] {
   add('the next deal', '/games/apply', { state: over, seat: 0, action: { kind: 'next' }, seed: seedOf(10) });
   add('refused: a robot asked to act once the deal is scored', '/games/robot', { state: over, level: 'easy', lang: 'ar', seed: seedOf(11) });
 
-  addReplays(add, over);
-  addAnalysis(add, over);
+  addAfterTheDeal(add, over);
   return cases;
 }
 

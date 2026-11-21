@@ -41,5 +41,5 @@ interface DealAnalysis
     public function swings(DealRecord $record, Seat $seat): Swings;
 
     /** The seat's bids next to the expert's, from what the seat could know at each turn; the reasons in `$lang`. */
-    public function bids(DealRecord $record, Seat $seat, Lang $lang): BidReview;
+    public function bids(DealRecord $record, Seat $seat, Lang $lang, ?ConventionCard $card = null): BidReview;
 }

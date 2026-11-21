@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Assistant\Infrastructure;
 
-use Kabbout\Assistant\Application\Coach\AskedTooOften;
-use Kabbout\Assistant\Application\Coach\CoachResting;
+use Kabbout\Assistant\Application\AskedTooOften;
 use Kabbout\Assistant\Application\Coach\DealSpent;
+use Kabbout\Assistant\Application\DaySpent;
 use Kabbout\Assistant\Infrastructure\LimiterCoachAllowance;
 use Kabbout\Assistant\Infrastructure\StripedLockFactory;
 use Kabbout\Identity\Domain\NetworkAddress;
@@ -69,7 +69,7 @@ final class LimiterCoachAllowanceTest extends TestCase
         $allowance->day();
         $allowance->day();
 
-        $this->expectException(CoachResting::class);
+        $this->expectException(DaySpent::class);
         $allowance->day();
     }
 

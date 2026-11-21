@@ -21,6 +21,7 @@ use Kabbout\Game\Application\Table\Turn;
 use Kabbout\Game\Domain\Action;
 use Kabbout\Game\Domain\Bid;
 use Kabbout\Game\Domain\Card;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\Level;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Domain\Seed;
@@ -95,6 +96,33 @@ final class TableCapabilitiesTest extends TestCase
 
         $this->act()($this->ana, self::home(), $table, Action::bid(Bid::pass()));
         self::assertSame(Seat::Third, ($this->finished())($this->ana, self::home(), $table)->seat);
+    }
+
+    public function testThePlayersPartnerBidsByThePairsCardForTheWholeGameAndTheOpponentsByTheClassicOne(): void
+    {
+        $bold = ConventionCard::ready('bold');
+        self::assertNotNull($bold);
+        $table = $this->open($this->ana, seat: Seat::Third, card: $bold)->table->toString();
+        $this->act()($this->ana, self::home(), $table, Action::bid(Bid::pass()));
+        $this->act()($this->ana, self::home(), $table, Action::bid(Bid::pass()));
+
+        // seat 0 faces the player: it alone is given the card, at every one of its turns
+        self::assertNotSame([], $this->engine->cards);
+        foreach ($this->engine->cards as [$seat, $card]) {
+            self::assertSame(0 === $seat ? $bold->toArray() : null, $card, 'seat '.$seat);
+        }
+        self::assertContains(0, array_column($this->engine->cards, 0));
+        self::assertContains(1, array_column($this->engine->cards, 0));
+        // and the deal that was played is reviewed by the card it was bid by
+        self::assertTrue($bold->equals(($this->finished())($this->ana, self::home(), $table)->card ?? ConventionCard::classic()));
+    }
+
+    public function testWithNoCardBroughtEveryRobotIsLeftToTheClassicOne(): void
+    {
+        $table = $this->open($this->ana)->table->toString();
+        $this->act()($this->ana, self::home(), $table, Action::bid(Bid::pass()));
+
+        self::assertSame([null], array_values(array_unique(array_column($this->engine->cards, 1), \SORT_REGULAR)));
     }
 
     public function testEveryCallThatDrawsHasASeedOfItsOwnAndTheSameSeedGivesTheSameOnes(): void
@@ -311,9 +339,9 @@ final class TableCapabilitiesTest extends TestCase
         return array_column(array_filter($this->engine->drawn, static fn (array $call): bool => 'apply' === $call[0]), 1);
     }
 
-    private function open(PlayerId $player, Level $level = Level::Easy, Seat $seat = Seat::First, ?Seed $seed = null): Turn
+    private function open(PlayerId $player, Level $level = Level::Easy, Seat $seat = Seat::First, ?Seed $seed = null, ?ConventionCard $card = null): Turn
     {
-        return (new OpenTable($this->engine, $this->robots(), $this->pace, new ClockNow($this->clock)))($player, self::home(), $level, $seat, $seed);
+        return (new OpenTable($this->engine, $this->robots(), $this->pace, new ClockNow($this->clock)))($player, self::home(), $level, $seat, $seed, $card);
     }
 
     private function robots(): RobotsPlay

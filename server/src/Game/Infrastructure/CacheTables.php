@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Kabbout\Game\Infrastructure;
 
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
+use Kabbout\Game\Domain\Exception\InvalidConventionCard;
 use Kabbout\Game\Domain\Exception\InvalidDealRecord;
 use Kabbout\Game\Domain\GameState;
 use Kabbout\Game\Domain\Level;
@@ -63,7 +65,7 @@ final readonly class CacheTables implements Tables
         if (!\is_array($kept)) {
             return null;
         }
-        [$owner, $seat, $level, $secret, $moves, $state, $lastDeal, $playedAt] = $kept + array_fill(0, 8, null);
+        [$owner, $seat, $level, $secret, $moves, $state, $lastDeal, $playedAt, $card] = $kept + array_fill(0, 9, null);
         try {
             return new Table(
                 $id,
@@ -75,8 +77,9 @@ final readonly class CacheTables implements Tables
                 new GameState(\is_array($state) ? self::named($state) : []),
                 \is_array($lastDeal) ? DealRecord::fromArray($lastDeal) : null,
                 \is_int($playedAt) ? $playedAt : throw new \InvalidArgumentException('No time.'),
+                \is_array($card) ? ConventionCard::fromArray($card) : null,
             );
-        } catch (\InvalidArgumentException|\ValueError|InvalidDealRecord) {
+        } catch (\InvalidArgumentException|\ValueError|InvalidDealRecord|InvalidConventionCard) {
             // what the pool holds that is no table is no table
             return null;
         }
@@ -95,6 +98,7 @@ final readonly class CacheTables implements Tables
                 $table->state->toEngineArray(),
                 $table->lastDeal?->toArray(),
                 $table->playedAt,
+                $table->card?->toArray(),
             ]);
             $item->expiresAfter(self::SECONDS_KEPT);
             $saved = $this->cache->save($item);

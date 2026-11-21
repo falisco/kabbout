@@ -9,8 +9,8 @@ enum Feature: string
 {
     /** "What did I do wrong?", answered from the engine's analysis of the deal */
     case Coach = 'coach';
-    /** a bid said as at the café becomes a bid the engine accepts or refuses */
-    case SpokenBids = 'spoken_bids';
+    /** a player's sentence about how the pair bids becomes a conventions card the engine bids by */
+    case Conventions = 'conventions';
     /** questions about the rules and the count */
     case Referee = 'referee';
     /** a language model in a seat, measured against the robots */
@@ -20,8 +20,8 @@ enum Feature: string
     public function shipped(): bool
     {
         return match ($this) {
-            self::Coach => true,
-            self::SpokenBids, self::Referee, self::AgentSeat => false,
+            self::Coach, self::Conventions => true,
+            self::Referee, self::AgentSeat => false,
         };
     }
 

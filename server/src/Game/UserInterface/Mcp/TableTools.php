@@ -13,6 +13,7 @@ use Kabbout\Game\Domain\Action;
 use Kabbout\Game\Domain\Bid;
 use Kabbout\Game\Domain\BidType;
 use Kabbout\Game\Domain\Card;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\Level;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Domain\Seed;
@@ -47,14 +48,15 @@ final readonly class TableTools
     }
 
     /**
-     * @param Level       $level how well the three robots play their cards; they all bid alike
-     * @param Seat        $seat  the seat you take, 0 to 3
-     * @param string|null $seed  leave out for a game nobody can predict. For tests and benches only: the same seed and the same play give the same first deal.
+     * @param Level       $level       how well the three robots play their cards; they all bid alike
+     * @param Seat        $seat        the seat you take, 0 to 3
+     * @param string|null $seed        leave out for a game nobody can predict. For tests and benches only: the same seed and the same play give the same first deal.
+     * @param string|null $conventions what you and the robot facing you agree your bids mean, for the whole game: classic (the default, how the robots always bid), cautious (opens on a fuller hand, no raise on length alone) or bold (raises more on the jack and the nine, and keeps its aces back until the other team bids over yours). The two other robots always bid classic.
      */
     #[McpTool(name: 'new_game', description: 'Sit down at a new table of belote contrée against three robots. The cards are dealt and the robots play until it is your turn. "table" in the answer is the name to give to every other tool. A table expires three hours after the last bid or card played at it: looking at it does not keep it open.'.self::TURN.' Read the resource kabbout://rules first if you do not know the game.', annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false))]
-    public function newGame(Level $level = Level::Normal, Seat $seat = Seat::First, #[Schema(pattern: Seed::FORMAT)] ?string $seed = null): CallToolResult
+    public function newGame(Level $level = Level::Normal, Seat $seat = Seat::First, #[Schema(pattern: Seed::FORMAT)] ?string $seed = null, #[Schema(enum: ['classic', 'cautious', 'bold'])] ?string $conventions = null): CallToolResult
     {
-        return ($this->door)(fn (PlayerId $player, NetworkAddress $from): array => ($this->open)($player, $from, $level, $seat, Seed::fromHexOrNone($seed))->toArray());
+        return ($this->door)(fn (PlayerId $player, NetworkAddress $from): array => ($this->open)($player, $from, $level, $seat, Seed::fromHexOrNone($seed), ConventionCard::named($conventions))->toArray());
     }
 
     /**

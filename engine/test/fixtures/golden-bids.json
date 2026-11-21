@@ -1,0 +1,542 @@
+[
+ {
+  "seed": 1000,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 43,
+  "firstDeal": [
+   "0:pass (pas d’atout solide)",
+   "1:pass (pas d’atout solide)",
+   "2:pass (pas d’atout solide)",
+   "3:80H (V-9 ♥ secs · As ♣)",
+   "0:pass (pas de quoi monter)",
+   "1:pass (contrat déjà dans le camp)",
+   "2:pass (pas de quoi monter)"
+  ],
+  "all": "deb289fb56fefff0d5225c66014db3c67296fa83be832261f90ebc94a8129805"
+ },
+ {
+  "seed": 1037,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 35,
+  "firstDeal": [
+   "3:120D (V ♦ et 4 atouts · 5 atouts · belote · As ♠ · coupe ♥)",
+   "0:pass (pas de quoi monter)",
+   "1:130D (soutien · As ♥)",
+   "2:pass (pas de quoi monter)",
+   "3:pass (contrat déjà dans le camp)",
+   "0:pass (pas de quoi monter)"
+  ],
+  "all": "921c084993557bc3edd0d7e77b6acbadc5153f1dcdc113ec84bb7acfda95b8ef"
+ },
+ {
+  "seed": 1074,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 39,
+  "firstDeal": [
+   "3:pass (pas d’atout solide)",
+   "0:pass (pas d’atout solide)",
+   "1:pass (pas d’atout solide)",
+   "2:pass (pas d’atout solide)",
+   "0:pass (pas d’atout solide)",
+   "1:90C (V-9 ♣ · As ♠)",
+   "2:100S (V-9 ♠ · As ♥ · As ♦)",
+   "3:pass (pas de quoi monter)",
+   "0:pass (contrat déjà dans le camp)",
+   "1:pass (pas de quoi monter)"
+  ],
+  "all": "b8194a685f6e47d072186723047e9d2ecde589b47c32da7ce95e0670d2b3bd19"
+ },
+ {
+  "seed": 1111,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 39,
+  "firstDeal": [
+   "0:pass (pas d’atout solide)",
+   "1:90D (V ♦ et 3 atouts · As ♥ · coupe ♣)",
+   "2:pass (pas de quoi monter)",
+   "3:110D (soutien · 9 ♦ · As ♠)",
+   "0:pass (pas de quoi monter)",
+   "1:pass (contrat déjà dans le camp)",
+   "2:pass (pas de quoi monter)"
+  ],
+  "all": "028f3d2566c1ef01fcd6308a5c4515e366fea932df2aeb99262cbee8145ee432"
+ },
+ {
+  "seed": 1148,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 44,
+  "firstDeal": [
+   "2:pass (pas d’atout solide)",
+   "3:100C (V-9 ♣ · As ♣ · As ♥)",
+   "0:pass (pas de quoi monter)",
+   "1:110C (soutien · As ♦)",
+   "2:pass (pas de quoi monter)",
+   "3:pass (contrat déjà dans le camp)",
+   "0:pass (pas de quoi monter)"
+  ],
+  "all": "d2780e4fcb75d6f7234fa198548c68fc6eaf45a34e71e379dee12f37d7d4cc66"
+ },
+ {
+  "seed": 1185,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 48,
+  "firstDeal": [
+   "0:pass (pas d’atout solide)",
+   "1:pass (pas d’atout solide)",
+   "2:pass (pas d’atout solide)",
+   "3:120D (V-9 ♦ · 4 atouts · As ♦ · As ♠ · As ♥ · coupe ♣)",
+   "0:pass (pas de quoi monter)",
+   "1:130D (soutien · As ♣)",
+   "2:pass (pas de quoi monter)",
+   "3:pass (contrat déjà dans le camp)",
+   "0:pass (pas de quoi monter)"
+  ],
+  "all": "17019403a796f027f47bf0c2e174455d0140c77eec52dd716e9d2af4d6189d7e"
+ },
+ {
+  "seed": 1222,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 57,
+  "firstDeal": [
+   "2:pass (pas d’atout solide)",
+   "3:90D (V-9 ♦ · 4 atouts)",
+   "0:pass (pas de quoi monter)",
+   "1:100D (soutien · As ♣)",
+   "2:pass (pas de quoi monter)",
+   "3:pass (contrat déjà dans le camp)",
+   "0:pass (pas de quoi monter)"
+  ],
+  "all": "42baa3b39d00f91d770add53415064f3f9ef5b51c3abe1cfa644a19fa22a14ab"
+ },
+ {
+  "seed": 1259,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 57,
+  "firstDeal": [
+   "3:pass (pas d’atout solide)",
+   "0:pass (pas d’atout solide)",
+   "1:100S (V-9 ♠ · 5 atouts)",
+   "2:pass (pas de quoi monter)",
+   "3:110S (soutien · As ♥)",
+   "0:pass (pas de quoi monter)",
+   "1:pass (contrat déjà dans le camp)",
+   "2:pass (pas de quoi monter)"
+  ],
+  "all": "012a82fba895601d7686d8089d28ec6f4a9741e6d04a914f07f9b14a62d257cc"
+ },
+ {
+  "seed": 1296,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 53,
+  "firstDeal": [
+   "3:80H (V ♥ troisième · belote)",
+   "0:pass (pas de quoi monter)",
+   "1:90H (soutien · 9 ♥)",
+   "2:pass (pas de quoi monter)",
+   "3:pass (contrat déjà dans le camp)",
+   "0:pass (pas de quoi monter)"
+  ],
+  "all": "20e364ac846a8eb228d530c9d9422834bb0a4bd63bc911ce077f19687ba748b0"
+ },
+ {
+  "seed": 1333,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 45,
+  "firstDeal": [
+   "0:pass (pas d’atout solide)",
+   "1:90H (V-9 ♥ · As ♠)",
+   "2:pass (pas de quoi monter)",
+   "3:pass (contrat déjà dans le camp)",
+   "0:pass (pas de quoi monter)"
+  ],
+  "all": "11a7540bb6315cf48027b06d95144056a81813267495daec8dde840f4516d84a"
+ },
+ {
+  "seed": 1370,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 57,
+  "firstDeal": [
+   "1:pass (pas d’atout solide)",
+   "2:pass (pas d’atout solide)",
+   "3:pass (pas d’atout solide)",
+   "0:pass (pas d’atout solide)",
+   "2:pass (pas d’atout solide)",
+   "3:pass (pas d’atout solide)",
+   "0:pass (pas d’atout solide)",
+   "1:90H (V-9 ♥ · 4 atouts · coupe ♦)",
+   "2:pass (pas de quoi monter)",
+   "3:100H (soutien · As ♣)",
+   "0:pass (pas de quoi monter)",
+   "1:pass (contrat déjà dans le camp)",
+   "2:pass (pas de quoi monter)"
+  ],
+  "all": "30b387e3130f41fa9dc1b897dc6eb14bfb8f89d8126c81e8163d5cade8fcb68b"
+ },
+ {
+  "seed": 1407,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 42,
+  "firstDeal": [
+   "2:110H (V-9 ♥ · 4 atouts · coupe ♠ · coupe ♦ · As ♣ · 10 ♣)",
+   "3:pass (pas de quoi monter)",
+   "0:120H (soutien · As ♠)",
+   "1:pass (pas de quoi monter)",
+   "2:pass (contrat déjà dans le camp)",
+   "3:pass (pas de quoi monter)"
+  ],
+  "all": "e8c5ce9e64d537089115f64c34534750bbe14d57e5394604c4b444ce2600cfe4"
+ },
+ {
+  "seed": 1444,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 53,
+  "firstDeal": [
+   "0:pass (pas d’atout solide)",
+   "1:pass (pas d’atout solide)",
+   "2:100D (V-9 ♦ · 4 atouts · As ♦ · coupe ♠)",
+   "3:pass (pas de quoi monter)",
+   "0:pass (contrat déjà dans le camp)",
+   "1:pass (pas de quoi monter)"
+  ],
+  "all": "24828b29dd4ac08f5128f704fbd0e418e0dc2a0c752c38bf4435e7b5e252a760"
+ },
+ {
+  "seed": 1481,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 46,
+  "firstDeal": [
+   "3:80C (V ♣ troisième · As ♣ · As ♥)",
+   "0:pass (pas de quoi monter)",
+   "1:pass (contrat déjà dans le camp)",
+   "2:pass (pas de quoi monter)"
+  ],
+  "all": "e08256971cf0a658d33b22282c4f2fdeff1fe8af38a171788e9f4185b17af9bc"
+ },
+ {
+  "seed": 1518,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 55,
+  "firstDeal": [
+   "1:pass (pas d’atout solide)",
+   "2:pass (pas d’atout solide)",
+   "3:pass (pas d’atout solide)",
+   "0:80H (V ♥ troisième · As ♥ · As ♦)",
+   "1:pass (pas de quoi monter)",
+   "2:90H (soutien · As ♣)",
+   "3:pass (pas de quoi monter)",
+   "0:pass (contrat déjà dans le camp)",
+   "1:pass (pas de quoi monter)"
+  ],
+  "all": "4336ad3eaba22b4dc76b1653e9b1dfa1540ae78046e1078e91aad747fbd5652b"
+ },
+ {
+  "seed": 1555,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 55,
+  "firstDeal": [
+   "1:80D (V ♦ troisième · As ♦ · As ♥)",
+   "2:pass (pas de quoi monter)",
+   "3:100D (soutien · As ♠ · As ♣)",
+   "0:pass (pas de quoi monter)",
+   "1:pass (contrat déjà dans le camp)",
+   "2:pass (pas de quoi monter)"
+  ],
+  "all": "62f2d6e8eafa391cbaba2ecb95100982c197cf2b55853c40c4d458ebb06171d9"
+ },
+ {
+  "seed": 1592,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 39,
+  "firstDeal": [
+   "2:pass (pas d’atout solide)",
+   "3:pass (pas d’atout solide)",
+   "0:pass (pas d’atout solide)",
+   "1:pass (pas d’atout solide)",
+   "3:80H (V ♥ troisième · As ♠)",
+   "0:pass (pas de quoi monter)",
+   "1:100H (soutien · 9 ♥ · 3 atouts)",
+   "2:pass (pas de quoi monter)",
+   "3:pass (contrat déjà dans le camp)",
+   "0:pass (pas de quoi monter)"
+  ],
+  "all": "39ba5959ec7be757867ee06d1030586e2193ebd273896230a263b9a5d3395832"
+ },
+ {
+  "seed": 1629,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 29,
+  "firstDeal": [
+   "0:pass (pas d’atout solide)",
+   "1:pass (pas d’atout solide)",
+   "2:80D (V-9 ♦ secs · As ♠)",
+   "3:pass (pas de quoi monter)",
+   "0:130D (soutien · 4 atouts · belote · As ♥ · As ♣)",
+   "1:pass (pas de quoi monter)",
+   "2:pass (contrat déjà dans le camp)",
+   "3:pass (pas de quoi monter)"
+  ],
+  "all": "7ee3415ae58d6cf234085037965c5fe63a82df084b3ef398384e73b39bb0b799"
+ },
+ {
+  "seed": 1666,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 53,
+  "firstDeal": [
+   "3:pass (pas d’atout solide)",
+   "0:pass (pas d’atout solide)",
+   "1:100D (V ♦ et 3 atouts · As ♦ · As ♠)",
+   "2:pass (pas de quoi monter)",
+   "3:110D (soutien · As ♥)",
+   "0:pass (pas de quoi monter)",
+   "1:pass (contrat déjà dans le camp)",
+   "2:pass (pas de quoi monter)"
+  ],
+  "all": "86f274fe5b75af12c32871fdd3ef89bdb36803d25dd45799033eea291de1613f"
+ },
+ {
+  "seed": 1703,
+  "scoring": "ffb",
+  "level": "normal",
+  "bids": 44,
+  "firstDeal": [
+   "2:80S (V-9 ♠)",
+   "3:pass (pas de quoi monter)",
+   "0:100S (soutien · 3 atouts · As ♥)",
+   "1:pass (pas de quoi monter)",
+   "2:pass (contrat déjà dans le camp)",
+   "3:pass (pas de quoi monter)"
+  ],
+  "all": "2982ad6273a973d0cc6bc6b7f49f69cb1c07c7f165faa5491e7ec39f86238628"
+ },
+ {
+  "seed": 2000,
+  "scoring": "tunisian",
+  "level": "normal",
+  "bids": 52,
+  "firstDeal": [
+   "0:pass (pas d’atout solide)",
+   "1:pass (pas d’atout solide)",
+   "2:pass (pas d’atout solide)",
+   "3:pass (pas d’atout solide)",
+   "1:pass (pas d’atout solide)",
+   "2:pass (pas d’atout solide)",
+   "3:pass (pas d’atout solide)",
+   "0:80D (V-9 ♦ secs · As ♣)",
+   "1:pass (pas de quoi monter)",
+   "2:pass (contrat déjà dans le camp)",
+   "3:pass (pas de quoi monter)"
+  ],
+  "all": "170925b3234855168d7344918954ce074a6a83d9047a781bc5781916ee7cfa36"
+ },
+ {
+  "seed": 2037,
+  "scoring": "tunisian",
+  "level": "normal",
+  "bids": 63,
+  "firstDeal": [
+   "1:pass (pas d’atout solide)",
+   "2:pass (pas d’atout solide)",
+   "3:90H (V ♥ et 3 atouts · As ♣)",
+   "0:pass (pas de quoi monter)",
+   "1:pass (contrat déjà dans le camp)",
+   "2:pass (pas de quoi monter)"
+  ],
+  "all": "4be4e6555dd84d70d188aaf997f19f97c8d877ca868e6a26dff2b29d5fa55f10"
+ },
+ {
+  "seed": 2074,
+  "scoring": "tunisian",
+  "level": "normal",
+  "bids": 75,
+  "firstDeal": [
+   "0:pass (pas d’atout solide)",
+   "1:80D (V ♦ troisième · As ♥)",
+   "2:pass (pas de quoi monter)",
+   "3:120D (soutien · 9 ♦ · 3 atouts · belote)",
+   "0:pass (pas de quoi monter)",
+   "1:pass (contrat déjà dans le camp)",
+   "2:pass (pas de quoi monter)"
+  ],
+  "all": "885659f12063e9711d92e47edd892377d09b6148627f4a88fa5dd47d3c907dfb"
+ },
+ {
+  "seed": 2111,
+  "scoring": "tunisian",
+  "level": "normal",
+  "bids": 55,
+  "firstDeal": [
+   "3:80H (V-9 ♥)",
+   "0:pass (pas de quoi monter)",
+   "1:90H (soutien · As ♣)",
+   "2:pass (pas de quoi monter)",
+   "3:pass (contrat déjà dans le camp)",
+   "0:pass (pas de quoi monter)"
+  ],
+  "all": "2063aec86b1c4917877517076d3d251b2a1c49fafabdcb97bb394a450c864089"
+ },
+ {
+  "seed": 2148,
+  "scoring": "tunisian",
+  "level": "normal",
+  "bids": 85,
+  "firstDeal": [
+   "0:pass (pas d’atout solide)",
+   "1:110C (V-9 ♣ · 4 atouts · coupe ♠ · As ♦ · 10 ♦)",
+   "2:pass (pas de quoi monter)",
+   "3:120C (soutien · As ♥)",
+   "0:pass (pas de quoi monter)",
+   "1:pass (contrat déjà dans le camp)",
+   "2:pass (pas de quoi monter)"
+  ],
+  "all": "6c3f231793d6c6a3a1195a484a87d7db972ccbef26de458b3d57d4df34f444ed"
+ },
+ {
+  "seed": 3000,
+  "scoring": "ffb",
+  "level": "easy",
+  "bids": 51,
+  "firstDeal": [
+   "3:pass (pas d’atout solide)",
+   "0:pass (pas d’atout solide)",
+   "1:pass (pas d’atout solide)",
+   "2:80S (V ♠ troisième · As ♥ · 10 ♥)",
+   "3:pass (pas de quoi monter)",
+   "0:90S (soutien · As ♣)",
+   "1:pass (pas de quoi monter)",
+   "2:pass (contrat déjà dans le camp)",
+   "3:pass (pas de quoi monter)"
+  ],
+  "all": "dacfa8190a309880e7519a11890d270db6dbeb13b40bb1e130eaf6692943f387"
+ },
+ {
+  "seed": 3037,
+  "scoring": "ffb",
+  "level": "easy",
+  "bids": 56,
+  "firstDeal": [
+   "1:pass (pas d’atout solide)",
+   "2:pass (pas d’atout solide)",
+   "3:80C (V-9 ♣ secs · As ♠ · As ♥ · 10 ♥)",
+   "0:90S (V ♠ et 3 atouts · As ♣)",
+   "1:pass (pas de quoi monter)",
+   "2:100S (soutien · As ♦)",
+   "3:pass (pas de quoi monter)",
+   "0:pass (contrat déjà dans le camp)",
+   "1:pass (pas de quoi monter)"
+  ],
+  "all": "cf6796852c4e6160c6577c51ea9eefb48a56e7c37a8d01db3a55a6c2090d825e"
+ },
+ {
+  "seed": 3074,
+  "scoring": "ffb",
+  "level": "easy",
+  "bids": 42,
+  "firstDeal": [
+   "3:100S (V ♠ et 3 atouts · As ♠ · coupe ♦ · As ♣)",
+   "0:pass (pas de quoi monter)",
+   "1:130S (soutien · 9 ♠ · 3 atouts · As ♥)",
+   "2:pass (pas de quoi monter)",
+   "3:pass (contrat déjà dans le camp)",
+   "0:pass (pas de quoi monter)"
+  ],
+  "all": "8397de37ddcc44235bda11380ff0a6e60661da46e0038c062a084bc157cf11bf"
+ },
+ {
+  "seed": 3111,
+  "scoring": "ffb",
+  "level": "easy",
+  "bids": 40,
+  "firstDeal": [
+   "3:pass (pas d’atout solide)",
+   "0:80D (V ♦ troisième · As ♠)",
+   "1:pass (pas de quoi monter)",
+   "2:130H (V ♥ et 4 atouts · 5 atouts · As ♥ · belote · coupe ♠ · coupe ♦)",
+   "3:pass (pas de quoi monter)",
+   "0:pass (contrat déjà dans le camp)",
+   "1:pass (pas de quoi monter)"
+  ],
+  "all": "95a409181f2ddeea54d34dfaa6ca02aded16ffc3ba3a03a5c4d3cdc9db26e189"
+ },
+ {
+  "seed": 3148,
+  "scoring": "ffb",
+  "level": "easy",
+  "bids": 52,
+  "firstDeal": [
+   "0:90H (V-9 ♥ · As ♣)",
+   "1:pass (pas de quoi monter)",
+   "2:100H (soutien · As ♦)",
+   "3:pass (pas de quoi monter)",
+   "0:pass (contrat déjà dans le camp)",
+   "1:pass (pas de quoi monter)"
+  ],
+  "all": "1d76b814f35576bfd94c3797e939b05e65252bdce6463d2ddccb03559baf8b32"
+ },
+ {
+  "seed": 4000,
+  "scoring": "ffb",
+  "level": "expert",
+  "bids": 28,
+  "firstDeal": [
+   "1:80C (V ♣ et 3 atouts · As ♣)",
+   "2:130H (V-9 ♥ · 5 atouts · As ♥ · belote)",
+   "3:pass (pas de quoi monter)",
+   "0:150H (soutien · As ♠ · As ♦)",
+   "1:pass (pas de quoi monter)",
+   "2:pass (contrat déjà dans le camp)",
+   "3:pass (pas de quoi monter)"
+  ],
+  "all": "835e42771280c54cbace7f62efd4953475fbdc8c79a4586ce0adbb7557d5699a"
+ },
+ {
+  "seed": 4037,
+  "scoring": "ffb",
+  "level": "expert",
+  "bids": 47,
+  "firstDeal": [
+   "3:pass (pas d’atout solide)",
+   "0:pass (pas d’atout solide)",
+   "1:80H (V ♥ et 3 atouts · coupe ♠)",
+   "2:pass (pas de quoi monter)",
+   "3:90H (soutien · 9 ♥)",
+   "0:pass (pas de quoi monter)",
+   "1:pass (contrat déjà dans le camp)",
+   "2:pass (pas de quoi monter)"
+  ],
+  "all": "75205ce02c010ff3f0457b1f5490bdd2091dc232381e360673e361d3c2e547fc"
+ },
+ {
+  "seed": 4074,
+  "scoring": "ffb",
+  "level": "expert",
+  "bids": 53,
+  "firstDeal": [
+   "3:100H (V ♥ et 3 atouts · coupe ♠ · As ♣ · 10 ♣)",
+   "0:pass (pas de quoi monter)",
+   "1:120H (soutien · 9 ♥ · As ♠)",
+   "2:pass (pas de quoi monter)",
+   "3:pass (contrat déjà dans le camp)",
+   "0:pass (pas de quoi monter)"
+  ],
+  "all": "7b9f7ed8eeec1ff3443bf5d79e725f41d4030241c1c29fe0c3f4a90bb0afe361"
+ }
+]

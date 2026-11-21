@@ -12,6 +12,7 @@ use Kabbout\Game\Domain\Analysis\TrickNumber;
 use Kabbout\Game\Domain\Analysis\TrickReview;
 use Kabbout\Game\Domain\Analysis\WhatIf;
 use Kabbout\Game\Domain\Card;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealAnalysis;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Lang;
@@ -70,13 +71,13 @@ final class BridgeDealAnalysis implements DealAnalysis, ResetInterface
         return AnalysisMapper::swings($this->ask('/analysis/swings', $record, $seat));
     }
 
-    public function bids(DealRecord $record, Seat $seat, Lang $lang): BidReview
+    public function bids(DealRecord $record, Seat $seat, Lang $lang, ?ConventionCard $card = null): BidReview
     {
-        return AnalysisMapper::bids($this->ask('/analysis/bids', $record, $seat, ['lang' => $lang->value]));
+        return AnalysisMapper::bids($this->ask('/analysis/bids', $record, $seat, ['lang' => $lang->value, ...(null === $card ? [] : ['conventions' => $card->toArray()])]));
     }
 
     /**
-     * @param array<string, int|string> $more
+     * @param array<string, int|string|array<string, int|string>> $more
      *
      * @return array<string, mixed>
      */

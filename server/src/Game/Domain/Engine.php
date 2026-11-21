@@ -38,11 +38,12 @@ interface Engine
     /**
      * What a robot does for the seat to act, from that seat's view alone.
      *
-     * @param Lang $lang the language of the reason a robot gives for its bid
+     * @param Lang                $lang the language of the reason a robot gives for its bid
+     * @param ConventionCard|null $card the conventions that seat and its partner bid by; none, the classic ones
      *
      * @throws EngineRefused when no seat is to bid or to play
      */
-    public function robotMove(GameState $state, Level $level, Seed $seed, Lang $lang = Lang::Fr): RobotMove;
+    public function robotMove(GameState $state, Level $level, Seed $seed, Lang $lang = Lang::Fr, ?ConventionCard $card = null): RobotMove;
 
     /**
      * Plays a recorded deal again.

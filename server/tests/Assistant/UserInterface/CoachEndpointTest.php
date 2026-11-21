@@ -6,6 +6,7 @@ namespace Kabbout\Tests\Assistant\UserInterface;
 
 use Kabbout\Assistant\Application\Coach\CoachModel;
 use Kabbout\Assistant\Application\Coach\Exchange;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport;
 use Kabbout\Identity\Infrastructure\Security\GuestCookie;
 use Kabbout\Tests\Assistant\Application\Coach\ScriptedCoachModel;
@@ -55,6 +56,21 @@ final class CoachEndpointTest extends WebTestCase
             ['text' => 'Au pli 4, vous avez joué le 10 de trèfle ; l’as de carreau était meilleur.', 'source' => 'model', 'tricks' => [4], 'cards' => ['TC', 'AD']],
             $answer['answer'],
         );
+    }
+
+    public function testTheCardThePairAgreedOnGoesWithTheQuestionAndNoneWhenTheyAgreedOnNone(): void
+    {
+        $swings = RecordedDeal::call('/analysis/swings')['response'];
+        $model = new ScriptedCoachModel(['Le pli 4.', 'Le pli 4.'], [$swings]);
+        $client = self::client($model);
+
+        self::ask($client, self::question());
+        self::assertResponseIsSuccessful();
+        self::ask($client, ['conventions' => ConventionCard::READY['bold'], 'question' => 'Et mes annonces ?'] + self::question());
+        self::assertResponseIsSuccessful();
+
+        self::assertNull($model->briefs[0]->card);
+        self::assertSame(ConventionCard::READY['bold'], $model->briefs[1]->card?->toArray());
     }
 
     public function testAnInventionNeverReachesThePlayer(): void
@@ -116,6 +132,8 @@ final class CoachEndpointTest extends WebTestCase
         yield 'no question' => [['question' => '  '] + $question, 'A question to the coach is 1 to 300 characters.'];
         yield 'a question that is no text' => [['question' => ['x']] + $question, 'A question to the coach is 1 to 300 characters.'];
         yield 'a page for a question' => [['question' => str_repeat('a', 301)] + $question, 'A question to the coach is 1 to 300 characters.'];
+        yield 'conventions that are no card' => [['conventions' => 'bold'] + $question, 'The conventions, when there are any, are a conventions card.'];
+        yield 'a card with a value it does not allow' => [['conventions' => ['jack' => 500] + ConventionCard::READY['classic']] + $question, 'On a conventions card, jack is one of 0, 10, 20, 30.'];
         yield 'seven tricks' => [['record' => ['tricks' => []] + (array) $question['record']] + $question, 'A recorded deal holds eight tricks.'];
     }
 

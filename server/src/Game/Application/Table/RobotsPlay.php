@@ -47,7 +47,9 @@ final readonly class RobotsPlay
             if (self::MOST_MOVES === $played) {
                 throw new \LogicException('The robots play on and on: the player\'s turn never comes.');
             }
-            $move = $this->engine->robotMove($state, $table->level, $table->secret->derive('robot '.$moves));
+            // the player's partner bids by the pair's card; the two opponents keep the classic one
+            $card = $state->turn() === $table->seat->partner() ? $table->card : null;
+            $move = $this->engine->robotMove($state, $table->level, $table->secret->derive('robot '.$moves), card: $card);
             $step = $this->engine->apply($state, $move->seat, $move->action, $table->secret->derive('move '.$moves));
             $state = $step->state;
             $events = [...$events, ...$step->events];

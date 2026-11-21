@@ -12,6 +12,7 @@ import { aiNotice } from '../server.js';
 import { loadStats } from '../storage.js';
 import { starSVG } from '../star.js';
 import { capabilities, overlay, player, prefs, tableState, tutorial } from '../store.js';
+import { agreeDialog, agreeEntry, agreeState } from './agree.js';
 import { historyHTML, valuesTable } from './bidding.js';
 import { debriefButton, debriefDialog, debriefHint, debriefState, debriefTrickDialog } from './debrief.js';
 import { multiplierMark } from './table.js';
@@ -113,6 +114,7 @@ function menuDialog() {
       ${actionButton('new', inGame ? 'pass' : 'take', t('newGame'))}
     </div>
     ${levelRow()}${scoringRow()}${langRow()}
+    ${agreeEntry()}
     ${playerLine()}${aiLine()}
     ${stats.played ? `<p class="stats">${t('stats', stats.won, stats.played)}</p>` : ''}`;
 }
@@ -196,7 +198,6 @@ function settingsDialog() {
     ['music', 'setMusic'],
     ['sound', 'setSound'],
     ['highlight', 'setHl'],
-    ['showReasons', 'setWhy'],
     ['autoPlayForced', 'setAutoForced'],
     ['undo', 'setUndo'],
     ['learn', 'setLearn'],
@@ -221,9 +222,10 @@ const DIALOGS = {
   values: valuesDialog,
   debrief: debriefDialog,
   trick: debriefTrickDialog,
+  agree: agreeDialog,
 };
 /** dialogs drawn again when what they show has changed, and left alone otherwise: what the player is typing stays */
-const DIALOG_STATES = { debrief: debriefState };
+const DIALOG_STATES = { debrief: debriefState, agree: agreeState };
 
 /** The dialog to show: the one the player opened, else the result of the round or of the game once the table has settled. */
 function dialogDue() {

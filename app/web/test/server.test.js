@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { NO_SERVER, aiNotice, askCoach, enter, loadCapabilities } from '../src/server.js';
+import { BOLD, CLASSIC } from '../../../engine/src/index.ts';
+import { NO_SERVER, aiNotice, askCoach, enter, interpretConventions, loadCapabilities } from '../src/server.js';
 
 const answer = (features, ai = { variable: 'ANTHROPIC_API_KEY' }) => ({ version: 1, ai, features });
 /** a fetch that answers once with the given status and body */
@@ -219,4 +220,59 @@ test('a coach that takes too long is given up on', async () => {
     (_url, init) => new Promise((_resolve, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted'))))
   );
   assert.deepEqual(await askCoach(QUESTION, never, 5), { answer: null, reason: 'unavailable' });
+});
+
+/* ---------- the conventions with the partner ---------- */
+
+const SENTENCE = { sentence: 'monte de 30 si t’as le valet', lang: 'fr' };
+
+test('interpretConventions posts the sentence as the page, and reads the card as the engine reads any card', async () => {
+  const asked = [];
+  const reply = await interpretConventions(
+    SENTENCE,
+    /** @type {any} */ (
+      async (url, init) => (
+        asked.push([url, init]),
+        { status: 200, json: async () => ({ version: 1, card: { ...BOLD }, unplaced: [' et souris ', 7, ''] }) }
+      )
+    ),
+  );
+  assert.deepEqual(reply, { card: BOLD, unplaced: [' et souris '], reason: '' });
+  const [[url, init]] = asked;
+  assert.equal(url, 'api/conventions/interpret');
+  assert.equal(init.method, 'POST');
+  assert.equal(init.headers['csrf-token'], 'csrf-token');
+  assert.deepEqual(JSON.parse(init.body), SENTENCE);
+});
+
+test('interpretConventions: what is not a card is no card, whatever the server says of it', async () => {
+  for (const card of [null, 'bold', { ...CLASSIC, jack: 40 }, { ...CLASSIC, contre: 10 }, { open: 70 }, [CLASSIC]]) {
+    assert.deepEqual(await interpretConventions(SENTENCE, answering(200, { card, unplaced: [] })), {
+      card: null,
+      unplaced: [],
+      reason: 'unavailable',
+    });
+  }
+  // a card with nothing said of what was left out is a card
+  assert.deepEqual(await interpretConventions(SENTENCE, answering(200, { card: CLASSIC })), { card: CLASSIC, unplaced: [], reason: '' });
+  // and what was left out is a few short pieces, however many and however long the server sends
+  const many = await interpretConventions(SENTENCE, answering(200, { card: CLASSIC, unplaced: Array(40).fill('x'.repeat(5000)) }));
+  assert.equal(many.unplaced.length, 6);
+  assert.equal(many.unplaced[0].length, 300);
+});
+
+test('interpretConventions never fails: each refusal has its reason', async () => {
+  const reason = async (status, body) => (await interpretConventions(SENTENCE, answering(status, body))).reason;
+  assert.equal(await reason(422, { error: { code: 'not_understood' } }), 'unclear');
+  assert.equal(await reason(429, { error: { code: 'too_many_requests' } }), 'busy');
+  assert.equal(await reason(429, { error: { code: 'daily_quota' } }), 'resting');
+  assert.equal(await reason(503, { error: { code: 'ai_off' } }), 'unavailable');
+  assert.equal(await reason(200, null), 'unavailable');
+  const thrown = await interpretConventions(SENTENCE, /** @type {any} */ (async () => Promise.reject(new Error('offline'))));
+  assert.deepEqual(thrown, { card: null, unplaced: [], reason: 'unavailable' });
+  // a server that never answers is given up on
+  const hanging = /** @type {any} */ (
+    (_url, init) => new Promise((_resolve, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted'))))
+  );
+  assert.equal((await interpretConventions(SENTENCE, hanging, 5)).reason, 'unavailable');
 });

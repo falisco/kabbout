@@ -29,6 +29,6 @@ final readonly class FinishedDeal
     {
         $table = ($this->own)($player, $from, $named);
 
-        return new PlayedDeal($table->lastDeal ?? throw new NoFinishedDeal(), $table->seat);
+        return new PlayedDeal($table->lastDeal ?? throw new NoFinishedDeal(), $table->seat, $table->card);
     }
 }

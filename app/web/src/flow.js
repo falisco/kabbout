@@ -1,5 +1,6 @@
 // The flow of a game on screen: the session decides, this module passes its events on,
 // paces the robots and the table's pauses, and handles undo and advice.
+import { CLASSIC, READY_CONVENTIONS, isReadyConventions, sameConventions } from '../../../engine/src/index.ts';
 import { snd } from './audio.js';
 import { FAST, FAST_PACE, ME, PACE, TOAST_MS, UNDO_MS, nameOf, sideOf } from './config.js';
 import { onGameEvent } from './feedback.js';
@@ -13,9 +14,22 @@ import { render } from './render/index.js';
 import { renderHand } from './render/table.js';
 import { say, toast } from './render/transient.js';
 import { turnKey } from './selectors.js';
-import { askCoach, enter, loadCapabilities } from './server.js';
+import { askCoach, enter, interpretConventions, loadCapabilities } from './server.js';
 import { clearBubbles } from './speech.js';
-import { capabilities, debrief, overlay, player, prefs, resetDebrief, selection, tableState, undoState } from './store.js';
+import {
+  agreement,
+  capabilities,
+  debrief,
+  overlay,
+  partnership,
+  player,
+  prefs,
+  resetDebrief,
+  saveConventions,
+  selection,
+  tableState,
+  undoState,
+} from './store.js';
 
 /** the one thing the table is waiting to do by itself */
 let pendingStep = null;
@@ -55,7 +69,10 @@ export async function askDebrief() {
   say(t('debriefAsking'));
   render();
   showLastTurn();
-  const reply = await askCoach({ record, seat: ME, lang: lang(), question });
+  // the expert the coach compares the player's bids with bids by the card of this game, when it is not the classic one
+  const card = session.conventions();
+  const conventions = !card || sameConventions(card, CLASSIC) ? {} : { conventions: card };
+  const reply = await askCoach({ record, seat: ME, lang: lang(), question, ...conventions });
   // the table moved on while the coach was thinking: this answer is about another deal
   if (asked !== debrief.asked) return;
   debrief.pending = '';
@@ -157,6 +174,47 @@ function advisePlay() {
   selection.hintCard = card;
   renderHand();
   toast(t('tipCard', card[0], suitHTML(card[1]), t('tipReasons')[reason]), TOAST_MS.advice);
+}
+
+/* ---------- agreeing with the partner ---------- */
+
+/** Opens the dialog on the card the two bid by today. */
+export function openAgreement() {
+  Object.assign(agreement, { card: partnership.card, sentence: '', status: 'idle', reason: '', unplaced: [], asked: agreement.asked + 1 });
+  openModal('agree');
+}
+/** Looks at one of the ready cards. Nothing is agreed until the player says so. */
+export function pickReadyCard(name) {
+  if (!isReadyConventions(name)) return;
+  Object.assign(agreement, { card: READY_CONVENTIONS[name], status: 'idle', reason: '', unplaced: [], asked: agreement.asked + 1 });
+}
+/**
+ * Sends the player's sentence to the server, which answers with a card or with none. The card is then
+ * read back by the page, from the card: no sentence of the server's is shown but the pieces of the
+ * player's own that it could not place.
+ */
+export async function interpretAgreement() {
+  const sentence = agreement.sentence.trim();
+  if (!sentence || agreement.status === 'asking') return;
+  const asked = agreement.asked + 1;
+  Object.assign(agreement, { status: 'asking', reason: '', unplaced: [], asked });
+  say(t('agreeAsking'));
+  render();
+  const reply = await interpretConventions({ sentence, lang: lang() });
+  // the player went on to something else while the server was reading: this answer is no longer asked for
+  if (asked !== agreement.asked || overlay.modal !== 'agree') return;
+  agreement.asked++;
+  if (reply.card) Object.assign(agreement, { card: reply.card, unplaced: reply.unplaced, status: 'understood', sentence: '' });
+  else Object.assign(agreement, { status: 'failed', reason: reply.reason });
+  say(reply.card ? t('agreeUnderstood') : t('agreeErrors')[reply.reason]);
+  render();
+}
+/** The card looked at becomes the pair's: kept for the next visits, played by from the next game. */
+export function confirmAgreement() {
+  Object.assign(partnership, { card: agreement.card, agreed: true });
+  saveConventions();
+  openModal('menu');
+  toast(t('agreeDone'), TOAST_MS.advice);
 }
 
 export function openModal(name) {

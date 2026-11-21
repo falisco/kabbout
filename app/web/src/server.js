@@ -2,6 +2,8 @@
 // nothing answers here and nothing about the server shows. When the page comes from the Kabbout server,
 // this is where it learns what the server adds. No DOM here, so it is tested under Node.
 
+import { readConventions } from '../../../engine/src/index.ts';
+
 /** what the page knows when no server answers */
 export const NO_SERVER = Object.freeze({ server: false, variable: '', features: Object.freeze({}) });
 const STATES = ['planned', 'off', 'on'];
@@ -157,6 +159,51 @@ export async function askCoach(question, fetchFn = (url, init) => fetch(url, ini
     return { answer: null, reason: REASONS[response.status] ?? 'unavailable' };
   } catch {
     return { answer: null, reason: 'unavailable' };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/* ---------- the conventions with the partner ---------- */
+
+/** How long the page waits for a sentence to become a card: one call to the model, no tool. */
+export const CONVENTIONS_TIMEOUT_MS = 40_000;
+/** what the server may say it could not place: a few short pieces of the player's own sentence */
+const UNPLACED_MOST = 6;
+const UNPLACED_LENGTH = 300;
+
+/**
+ * Asks the server what card a sentence describes. Never fails: when there is no card, `reason` says why,
+ * 'unclear' (the sentence describes no card), 'busy' (too many questions), 'resting' (the day's questions
+ * are spent for everybody) or 'unavailable' (anything else). The card is read as the engine reads any
+ * card: what the server sends is data of unknown shape like any other.
+ * @param {{ sentence: string, lang: string }} asked
+ * @param {typeof fetch} [fetchFn]
+ * @param {number} [timeoutMs]
+ * @returns {Promise<{ card: object | null, unplaced: string[], reason: string }>}
+ */
+export async function interpretConventions(asked, fetchFn = (url, init) => fetch(url, init), timeoutMs = CONVENTIONS_TIMEOUT_MS) {
+  const none = (reason) => ({ card: null, unplaced: [], reason });
+  const waiting = new AbortController();
+  const timer = setTimeout(() => waiting.abort(), timeoutMs);
+  try {
+    const response = await fetchFn('api/conventions/interpret', {
+      method: 'POST',
+      headers: { accept: 'application/json', 'content-type': 'application/json', ...FROM_THE_PAGE },
+      body: JSON.stringify(asked),
+      signal: waiting.signal,
+    });
+    const body = await response.json().catch(() => null);
+    const card = response.status === 200 ? readConventions(body?.card) : null;
+    if (card) {
+      const unplaced = Array.isArray(body.unplaced) ? body.unplaced.filter((piece) => typeof piece === 'string' && piece.trim() !== '') : [];
+      return { card, unplaced: unplaced.slice(0, UNPLACED_MOST).map((piece) => piece.slice(0, UNPLACED_LENGTH)), reason: '' };
+    }
+    if (response.status === 422) return none('unclear');
+    if (response.status === 429) return none(body?.error?.code === 'daily_quota' ? 'resting' : 'busy');
+    return none('unavailable');
+  } catch {
+    return none('unavailable');
   } finally {
     clearTimeout(timer);
   }

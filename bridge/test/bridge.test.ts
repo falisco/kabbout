@@ -6,10 +6,26 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import { after, before, test } from 'node:test';
-import type { Action, Card, GameState, PlayerView, PublicBid, PublicEvent, RoundResult, Seat } from '../../engine/src/index.ts';
-import { SEATS, aiBid, aiPlay, apply, legalPlays, newGame as dealGame, nextSeat, seededRng, suitOf, team, viewFor } from '../../engine/src/index.ts';
+import type { Action, Card, Conventions, GameState, PlayerView, PublicBid, PublicEvent, RoundResult, Seat } from '../../engine/src/index.ts';
+import {
+  CAUTIOUS,
+  CLASSIC,
+  SEATS,
+  aiBid,
+  aiPlay,
+  apply,
+  legalPlays,
+  newGame as dealGame,
+  nextSeat,
+  readConventions,
+  seededRng,
+  suitOf,
+  team,
+  viewFor,
+} from '../../engine/src/index.ts';
 import type { Case } from '../contract/build.ts';
 import { buildCases, recordOf, seedOf, serialize } from '../contract/build.ts';
+import { buildConventions, serializeConventions } from '../contract/conventions.ts';
 import type { BidReview, ExpertChoice, Summary, Swings, TrickReview, WhatIf } from '../src/analysis.ts';
 import { expertChoiceFrom, seatView } from '../src/analysis.ts';
 import { sorted as sortedHand } from '../src/order.ts';
@@ -716,5 +732,33 @@ test('the contract file is what the bridge answers today', async () => {
     assert.equal(c.status, c.name.startsWith('refused:') ? 422 : 200, c.name);
     const reply = await post(c.path, c.request);
     assert.deepEqual([reply.status, reply.body], [c.status, c.response], c.name);
+  }
+});
+
+test('the conventions contract is what the engine reads as a card today', () => {
+  const recorded = readFileSync(new URL('../contract/conventions.json', import.meta.url), 'utf8');
+  const contract = buildConventions();
+  assert.equal(recorded, serializeConventions(contract), 'bridge/contract/conventions.json is out of date: npm run contract:record');
+  for (const card of Object.values(contract.ready)) assert.deepEqual(readConventions(JSON.parse(JSON.stringify(card))), card);
+  for (const { why, card } of contract.refused) assert.equal(readConventions(card), null, why);
+});
+
+test('a call may carry the conventions card of the seat it is about, and what is not a card is a bad request', async () => {
+  // a deal whose first seat to speak opens on the classic card, at 80
+  const start = (await ok<{ state: GameState }>('/games', { seed: seedOf(2) })).state;
+  const asked = { state: start, level: 'normal', lang: 'en', seed: seedOf(1) };
+  const classic = await ok<{ action: unknown }>('/games/robot', asked);
+  // the classic card, given or not, is one and the same
+  assert.deepEqual(await ok('/games/robot', { ...asked, conventions: CLASSIC }), classic);
+  // the same seat, on a card that opens at 90 only, bids what the engine bids by that card
+  const quiet: Conventions = { ...CAUTIOUS, open: 90 };
+  const byCard = await ok<{ action: unknown }>('/games/robot', { ...asked, conventions: quiet });
+  assert.deepEqual(byCard.action, { kind: 'bid', ...aiBid(viewFor(start, start.turn), 'en', quiet) });
+  assert.notDeepEqual(byCard.action, classic.action);
+  for (const conventions of [null, 'bold', { ...CLASSIC, jack: 40 }, { ...CLASSIC, more: 1 }, []]) {
+    const reply = await post<Failure>('/games/robot', { ...asked, conventions });
+    assert.equal(reply.status, 400);
+    assert.match(reply.body.error.message, /a conventions card expected/);
+    await badRequest('/analysis/bids', { record: recordOf((await newGame(42)).state), seat: 0, lang: 'fr', conventions });
   }
 });

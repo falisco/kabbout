@@ -6,12 +6,16 @@ import { BUBBLE_MS, ME, PARTNER, PARTNER_REPLY_SHARE, REPLY_DELAY_MS, chatRng, p
 import {
   askDebrief,
   closeModal,
+  confirmAgreement,
   endKabbout,
   giveTip,
+  interpretAgreement,
   makeBid,
   newGame,
   nextRound,
+  openAgreement,
   openModal,
+  pickReadyCard,
   playCard,
   showDebriefTrick,
   toggleChat,
@@ -20,11 +24,24 @@ import {
 import { coachStep, myBidTurn, view } from './game.js';
 import { setLang, t } from './i18n/index.js';
 import { renderBid } from './render/bidding.js';
+import { markAgreeSendable } from './render/agree.js';
 import { markSendable } from './render/debrief.js';
 import { render, renderAll } from './render/index.js';
 import { availableBids, bidValueToShow } from './selectors.js';
 import { bubble, clearBubbles } from './speech.js';
-import { SWITCHES, coachAnswer, debrief, markTutorialStep, overlay, prefs, resetTutorial, savePrefs, selection, tableState } from './store.js';
+import {
+  SWITCHES,
+  agreement,
+  coachAnswer,
+  debrief,
+  markTutorialStep,
+  overlay,
+  prefs,
+  resetTutorial,
+  savePrefs,
+  selection,
+  tableState,
+} from './store.js';
 
 /** dialogs that close on Escape or a click outside */
 const CLOSABLE = ['last', 'rules', 'sheet', 'settings', 'values', 'debrief', 'trick'];
@@ -123,6 +140,13 @@ const SHEET_ACTIONS = {
   close: () => closeModal(),
   debrief: () => openModal('debrief'),
   ask: () => askDebrief(),
+  agreeOpen: () => openAgreement(),
+  ready(name) {
+    pickReadyCard(name);
+    render();
+  },
+  interpret: () => interpretAgreement(),
+  agree: () => confirmAgreement(),
   trick: (number) => showDebriefTrick(Number(number)),
   tutorial() {
     resetTutorial();
@@ -148,14 +172,20 @@ function onSheetClick(event) {
 }
 /** the question to the coach is kept as it is typed, and Enter sends it */
 function onSheetInput(event) {
-  if (event.target.id !== 'debriefQ') return;
-  debrief.question = event.target.value;
-  markSendable(event.target);
+  if (event.target.id === 'debriefQ') {
+    debrief.question = event.target.value;
+    markSendable(event.target);
+  } else if (event.target.id === 'agreeQ') {
+    agreement.sentence = event.target.value;
+    markAgreeSendable(event.target);
+  }
 }
+/** the fields of the dialogs, and what Enter does in each */
+const SENT_BY_ENTER = { debriefQ: () => askDebrief(), agreeQ: () => interpretAgreement() };
 function onSheetKeyDown(event) {
-  if (event.key !== 'Enter' || event.target.id !== 'debriefQ') return;
+  if (event.key !== 'Enter' || !Object.hasOwn(SENT_BY_ENTER, event.target.id)) return;
   event.preventDefault();
-  askDebrief();
+  SENT_BY_ENTER[event.target.id]();
 }
 
 function onChatPick(event) {
@@ -179,6 +209,7 @@ function onKeyDown(event) {
   if (key !== 'Escape') return;
   // from a trick the coach showed, back to what the coach said
   if (overlay.modal === 'trick') openModal('debrief');
+  else if (overlay.modal === 'agree') openModal('menu');
   else if (CLOSABLE.includes(overlay.modal)) closeModal();
   else if (overlay.chatOpen) {
     toggleChat(false);

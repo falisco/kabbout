@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\Application\Coach;
 
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
@@ -19,11 +20,12 @@ final readonly class CoachBrief
     public string $question;
 
     /**
-     * @param list<Exchange> $earlier the questions already answered about this deal, the oldest first
+     * @param list<Exchange>      $earlier the questions already answered about this deal, the oldest first
+     * @param ConventionCard|null $card    the conventions the player and their partner bid by in that deal; none, the classic ones
      *
      * @throws \InvalidArgumentException for an empty question or one longer than MAX_QUESTION_LENGTH characters
      */
-    public function __construct(public DealRecord $record, public Seat $seat, public Lang $lang, string $question, public array $earlier = [])
+    public function __construct(public DealRecord $record, public Seat $seat, public Lang $lang, string $question, public array $earlier = [], public ?ConventionCard $card = null)
     {
         // one line of plain text: what a player types, never a page to slip instructions in
         $question = trim((string) preg_replace('/[\p{C}\s]+/u', ' ', $question));

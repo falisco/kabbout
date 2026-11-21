@@ -2,8 +2,10 @@
 // and returns what is answered. It keeps nothing between two calls: the game travels in the request.
 // Randomness always comes from a seed sent by the caller, so the same question gets the same answer.
 
-import type { Action, BidAction, GameState, Seat } from '../../engine/src/index.ts';
+import type { Action, BidAction, Conventions, GameState, Seat } from '../../engine/src/index.ts';
 import {
+  CLASSIC,
+  readConventions,
   BID_VALUES,
   EngineError,
   SEAT_COUNT,
@@ -146,8 +148,20 @@ export const legalHandler: Handler = (body) => {
 };
 
 /**
+ * The conventions card a call carries: the classic one when it carries none. Whose card it is, the
+ * caller knows: the bridge bids by the card it is given, for the seat it is asked about.
+ */
+export function readCard(v: unknown): Conventions {
+  if (v === undefined) return CLASSIC;
+  const card = readConventions(v);
+  if (!card) throw new BadRequest('conventions: a conventions card expected, every setting with a value it allows');
+  return card;
+}
+
+/**
  * What a robot does for the seat whose turn it is, from that seat's view alone. The action is not
  * applied. A bid carries the robot's reason (`why`), which names its cards: it is for the state, never for a player.
+ * `conventions`, when given, is the card that seat and its partner bid by.
  */
 export const robotHandler: Handler = (body) => {
   const state = readState(body.state);
@@ -155,8 +169,9 @@ export const robotHandler: Handler = (body) => {
   if (!isLevel(body.level)) throw new BadRequest('level: easy, normal or expert expected');
   const lang = body.lang ?? 'fr';
   if (!isLang(lang)) throw new BadRequest('lang: fr, en or ar expected');
+  const card = readCard(body.conventions);
   const view = viewFor(state, state.turn);
-  if (state.phase === 'bidding') return { seat: state.turn, action: { kind: 'bid', ...aiBid(view, lang) } };
+  if (state.phase === 'bidding') return { seat: state.turn, action: { kind: 'bid', ...aiBid(view, lang, card) } };
   if (state.phase === 'playing') return { seat: state.turn, action: { kind: 'play', card: aiPlay(view, seededStream(seed), body.level) } };
   throw new EngineError(`no robot to act in phase ${state.phase}`);
 };

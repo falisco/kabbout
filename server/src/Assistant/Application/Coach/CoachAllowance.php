@@ -4,21 +4,16 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\Application\Coach;
 
+use Kabbout\Assistant\Application\ModelAllowance;
 use Kabbout\Identity\Domain\NetworkAddress;
 
 /**
- * How much the coach may be asked. Every question is a call to a model that is paid for, so three counts
- * stand before it: a visitor's pace, what all visitors together may ask in a day, and a visitor's
- * questions about one deal. Every way in to the coach (the page today, others tomorrow) goes through them.
+ * How much the coach may be asked: what any call to the model is counted against (ModelAllowance), and
+ * one count of its own, a visitor's questions about one deal. Every way in to the coach (the page
+ * today, others tomorrow) goes through them.
  */
-interface CoachAllowance
+interface CoachAllowance extends ModelAllowance
 {
-    /** @throws AskedTooOften when this visitor asks faster than allowed */
-    public function pace(NetworkAddress $from): void;
-
-    /** @throws CoachResting when the day's questions, all visitors together, are spent */
-    public function day(): void;
-
     /**
      * Takes one of the visitor's questions about a deal.
      *

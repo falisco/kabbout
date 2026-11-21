@@ -90,7 +90,7 @@ final readonly class ReviewTools
     #[McpTool(name: 'expert_bids', description: ReviewBids::ABOUT.self::WHICH, annotations: new ToolAnnotations(readOnlyHint: true, openWorldHint: false))]
     public function expertBids(string $table): CallToolResult
     {
-        return $this->review($table, fn (PlayedDeal $deal): array => ($this->reviewBids)($deal->record, $deal->seat, Lang::En)->toArray());
+        return $this->review($table, fn (PlayedDeal $deal): array => ($this->reviewBids)($deal->record, $deal->seat, Lang::En, $deal->card)->toArray());
     }
 
     /**

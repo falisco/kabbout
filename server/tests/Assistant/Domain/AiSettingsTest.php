@@ -64,7 +64,9 @@ final class AiSettingsTest extends TestCase
         $settings = new AiSettings('a-key', 'a-model');
         self::assertSame(FeatureState::On, Feature::Coach->stateWith($settings));
         self::assertSame(FeatureState::Off, Feature::Coach->stateWith(null));
-        foreach ([Feature::SpokenBids, Feature::Referee, Feature::AgentSeat] as $feature) {
+        self::assertSame(FeatureState::On, Feature::Conventions->stateWith($settings));
+        self::assertSame(FeatureState::Off, Feature::Conventions->stateWith(null));
+        foreach ([Feature::Referee, Feature::AgentSeat] as $feature) {
             self::assertSame(FeatureState::Planned, $feature->stateWith($settings), $feature->value);
             self::assertSame(FeatureState::Planned, $feature->stateWith(null), $feature->value);
         }
