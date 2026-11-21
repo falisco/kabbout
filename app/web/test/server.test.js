@@ -45,7 +45,7 @@ test('the menu says one thing about the AI, or nothing', () => {
   const having = (features) => ({ server: true, variable: 'ANTHROPIC_API_KEY', features });
   assert.equal(aiNotice(NO_SERVER), null);
   assert.equal(aiNotice(having({})), null);
-  assert.equal(aiNotice(having({ coach: 'planned', referee: 'planned' })), 'planned');
+  assert.equal(aiNotice(having({ coach: 'planned', referee: 'planned' })), null);
   assert.equal(aiNotice(having({ coach: 'off', referee: 'planned' })), 'off');
   assert.equal(aiNotice(having({ coach: 'on', referee: 'off' })), 'off');
   assert.equal(aiNotice(having({ coach: 'on', referee: 'planned' })), null);

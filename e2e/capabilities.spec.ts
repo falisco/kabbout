@@ -5,13 +5,13 @@ import { expect, type Page } from '@playwright/test';
 import { audit, openGame, test } from './helpers.ts';
 
 const SERVED = !!process.env.E2E_BASE_URL;
-const FEATURES = ['coach', 'spoken_bids', 'referee', 'agent_seat'];
+const FEATURES = ['coach', 'conventions', 'referee', 'agent_seat'];
 const NOTICE = '#aiNotice';
-/** the words that tell the two notices apart, by language */
+/** a word of the notice, by language */
 const WORDS = {
-  fr: { planned: 'En chemin', off: 'L’IA dort' },
-  en: { planned: 'On its way', off: 'The AI is asleep' },
-  ar: { planned: 'في الثنية', off: 'راقد' },
+  fr: { off: 'L’IA dort' },
+  en: { off: 'The AI is asleep' },
+  ar: { off: 'راقد' },
 } as const;
 
 /** opens the game and waits until the page has read what its origin answers about the server */
@@ -48,18 +48,22 @@ test('served by Kabbout with no key, the menu says the AI is asleep', async ({ p
 });
 
 for (const lang of ['fr', 'en', 'ar'] as const) {
-  for (const state of ['planned', 'off'] as const) {
-    test(`a server whose features are ${state} gets one accessible line in the menu (${lang})`, async ({ page }) => {
-      await serverAnswers(page, state);
-      const errors = await openGame(page, { lang });
-      const notice = page.locator(NOTICE);
-      await expect(notice).toContainText(WORDS[lang][state]);
-      await expect(notice.locator('code')).toHaveText('ANTHROPIC_API_KEY');
-      expect(await audit(page)).toEqual([]);
-      expect(errors).toEqual([]);
-    });
-  }
+  test(`a server whose features are off gets one accessible line in the menu (${lang})`, async ({ page }) => {
+    await serverAnswers(page, 'off');
+    const errors = await openGame(page, { lang });
+    const notice = page.locator(NOTICE);
+    await expect(notice).toContainText(WORDS[lang].off);
+    await expect(notice.locator('code')).toHaveText('ANTHROPIC_API_KEY');
+    expect(await audit(page)).toEqual([]);
+    expect(errors).toEqual([]);
+  });
 }
+
+test('what is only planned is promised nowhere: a server with nothing built yet gets no line', async ({ page }) => {
+  await serverAnswers(page, 'planned');
+  await openAndAsk(page);
+  await expect(page.locator(NOTICE)).toHaveCount(0);
+});
 
 test('a server with everything on has nothing left to explain', async ({ page }) => {
   await serverAnswers(page, 'on');

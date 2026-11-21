@@ -133,8 +133,6 @@ export default {
 
   // menu
   playingAs: (name) => `You are playing as ${name}.`,
-  aiPlanned: (variable) =>
-    `On its way: bids you can say out loud, and a referee for your questions about the rules. Both will wake up with ${variable}.`,
   aiOff: (variable) => `The AI is asleep on this server: write ${variable} in .env and start it again.`,
   // the coach of the server, after a deal
   debriefOpen: 'Ask the coach',

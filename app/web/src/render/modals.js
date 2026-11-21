@@ -94,7 +94,7 @@ const scoringNow = () => (view ? view.scoring : prefs.scoring);
 function aiLine() {
   const notice = aiNotice(capabilities);
   const variable = `<code>${esc(capabilities.variable)}</code>`;
-  return notice ? `<p class="sub" id="aiNotice">${t(notice === 'off' ? 'aiOff' : 'aiPlanned', variable)}</p>` : '';
+  return notice ? `<p class="sub" id="aiNotice">${t('aiOff', variable)}</p>` : '';
 }
 
 /** one line saying under which name the visitor plays, when the page comes from a server that gave them one */

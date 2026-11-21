@@ -1,7 +1,7 @@
 // A recorded deal looked at again, for the coach. Every call replays the record first, so a deal the
 // rules do not allow is refused here as it is by `/deals/replay`. The player is the seat the questions
-// are asked for. What the expert would have played is worked out from that seat's view alone; the
-// what-if is the only call that plays on with the real hands, the deal being over.
+// are asked for. What the expert would have played is worked out from that seat's view alone; only
+// the what-if, and the swings for their two costliest, play on with the real hands, the deal being over.
 
 import type {
   BestBid,
