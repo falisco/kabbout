@@ -16,6 +16,7 @@ app/web/sounds.js
 eval/coach/
 # recorded by `npm run contract:record`
 bridge/contract/cases.json
+bridge/contract/conventions.json
 # PHP: formatted by php-cs-fixer, dependencies and their lock file
 server/vendor/
 server/var/

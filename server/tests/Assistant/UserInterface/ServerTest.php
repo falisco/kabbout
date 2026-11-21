@@ -32,8 +32,8 @@ final class ServerTest extends WebTestCase
         self::assertSame(array_column(Feature::cases(), 'value'), array_keys($answer['features']));
         foreach ($answer['features'] as $name => $feature) {
             self::assertIsArray($feature);
-            // the coach is built and waits for a key; the others wait for their version
-            self::assertSame('coach' === $name ? 'off' : 'planned', $feature['state']);
+            // the coach and the conventions are built and wait for a key; the others wait for their version
+            self::assertSame(\in_array($name, ['coach', 'conventions'], true) ? 'off' : 'planned', $feature['state']);
             self::assertIsString($feature['hint']);
             self::assertStringContainsString('ANTHROPIC_API_KEY', $feature['hint']);
         }
@@ -46,6 +46,7 @@ final class ServerTest extends WebTestCase
 
         self::assertIsArray($features);
         self::assertSame(['state' => 'on', 'hint' => null], $features['coach']);
+        self::assertSame(['state' => 'on', 'hint' => null], $features['conventions']);
         self::assertSame('planned', \is_array($features['referee']) ? $features['referee']['state'] : null);
     }
 

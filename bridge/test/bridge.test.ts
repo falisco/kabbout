@@ -7,9 +7,23 @@ import { readFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import { after, before, test } from 'node:test';
 import type { Action, Card, GameState, PlayerView, PublicBid, PublicEvent, RoundResult, Seat } from '../../engine/src/index.ts';
-import { SEATS, aiBid, aiPlay, apply, legalPlays, newGame as dealGame, nextSeat, seededRng, suitOf, team, viewFor } from '../../engine/src/index.ts';
+import {
+  SEATS,
+  aiBid,
+  aiPlay,
+  apply,
+  legalPlays,
+  newGame as dealGame,
+  nextSeat,
+  readConventions,
+  seededRng,
+  suitOf,
+  team,
+  viewFor,
+} from '../../engine/src/index.ts';
 import type { Case } from '../contract/build.ts';
 import { buildCases, recordOf, seedOf, serialize } from '../contract/build.ts';
+import { buildConventions, serializeConventions } from '../contract/conventions.ts';
 import type { BidReview, ExpertChoice, Summary, Swings, TrickReview, WhatIf } from '../src/analysis.ts';
 import { expertChoiceFrom, seatView } from '../src/analysis.ts';
 import { sorted as sortedHand } from '../src/order.ts';
@@ -717,4 +731,12 @@ test('the contract file is what the bridge answers today', async () => {
     const reply = await post(c.path, c.request);
     assert.deepEqual([reply.status, reply.body], [c.status, c.response], c.name);
   }
+});
+
+test('the conventions contract is what the engine reads as a card today', () => {
+  const recorded = readFileSync(new URL('../contract/conventions.json', import.meta.url), 'utf8');
+  const contract = buildConventions();
+  assert.equal(recorded, serializeConventions(contract), 'bridge/contract/conventions.json is out of date: npm run contract:record');
+  for (const card of Object.values(contract.ready)) assert.deepEqual(readConventions(JSON.parse(JSON.stringify(card))), card);
+  for (const { why, card } of contract.refused) assert.equal(readConventions(card), null, why);
 });
