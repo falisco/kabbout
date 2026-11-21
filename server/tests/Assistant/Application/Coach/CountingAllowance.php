@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Assistant\Application\Coach;
 
+use Kabbout\Assistant\Application\Allowance\DaySpent;
 use Kabbout\Assistant\Application\Coach\CoachAllowance;
 use Kabbout\Assistant\Application\Coach\DealSpent;
-use Kabbout\Assistant\Application\DaySpent;
 use Kabbout\Identity\Domain\NetworkAddress;
 
 /** An allowance for tests: it refuses nothing but a spent deal, and writes down what it was asked. */

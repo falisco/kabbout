@@ -6,13 +6,13 @@ namespace Kabbout\Assistant\UserInterface\Http;
 
 use Kabbout\Api\Domain\Envelope;
 use Kabbout\Api\Domain\FromThePage;
-use Kabbout\Assistant\Application\AskedTooOften;
+use Kabbout\Assistant\Application\Allowance\AskedTooOften;
+use Kabbout\Assistant\Application\Allowance\DaySpent;
 use Kabbout\Assistant\Application\Coach\AnswerVisitor;
 use Kabbout\Assistant\Application\Coach\DealSpent;
-use Kabbout\Assistant\Application\DaySpent;
-use Kabbout\Assistant\Domain\AiConfiguration;
-use Kabbout\Assistant\Domain\InvalidAiSettings;
-use Kabbout\Assistant\Infrastructure\EnvAiConfiguration;
+use Kabbout\Assistant\Domain\Settings\AiConfiguration;
+use Kabbout\Assistant\Domain\Settings\InvalidAiSettings;
+use Kabbout\Assistant\Infrastructure\Settings\EnvAiConfiguration;
 use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\EngineRefused;

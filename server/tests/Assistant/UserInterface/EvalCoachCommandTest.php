@@ -10,7 +10,7 @@ use Kabbout\Assistant\Application\Coach\CoachModelFailed;
 use Kabbout\Assistant\Application\Coach\Rejected;
 use Kabbout\Assistant\Domain\Grounding\CardVocabulary;
 use Kabbout\Assistant\Domain\Grounding\Facts;
-use Kabbout\Game\Application\RankSwings;
+use Kabbout\Game\Application\Analysis\RankSwings;
 use Kabbout\Game\Domain\Lang;
 use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Console\Application;

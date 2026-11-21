@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Kabbout\Game\UserInterface\Mcp;
 
-use Kabbout\Game\Application\AskExpertChoice;
-use Kabbout\Game\Application\RankSwings;
-use Kabbout\Game\Application\ReviewBids;
-use Kabbout\Game\Application\ReviewTrick;
-use Kabbout\Game\Application\SummariseDeal;
+use Kabbout\Game\Application\Analysis\AskExpertChoice;
+use Kabbout\Game\Application\Analysis\RankSwings;
+use Kabbout\Game\Application\Analysis\ReviewBids;
+use Kabbout\Game\Application\Analysis\ReviewTrick;
+use Kabbout\Game\Application\Analysis\SummariseDeal;
+use Kabbout\Game\Application\Analysis\TryWhatIf;
 use Kabbout\Game\Application\Table\FinishedDeal;
 use Kabbout\Game\Application\Table\PlayedDeal;
-use Kabbout\Game\Application\TryWhatIf;
 use Kabbout\Game\Domain\Analysis\TrickNumber;
 use Kabbout\Game\Domain\Card;
 use Kabbout\Game\Domain\Lang;

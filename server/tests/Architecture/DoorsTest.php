@@ -30,13 +30,13 @@ use PHPUnit\Framework\TestCase;
 final class DoorsTest extends TestCase
 {
     private const string SRC = __DIR__.'/../../src';
-    private const string COACH_TOOLS = 'Assistant/Infrastructure/Ai/CoachTools.php';
+    private const string COACH_TOOLS = 'Assistant/Infrastructure/SymfonyAi/Coach/CoachTools.php';
     /**
      * Interfaces a door is meant to ask, each for what it says here.
      * CurrentPlayer: "who is asking" is the question every door starts with.
      * AiConfiguration: whether the AI is on, which a door says before it asks anything of it.
      */
-    private const array ASKED_BY_DOORS = ['Kabbout\Identity\Application\CurrentPlayer', 'Kabbout\Assistant\Domain\AiConfiguration'];
+    private const array ASKED_BY_DOORS = ['Kabbout\Identity\Application\CurrentPlayer', 'Kabbout\Assistant\Domain\Settings\AiConfiguration'];
     /** what decides: none of it in a file of MCP tools */
     private const array DECIDES = [\T_IF, \T_ELSE, \T_ELSEIF, \T_SWITCH, \T_MATCH, \T_FOR, \T_FOREACH, \T_WHILE, \T_DO, \T_COALESCE, \T_COALESCE_EQUAL, \T_TRY, \T_CATCH];
 

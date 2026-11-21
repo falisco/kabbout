@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Assistant\Application\Coach;
 
+use Kabbout\Assistant\Application\Allowance\DaySpent;
 use Kabbout\Assistant\Application\Coach\AnswerSource;
 use Kabbout\Assistant\Application\Coach\AnswerVisitor;
 use Kabbout\Assistant\Application\Coach\AskCoach;
 use Kabbout\Assistant\Application\Coach\CoachModelFailed;
 use Kabbout\Assistant\Application\Coach\DealSpent;
 use Kabbout\Assistant\Application\Coach\Exchange;
-use Kabbout\Assistant\Application\DaySpent;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\Lang;

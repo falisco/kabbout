@@ -7,7 +7,7 @@ namespace Kabbout\Assistant\UserInterface\Console;
 use Kabbout\Assistant\Application\Coach\AnswerSource;
 use Kabbout\Assistant\Application\Coach\AskCoach;
 use Kabbout\Assistant\Application\Coach\CoachBrief;
-use Kabbout\Assistant\Domain\AiConfiguration;
+use Kabbout\Assistant\Domain\Settings\AiConfiguration;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
