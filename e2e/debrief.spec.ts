@@ -42,7 +42,7 @@ interface Asked {
 /** the page's origin answers about the coach as the Kabbout server would */
 async function serverWithCoach(page: Page, state: 'on' | 'off') {
   const planned = { state: 'planned', hint: null };
-  const features = { coach: { state, hint: null }, spoken_bids: planned, referee: planned, agent_seat: planned };
+  const features = { coach: { state, hint: null }, conventions: planned, referee: planned, agent_seat: planned };
   await page.route('**/api/capabilities', (route) =>
     route.fulfill({ json: { version: 1, ai: { configured: state === 'on', platform: null, model: null, variable: 'ANTHROPIC_API_KEY' }, features } }),
   );

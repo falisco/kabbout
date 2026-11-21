@@ -39,14 +39,11 @@ export async function loadCapabilities(fetchFn = (url, init) => fetch(url, init)
 /**
  * What the menu has to say about the AI, in one word.
  * @param {{ server: boolean, features: Record<string, string> }} capabilities
- * @returns {'off' | 'planned' | null} 'off': a feature waits for its key; 'planned': none is in this version yet;
- *   null: nothing to say (no server, or everything is on)
+ * @returns {'off' | null} 'off': a feature waits for its key; null: nothing to say (no server, every
+ *   feature of this version is on, or none is in it: what is only planned is promised nowhere)
  */
 export function aiNotice(capabilities) {
-  const states = Object.values(capabilities.features);
-  if (!capabilities.server || states.length === 0) return null;
-  if (states.includes('off')) return 'off';
-  return states.every((state) => state === 'planned') ? 'planned' : null;
+  return capabilities.server && Object.values(capabilities.features).includes('off') ? 'off' : null;
 }
 
 /**
