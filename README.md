@@ -67,6 +67,14 @@ Both need `ANTHROPIC_API_KEY` in `.env` and call the model; `KABBOUT_AI_MODEL` c
 
 **Planned, and not here.** A bench where models sit at the MCP table against the robots was planned and was not run: it would have measured models, and added nothing to the game. A referee that answers questions on the rules was planned and was not started. `/api/capabilities` still lists both as `planned`, and the page says nothing of them; no code behind either exists.
 
+## What we sent upstream
+
+Symfony AI 1.0 and the PHP MCP SDK are in pre-release, and building on them turned up a few things.
+
+- **A cut answer that said nothing of the cut.** In the coach's first evaluation run, about one answer in fifteen came back with a thinking block and no text: the Anthropic bridge sets 1000 output tokens when none is asked for, thinking counts in them, and a response cut before any text reached the agent as a `ThinkingResult`, which failed on `asText()` with a message about the type and not about the limit. Reported as [symfony/ai#2988](https://github.com/symfony/ai/issues/2988), with a fix proposed in [symfony/ai#2989](https://github.com/symfony/ai/pull/2989) (a `MaxOutputTokensException`, as the streamed path already throws). Both are open. Here, `max_tokens: 4096` in `server/config/packages/ai.yaml` is the workaround.
+- **A model's mistake it may never be shown.** The MCP SDK answers an argument that a tool's schema refuses (a card written in lower case) with the protocol error `-32602`, while the 2025-11-25 revision of the specification lists input validation among the errors returned as a result with `isError`, so that the model can read them and correct itself. Reported as [php-sdk#763](https://github.com/modelcontextprotocol/php-sdk/issues/763), open, with a change limited to that revision and the later ones proposed. Here the patterns stay in the schemas, and what the game itself refuses already comes back as a result the model reads.
+- **Met here, already known or fixed upstream:** choosing a platform from one variable ([symfony/ai#402](https://github.com/symfony/ai/issues/402), open); an MCP tool's text block sent pretty-printed, nearly three times the size ([php-sdk#647](https://github.com/modelcontextprotocol/php-sdk/pull/647), merged after the version used here); structured output beside a thinking block ([symfony/ai#2945](https://github.com/symfony/ai/issues/2945)): the object is read, as its case B describes, and what the issue says is skipped is not relied on here, since the domain checks the card.
+
 ## Architecture
 
 ```text
