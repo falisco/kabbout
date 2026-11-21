@@ -46,7 +46,11 @@ final readonly class SymfonyAiConventionsModel implements ConventionsModel
             $draft = $this->agent->call($messages, ['response_format' => CardDraft::class])->asObject(CardDraft::class);
         } catch (\Throwable $e) {
             if (self::answeredOutsideTheSchema($e)) {
-                // the model did answer, with something that is no card draft: the sentence was not understood
+                // the model did answer, with something that is no card draft: the sentence was not understood.
+                // It is written down all the same: an answer cut short, or a model that stops keeping to the
+                // schema, would otherwise look like players who cannot make themselves understood
+                $this->logger->warning('The conventions model answered outside the schema: {cause}', ['cause' => $e->getPrevious()?->getMessage() ?? $e->getMessage()]);
+
                 return new Reading(false, [], []);
             }
             // the platform's words may quote the request: they go to the log, not to the player

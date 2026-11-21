@@ -92,6 +92,17 @@ final class InterpretConventionsTest extends TestCase
         self::assertSame(['Sentence: monte'], $interpreted->unplaced);
     }
 
+    public function testTheJoinersWordsAndEmojiAreWrittenWithAreLeftInTheSentence(): void
+    {
+        // Persian "I want" holds a zero-width non-joiner, a family emoji zero-width joiners: cut there, they are other words
+        $sentence = "\u{0645}\u{06CC}\u{200C}\u{062E}\u{0648}\u{0627}\u{0647}\u{0645} valet 30 \u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}";
+        $model = new ScriptedConventionsModel([new Reading(true, self::JACK_30, [])]);
+
+        (new InterpretConventions($model))($sentence, Lang::Ar);
+
+        self::assertSame($sentence, $model->asked[0][0]);
+    }
+
     public function testNoMoreThanAFewPiecesAreKept(): void
     {
         $sentence = 'a b c d e f g h i j';

@@ -55,8 +55,11 @@ final readonly class InterpretConventions
      */
     public static function sentence(string $said): string
     {
-        // one line of plain text, as a question to the coach is: what a player types, never a page to slip lines into
-        $sentence = trim((string) preg_replace('/[\p{C}\s]+/u', ' ', $said));
+        // One line of plain text: what a player types, never a page to slip lines into. Line breaks and control
+        // characters become a space, and the marks that turn the direction of the text around are dropped.
+        // The joiners that Arabic and Persian words and some emoji are written with stay where they are.
+        $visible = preg_replace('/[\x{202A}-\x{202E}\x{2066}-\x{2069}]/u', '', $said);
+        $sentence = trim((string) preg_replace('/[\p{Cc}\p{Zl}\p{Zp}\s]+/u', ' ', (string) $visible));
         if ('' === $sentence || mb_strlen($sentence) > self::MAX_SENTENCE_LENGTH) {
             throw new InvalidSentence(\sprintf('The sentence is 1 to %d characters.', self::MAX_SENTENCE_LENGTH));
         }

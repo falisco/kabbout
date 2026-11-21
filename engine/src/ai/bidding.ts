@@ -248,7 +248,8 @@ const cappedBid = (points: number): number => Math.min(MAX_BID, roundDownToLevel
  * There is one only for a seat whose single bid was a raise of its partner's suit made while the pair
  * held the contract: that raise left the aces out. A seat that named the suit itself counted its aces
  * in its own hand's worth, and a raise made over the opponents kept nothing back: for those the aces
- * have been said, and are not said again. Having bid twice, a seat has had its second round.
+ * have been said, and are not said again. Having bid twice, a seat has had its second round. And the
+ * partner must still be in that suit: if it has since named another, there is nothing left to raise.
  */
 function acesKeptBack(view: PlayerView, card: Conventions): (Evaluation & { suit: Suit; from: number }) | null {
   const mine = suitBidsOf(view, view.seat);
@@ -257,8 +258,9 @@ function acesKeptBack(view: PlayerView, card: Conventions): (Evaluation & { suit
   const heardBefore = view.bids.slice(0, view.bids.indexOf(raise)).filter((b): b is SuitBid => b.type === 'bid');
   const raised = heardBefore[heardBefore.length - 1];
   if (!raised || raised.seat !== partnerOf(view.seat) || raised.suit !== raise.suit) return null;
+  const partners = suitBidsOf(view, partnerOf(view.seat));
+  if (partners[partners.length - 1].suit !== raise.suit) return null;
   const aces = aceSupport(view.hand, raise.suit, card);
-  const partners = suitBidsOf(view, partnerOf(view.seat)).filter((b) => b.suit === raise.suit);
   return aces.value > 0 ? { ...aces, suit: raise.suit, from: Math.max(raise.value, ...partners.map((b) => b.value)) } : null;
 }
 
@@ -294,10 +296,10 @@ export function aiBid(view: PlayerView, lang: Lang = 'fr', card: Conventions = C
   if (current && team(current.seat) === team(seat)) {
     // our side holds the contract: answer the partner once, with our own suit or with support
     if (current.seat === partnerOf(seat) && !alreadyBid) {
-      // whether to name another suit is judged on the whole hand; what is said now may leave the aces for later
-      const whole = evaluateSupport(hand, current.suit, card);
-      const help = card.aces === 'atOnce' ? whole : trumpSupport(hand, current.suit, card);
-      const ownSuitIsBetter = own && own.suit !== current.suit && own.value >= current.value + OWN_SUIT_MARGIN && whole.value < REAL_SUPPORT;
+      // what can be said now: everything, or the trumps alone on a card that keeps the aces for later. A hand
+      // with a far better suit of its own and nothing to say in its partner's names that suit rather than pass.
+      const help = card.aces === 'atOnce' ? evaluateSupport(hand, current.suit, card) : trumpSupport(hand, current.suit, card);
+      const ownSuitIsBetter = own && own.suit !== current.suit && own.value >= current.value + OWN_SUIT_MARGIN && help.value < REAL_SUPPORT;
       if (ownSuitIsBetter) return bid(Math.min(MAX_BID, own.value), own.suit, own.reasons);
       const raised = cappedBid(current.value + help.value);
       if (raised > current.value) return bid(raised, current.suit, [support, ...help.reasons]);

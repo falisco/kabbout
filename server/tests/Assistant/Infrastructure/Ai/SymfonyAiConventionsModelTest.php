@@ -116,6 +116,8 @@ final class SymfonyAiConventionsModelTest extends KernelTestCase
 
         $system = (string) json_encode(AnthropicMock::requests()[0]['body']['system'] ?? null);
         self::assertStringContainsString('Start from the classic card: open 70, jack 20, nine 10, threeTrumps 10, belote 20, ace 10, aces atOnce.', $system);
+        // "a good hand" is the opening one step above the classic one
+        self::assertStringContainsString('\\"do not open light\\": open 80.', $system);
         $properties = (string) json_encode(AnthropicMock::requests()[0]['body']['output_config'] ?? null);
         foreach (['open' => 70, 'jack' => 20, 'nine' => 10, 'threeTrumps' => 10, 'belote' => 20, 'ace' => 10] as $value) {
             self::assertStringContainsString('Classic: '.$value.'.', $properties);

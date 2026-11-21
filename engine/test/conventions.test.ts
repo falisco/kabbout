@@ -165,15 +165,33 @@ test('a seat that answered with a suit of its own has no aces kept back in its p
   assert.deepEqual(aiBid(viewFor(raised, 0), 'en', { ...keepsAces, ace: 20 }).bid, { type: 'bid', value: 130, suit: 'S' });
 });
 
-test('on a card that keeps the aces back, a hand still sides with its partner’s suit on the strength of its aces', () => {
+test('on a card that keeps the aces back, a hand with nothing to say in its partner’s suit names its own rather than pass', () => {
   const keepsAces: Conventions = { ...CLASSIC, aces: 'whenOverbid' };
-  // two outside aces are real support on the classic card; kept back, they must not turn into a reason to name another suit
-  const mine = 'JH 9H 8H AH AD AC 8C 7C';
-  const view = viewFor(say(partnerOpened(mine), 3, PASS), 0);
-  const classic = aiBid(view, 'en', CLASSIC).bid;
+  // no spade, a long heart suit and two outside aces. On the classic card the aces are support enough to raise the spades;
+  // kept back they are not said, and a hand worth 120 in hearts does not stay silent over 80 in spades
+  const view = viewFor(say(partnerOpened('JH 9H 8H AH AD AC 8C 7C'), 3, PASS), 0);
+  assert.deepEqual(aiBid(view, 'en', CLASSIC).bid, { type: 'bid', value: 110, suit: 'S' });
   const kept = aiBid(view, 'en', keepsAces).bid;
-  assert.equal(classic.type === 'bid' && classic.suit, 'S');
-  assert.notEqual(kept.type === 'bid' && kept.suit, 'H');
+  assert.equal(kept.type, 'bid');
+  assert.equal(kept.type === 'bid' && kept.suit, 'H');
+  // with the jack of its partner's suit it has something to say there, and says that
+  const withJack = viewFor(say(partnerOpened('JS 9H 8H AH AD AC 8C 7C'), 3, PASS), 0);
+  assert.deepEqual(aiBid(withJack, 'en', keepsAces), { bid: { type: 'bid', value: 100, suit: 'S' }, why: 'support · J ♠ +20' });
+});
+
+test('there is no second round in a suit the partner has left for another', () => {
+  const card: Conventions = { ...CLASSIC, aces: 'whenOverbid', ace: 20 };
+  // seat 2 opens in spades, seat 0 raises on the nine, the opponents bid hearts, seat 2 moves to diamonds, they bid on
+  let s = say(partnerOpened('9S 8S 7S AC AD 8H 7H 7C'), 3, PASS);
+  s = say(s, 0, { type: 'bid', value: 100, suit: 'S' });
+  s = say(say(say(s, 1, { type: 'bid', value: 110, suit: 'H' }), 2, { type: 'bid', value: 120, suit: 'D' }), 3, {
+    type: 'bid',
+    value: 130,
+    suit: 'H',
+  });
+  const next = aiBid(viewFor(s, 0), 'en', card);
+  assert.equal(next.why.includes('aces kept'), false, next.why);
+  assert.notDeepEqual(next.bid, { type: 'bid', value: 140, suit: 'S' });
 });
 
 test('whatever the card, every bid a robot makes is a legal one, with a reason the engine takes', () => {
