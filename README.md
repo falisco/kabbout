@@ -490,14 +490,6 @@ URL parameters for tests: `?seed=42` makes the deal and the robots' choices repr
 
 Git flow. `main` only holds released versions, each one tagged; `develop` is where finished work meets. A piece of work lives on `feature/<nn>-<name>`, cut from `develop` and merged back with a merge commit once `npm run check` and `npm run check:php` are green. A version is prepared on `release/<x.y.z>`, then merged into `main` (tagged `v<x.y.z>`) and back into `develop`; an urgent fix to a released version goes through `hotfix/<x.y.z>` the same way.
 
-## Roadmap
-
-1. ~~Extract the engine with tests~~
-2. ~~Plug `app/web` into `engine/` and remove the copy of the rules~~
-3. ~~French, English and Tunisian Arabic, the Tunisian count, and a name: Kabbout~~
-4. Mobile app with Capacitor (solo, offline) + AdMob advertising, GDPR / ATT consent
-5. Online server (private tables by code, replacement robots, reconnection)
-
 ## Licence
 
 The code is under the [MIT licence](LICENSE). Cards and sounds are in the public domain (CC0); the fonts are under the SIL Open Font License, whose text travels with them in `app/web/fonts/OFL.txt`. Details in [CREDITS.md](CREDITS.md).
