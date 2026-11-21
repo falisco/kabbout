@@ -7,6 +7,9 @@
 // void with four trumps 5; a hand with no trick outside its trumps loses 10. The partner supports
 // with 20 for the jack, 10 for the nine, 10 for three trumps, 20 for the belote and 10 per outside
 // ace. A contre needs a well guarded nine of trumps (see evaluateContre). Each bid carries its reasons.
+//
+// What it takes to open and what the partner adds are the pair's conventions card (conventions.ts).
+// Those figures are the classic card's, which is the one a robot bids by when it is given none.
 
 import type { Card, Rank, Seat, Suit } from '../cards.ts';
 import { ORDER_PLAIN, ORDER_TRUMP, RANKS, SUITS, partnerOf, suitOf, team } from '../cards.ts';
@@ -15,6 +18,8 @@ import { hasBelote } from '../rules.ts';
 import { BELOTE_POINTS } from '../scoring.ts';
 import type { BestBid, BidAction, BidValue, PlayerView, PublicBid } from '../types.ts';
 import { CAPOT, MAX_BID, MIN_BID, isBidValue } from '../types.ts';
+import type { Conventions } from './conventions.ts';
+import { CLASSIC, sameConventions } from './conventions.ts';
 import type { Lang, Phrases } from './phrases.ts';
 import { PHRASES } from './phrases.ts';
 
@@ -110,32 +115,31 @@ export function evaluateSuit(hand: readonly Card[], trump: Suit): Evaluation {
   return { value: roundDownToLevel(value), reasons };
 }
 
-/** What a hand adds to a partner who bid `trump`. */
-export function evaluateSupport(hand: readonly Card[], trump: Suit): Evaluation {
+/** Which of what a hand holds its support counts: all of it, all but the outside aces, or those aces alone. */
+export type SupportShown = 'all' | 'withoutAces' | 'acesOnly';
+
+/**
+ * What a hand adds to a partner who bid `trump`, by the pair's card. On a card that is not the
+ * classic one each reason says what it added, so that the player sees the card at work.
+ */
+export function evaluateSupport(hand: readonly Card[], trump: Suit, card: Conventions = CLASSIC, shown: SupportShown = 'all'): Evaluation {
   const symbol = SUIT_SYMBOL[trump];
   const length = lengthIn(hand, trump);
   const reasons: Reason[] = [];
   let value = 0;
-  if (holds(hand, 'J', trump)) {
-    value += 2 * LEVEL;
-    reasons.push((p) => `${p.jack} ${symbol}`);
+  const agreed = !sameConventions(card, CLASSIC);
+  const add = (points: number, reason: Reason) => {
+    if (!points) return;
+    value += points;
+    reasons.push(agreed ? (p) => `${reason(p)} +${points}` : reason);
+  };
+  if (shown !== 'acesOnly') {
+    if (holds(hand, 'J', trump)) add(card.jack, (p) => `${p.jack} ${symbol}`);
+    if (holds(hand, '9', trump)) add(card.nine, () => `9 ${symbol}`);
+    if (length >= 3) add(card.threeTrumps, (p) => p.trumps(length));
+    if (hasBelote(hand, trump)) add(card.belote, (p) => p.belote);
   }
-  if (holds(hand, '9', trump)) {
-    value += LEVEL;
-    reasons.push(() => `9 ${symbol}`);
-  }
-  if (length >= 3) {
-    value += LEVEL;
-    reasons.push((p) => p.trumps(length));
-  }
-  if (hasBelote(hand, trump)) {
-    value += BELOTE_POINTS;
-    reasons.push((p) => p.belote);
-  }
-  for (const suit of outsideAces(hand, trump)) {
-    value += LEVEL;
-    reasons.push(aceOf(suit));
-  }
+  if (shown !== 'withoutAces') for (const suit of outsideAces(hand, trump)) add(card.ace, aceOf(suit));
   return { value, reasons };
 }
 
@@ -180,8 +184,6 @@ export function sureCapot(hand: readonly Card[], trump: Suit): boolean {
   return trumps >= 4 && plainSuits.every((suit) => topCards(suit, ORDER_PLAIN) === lengthIn(hand, suit));
 }
 
-/** the weakest evaluation that opens the auction (at 80) */
-const OPENING_MIN = 70;
 /** a surcontre needs the pair's hands to be worth this much more than the contract */
 const SURCONTRE_MARGIN = 30;
 /** a hand names its own suit over its partner's only when it is worth this much more than the partner's bid */
@@ -193,7 +195,7 @@ type SuitBid = PublicBid & { type: 'bid' };
 const suitBidsOf = (view: PlayerView, seat: Seat): SuitBid[] => view.bids.filter((b): b is SuitBid => b.seat === seat && b.type === 'bid');
 
 /** What the taking pair's two hands are worth in the contract suit, each hand counted once. */
-function pairEstimate(view: PlayerView, contract: BestBid): number {
+function pairEstimate(view: PlayerView, contract: BestBid, card: Conventions): number {
   const { hand, seat } = view;
   const mine = suitBidsOf(view, seat).filter((b) => b.suit === contract.suit);
   const partners = suitBidsOf(view, partnerOf(seat)).filter((b) => b.suit === contract.suit);
@@ -204,7 +206,7 @@ function pairEstimate(view: PlayerView, contract: BestBid): number {
     return evaluateSuit(hand, contract.suit).value + Math.max(0, raise);
   }
   // my partner did: what they announced first, plus my support
-  return opener.value + evaluateSupport(hand, contract.suit).value;
+  return opener.value + evaluateSupport(hand, contract.suit, card).value;
 }
 
 /** The suit this hand would rather play in, with what it is worth there; null when it can open in none. */
@@ -224,8 +226,19 @@ function bidValue(points: number): BidValue {
 /** the points a hand is worth, as a bid: a whole level, 160 at most */
 const cappedBid = (points: number): number => Math.min(MAX_BID, roundDownToLevel(points));
 
-/** `lang`: the language the reasons are written in */
-export function aiBid(view: PlayerView, lang: Lang = 'fr'): AiBid {
+/** Whether `seat` made its bid at `index` over a contract the opponents held: it was answering them, not its partner. */
+function madeOverOpponents(view: PlayerView, index: number): boolean {
+  const before = view.bids.slice(0, index).filter((b): b is SuitBid => b.type === 'bid');
+  const standing = before[before.length - 1];
+  return standing !== undefined && team(standing.seat) !== team(view.bids[index].seat);
+}
+
+/**
+ * `lang`: the language the reasons are written in. `card`: the conventions this seat and its partner
+ * agreed on. It changes what it takes to open, what a raise is worth and when the aces are shown;
+ * contres, surcontres' margin and a capot are no convention.
+ */
+export function aiBid(view: PlayerView, lang: Lang = 'fr', card: Conventions = CLASSIC): AiBid {
   const { hand, seat } = view;
   const phrases = PHRASES[lang];
   const current = view.best;
@@ -241,18 +254,19 @@ export function aiBid(view: PlayerView, lang: Lang = 'fr'): AiBid {
   }
   if (view.contreQueue && current) {
     // the opponents contred: surcontre only with a clear margin
-    const worth = pairEstimate(view, current);
+    const worth = pairEstimate(view, current, card);
     return worth >= current.value + SURCONTRE_MARGIN ? { bid: { type: 'surcontre' }, why: phrases.pairWorth(worth) } : pass(phrases.noMargin);
   }
 
   const own = bestOwnSuit(hand);
-  const alreadyBid = suitBidsOf(view, seat).length > 0;
+  const mine = suitBidsOf(view, seat);
+  const alreadyBid = mine.length > 0;
   const support = (p: Phrases) => p.support;
 
   if (current && team(current.seat) === team(seat)) {
     // our side holds the contract: answer the partner once, with our own suit or with support
     if (current.seat === partnerOf(seat) && !alreadyBid) {
-      const help = evaluateSupport(hand, current.suit);
+      const help = evaluateSupport(hand, current.suit, card, card.aces === 'atOnce' ? 'all' : 'withoutAces');
       const ownSuitIsBetter = own && own.suit !== current.suit && own.value >= current.value + OWN_SUIT_MARGIN && help.value < REAL_SUPPORT;
       if (ownSuitIsBetter) return bid(Math.min(MAX_BID, own.value), own.suit, own.reasons);
       const raised = cappedBid(current.value + help.value);
@@ -266,15 +280,25 @@ export function aiBid(view: PlayerView, lang: Lang = 'fr'): AiBid {
     if (view.coinche === 0 && contre.worthIt) return { bid: { type: 'contre' }, why: explain(contre.reasons, lang).join(REASON_SEPARATOR) };
     const partnerBid = suitBidsOf(view, partnerOf(seat)).pop();
     if (partnerBid && !alreadyBid) {
-      const help = evaluateSupport(hand, partnerBid.suit);
+      // they bid over my partner before I spoke: nothing is kept back
+      const help = evaluateSupport(hand, partnerBid.suit, card);
       const raised = cappedBid(partnerBid.value + help.value);
       if (help.value >= REAL_SUPPORT && raised > current.value) return bid(raised, partnerBid.suit, [support, ...help.reasons]);
+    }
+    if (partnerBid && card.aces === 'whenOverbid' && mine.length === 1 && mine[0].suit === partnerBid.suit) {
+      // the second round: I raised my partner without my aces, and the opponents bid over us. The aces
+      // are shown now, once: a raise made over the opponents had them in it already.
+      const keptBack = !madeOverOpponents(view, view.bids.indexOf(mine[0]));
+      const aces = evaluateSupport(hand, partnerBid.suit, card, 'acesOnly');
+      const raised = cappedBid(Math.max(mine[0].value, partnerBid.value) + aces.value);
+      if (keptBack && aces.value > 0 && raised > current.value) return bid(raised, partnerBid.suit, [(p) => p.acesNow, ...aces.reasons]);
     }
     if (own && own.value > current.value && current.value < MAX_BID) return bid(Math.min(MAX_BID, own.value), own.suit, own.reasons);
     return pass(phrases.cannotRaise);
   }
-  // nobody has bid: a hand one level short still opens at 80. Measured in duplicate, taking the
-  // contract on such hands wins about 7 points a deal and halves the deals everybody passes.
-  if (own && own.value >= OPENING_MIN) return bid(Math.max(MIN_BID, Math.min(MAX_BID, own.value)), own.suit, own.reasons);
-  return pass(phrases.noTrump);
+  // nobody has bid: on the classic card a hand one level short still opens at 80. Measured in
+  // duplicate, taking the contract on such hands wins about 7 points a deal and halves the deals
+  // everybody passes.
+  if (own && own.value >= card.open) return bid(Math.max(MIN_BID, Math.min(MAX_BID, own.value)), own.suit, own.reasons);
+  return pass(own && own.value >= CLASSIC.open ? phrases.belowOpening(card.open) : phrases.noTrump);
 }

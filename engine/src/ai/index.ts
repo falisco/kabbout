@@ -11,6 +11,19 @@ import { bestOf, cardAverages, searchCard } from './search.ts';
 
 export { aiBid, evaluateContre, evaluateSuit, evaluateSupport, explain } from './bidding.ts';
 export type { AiBid, Evaluation, Reason } from './bidding.ts';
+export {
+  BOLD,
+  CAUTIOUS,
+  CLASSIC,
+  CONVENTION_SETTINGS,
+  CONVENTION_VALUES,
+  READY_CONVENTIONS,
+  describeConventions,
+  isReadyConventions,
+  readConventions,
+  sameConventions,
+} from './conventions.ts';
+export type { ConventionSetting, Conventions, ReadyConventions } from './conventions.ts';
 export { LANGS, isLang } from './phrases.ts';
 export type { Lang } from './phrases.ts';
 export { isMaster, playedCards, recall } from './memory.ts';
