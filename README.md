@@ -8,6 +8,100 @@ Belote contrée for four: you and your partner against two opponents, at a quiet
 
 **The name.** At a Tunisian café table nobody says _capot_ when a side takes all eight tricks. They say _kabbout_ (كبّوط), and they say it loud. The emblem is the eight-pointed star of the tilework: one point per trick. During a deal a star in the middle of the table lights one point for each trick, in the colour of the side that took it; eight points of one colour and the whole screen says Kabbout.
 
+## The entry on one screen
+
+Kabbout was built for a hackathon on Symfony AI and MCP. This is what there is to judge.
+
+**One command, no key, the whole game.**
+
+```bash
+git clone https://github.com/falisco/kabbout && cd kabbout
+docker compose up
+```
+
+Three levels of robots, two ways of counting, three languages, and not one call to a model: the robots are plain search and conventions, and they cost nothing to play against.
+
+**With a key, three things a model does that the robots cannot.** In each the model's word is taken for nothing: the engine or the domain checks it, and a count says how often it holds.
+
+| What                                                            | What the model does                                                                 | Who checks it                                                                                                | Measured                                             |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| [The coach](#the-coach)                                         | Answers "what did I do wrong?" after a deal, in French, English or Tunisian Arabic. | Every number and every card of its answer must be in a result of the engine's tools (`GroundingGuard`).      | 15/15 planted mistakes named (Haiku, Sonnet, Opus)   |
+| [Conventions with your partner](#conventions-with-your-partner) | Turns "zid 30 ken 3andek el valet" into a card of seven settings.                   | The domain takes the card or refuses it (`ConventionCard`); the engine alone bids, and writes the read-back. | 34/34 sentences (Opus), 33/34 (Sonnet, Haiku)        |
+| [The MCP server](#the-mcp-server)                               | Is the client: it sits at a table, plays a seat, then reviews its own deal.         | The engine decides every move; a tool returns one seat's view and never another hand.                        | Tests over stdio and HTTP; one manual run, see below |
+
+Every visitor is a [guest with a name](#who-you-are) of their own, so that what the coach remembers of a deal is a player's and not an address's.
+
+**What Symfony AI and MCP unlocked.**
+
+- The coach is an agent of `symfony/ai-bundle`, declared in `server/config/packages/ai.yaml`; its six tools are classes marked `#[AsTool]` that each call one capability of the application layer.
+- The conventions are a second agent with no tool, asked for structured output: `response_format` names a PHP class and the bundle hands the answer back as that class.
+- The MCP server is `symfony/mcp-bundle`; its review tools call the same six capabilities as the coach's, described by the same words. One analysis, two ways in.
+
+**Where to look for code quality.**
+
+- `server/src`: four bounded contexts, four layers, and two tests that read the imports and fail when a layer knows what it should not (`tests/Architecture/`). See [The server](#the-server).
+- The rules are written once, in TypeScript (`engine/`). PHP asks them through `bridge/`, and both sides are tested against one recorded contract (`bridge/contract/`).
+- [Continuous integration](#continuous-integration): types, lint, PHPStan at its strictest, unit tests, 33 reference games replayed card for card, browser tests on seven screen formats with an accessibility audit, coverage floors at 80%, and a job that runs the one command above and plays against it.
+
+### A 30-second tour
+
+1. `docker compose up`, open `http://localhost:8080`, start a game. Take eight tricks and the screen says Kabbout. (Lose eight and it says it too, about the others.)
+2. Copy `.env.example` to `.env`, put an Anthropic key in it, `docker compose up` again. At the end of a deal, **Ask the coach**; then "and if I had kept my trump?".
+3. In the menu, **Agree with Selim**: type how the two of you bid, in your own words, and read the card back before you agree.
+4. `claude mcp add kabbout -- docker compose exec -T app php -d display_errors=stderr bin/console mcp:server`, then ask Claude to play a deal of belote and to review its own play.
+
+## What the AI is for here, and how we measured it
+
+The robots do not need a model to play. A model is called in two places only, for what it is good at: putting an analysis into words, and reading a sentence. It never plays a card, never counts a point and never sees a hand the player could not see.
+
+| Feature     | The set                                                                              | Date       | Result                                                                                            | To run it again            |
+| ----------- | ------------------------------------------------------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------- | -------------------------- |
+| Coach       | `eval/coach/`: 15 deals, one planted mistake in each, five in each language          | 2026-11-16 | 15/15 named, all written by the model: `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5` | `npm run eval:coach`       |
+| Conventions | `eval/conventions/sentences.json`: 34 sentences in French, English, Arabic and derja | 2026-11-21 | `claude-opus-5-5` 34/34; `claude-sonnet-5-5` 33/34; `claude-haiku-5-5` 33/34                      | `npm run eval:conventions` |
+
+Both need `ANTHROPIC_API_KEY` in `.env` and call the model; `KABBOUT_AI_MODEL` chooses which. The full tables, run by run, with what the first runs got wrong and what was changed, are under [The coach](#the-coach) and [Conventions with your partner](#conventions-with-your-partner).
+
+**How "no invented number" is enforced.** The coach's answer is read by `GroundingGuard` before the player sees it: a number or a card that is in no tool result of the conversation sends the answer back to the model once, with what it invented; a second time, the player reads a plain summary built from the engine's analysis, with no model. For the conventions no sentence of the model's reaches the player at all: the read-back is written by the engine from the card.
+
+**How "no cheating" is enforced.** The engine gives each seat a view that does not hold the other hands, and that view is all the coach's tools, the MCP tools and the page ever read. The coach is asked about a finished deal only, and the server replays it by the rules before any model is called. At an MCP table the four hands and the seed stay in the server's cache, and one action at a time is played at a table, so a client cannot try every card and read the answers.
+
+**Planned, and not here.** A bench where models sit at the MCP table against the robots was planned and was not run: it would have measured models, and added nothing to the game. A referee that answers questions on the rules was planned and was not started. `/api/capabilities` still lists both as `planned`; nothing else in this repository is about them.
+
+## Architecture
+
+```text
+  browser                                             an MCP client (Claude Code, ...)
+  the page, app/web: the engine is bundled in,                    |
+  a game against the robots needs no server                       |
+        |                                                         |
+        | /api  (guest cookie, same origin)                       | stdio, or HTTP /mcp (guest secret)
+        v                                                         v
++--------------------------------- app: Symfony 8.1, PHP 8.5 ---------------------------------+
+|  UserInterface    HTTP controllers          console commands           MCP tools            |
+|  Application      AskCoach    InterpretConventions    OpenTable, ...    SummariseDeal, ...   |
+|  Domain           GroundingGuard    ConventionCard    Table, SeatView    Player              |
+|  Infrastructure   Symfony AI agents (coach, conventions)        adapter of the bridge        |
++-----------------------------|----------------------------------------|----------------------+
+                              v                                        v
+                      Anthropic API                        bridge: Node, keeps nothing
+                      (only with a key)                                |
+                                                                       v
+                                                    engine/: rules, scoring, robots (TypeScript)
+```
+
+The same `engine/` runs in the page and behind the bridge. Only `app` is reachable from outside; the bridge answers `app` alone.
+
+## Known limits
+
+- The two evaluations are small and were written by the author of the instructions they test. They show that each path works, in three languages and four ways of writing; they do not show how players really talk. One run each.
+- The conventions were corrected after a review, and Sonnet and Haiku were not measured again after those corrections: their 33/34 are from before.
+- The "second round" of a conventions card (aces shown only if the opponents bid over) did not happen once in 2,500 deals between robots. It is tested; you will hardly ever see it.
+- Your partner bids by the card you agreed on. It does not yet read your bids by it.
+- The texts in Tunisian Arabic and in derja (the page, the read-back, the evaluation sentences) were written by a model and have not yet been read by a native speaker.
+- A real model has driven the MCP server once by hand, not in a test: on 2026-11-21 Claude Code with `claude-sonnet-5-5`, over stdio, played one deal and reviewed it in 15 tool calls with no error. The tests drive it with the SDK's client.
+- One browser test is flaky (`responsive.spec.ts`, "every dialog fits", Arabic on the 360-wide phone), and the browser job of the CI once hung for over an hour; running it again passed.
+- One player at a table, robots in the other seats. Nothing plays online yet, and there are no accounts.
+
 ## Run it
 
 With Docker and nothing else:
@@ -34,7 +128,7 @@ Two services start: `app`, a Symfony application that serves the built game and 
 | `KABBOUT_TABLES_OPENED`   | Tables one address may open on the MCP server in an hour, 120 unless set. A table is kept a day: this is what stops a script from filling the disk with them.                                                                                                                                                                                                                |
 | `KABBOUT_TRUSTED_PROXIES` | Behind a reverse proxy, its address or range (comma separated). A visitor is then the address the proxy forwards: without it every player behind the proxy would be one visitor, sharing one count. It is also how the server learns that the visitor came over HTTPS, and marks their cookie `Secure`: behind a proxy that holds the certificate, set it. Empty unless set. |
 
-`GET /api/capabilities` says what the server can do with the AI: for each feature (`coach`, `conventions`, `referee`, `agent_seat`) a `state`, `planned`, `off` or `on`, and a `hint` when it is not on. The coach and the conventions are in this version: `off` without a key, `on` with one. The others are `planned`, and the menu of the game says so in one line. The key is never part of an answer. An address or a method the API does not know is answered in JSON too (`404`, `405`), in the shape `{ "error": { "code", "message" } }`; an address written with a trailing slash is first redirected to the one without. Nothing the API answers may be kept by a browser or a proxy (`Cache-Control: no-store`).
+`GET /api/capabilities` says what the server can do with the AI: for each feature (`coach`, `conventions`, `referee`, `agent_seat`) a `state`, `planned`, `off` or `on`, and a `hint` when it is not on. The coach and the conventions are in this version: `off` without a key, `on` with one. The other two are `planned` and were not built (see [Planned, and not here](#what-the-ai-is-for-here-and-how-we-measured-it)); the menu of the game says so in one line. The key is never part of an answer. An address or a method the API does not know is answered in JSON too (`404`, `405`), in the shape `{ "error": { "code", "message" } }`; an address written with a trailing slash is first redirected to the one without. Nothing the API answers may be kept by a browser or a proxy (`Cache-Control: no-store`).
 
 A request that changes something (a `POST`) must come from the game's own page, not from a page of another site open in the visitor's browser. Symfony's same-origin check decides: the browser must say the request is same-origin (`Sec-Fetch-Site`, or else `Origin` or `Referer` naming the server), and the request must carry the header `csrf-token: csrf-token`, which a page of another site cannot add. Anything else is answered `401`. A client that is no browser sends the same two things:
 
