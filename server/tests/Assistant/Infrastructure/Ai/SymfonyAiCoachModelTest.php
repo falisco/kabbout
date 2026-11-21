@@ -13,9 +13,11 @@ use Kabbout\Assistant\Domain\Grounding\Facts;
 use Kabbout\Assistant\Infrastructure\Ai\CoachConversation;
 use Kabbout\Assistant\Infrastructure\Ai\CoachPrompt;
 use Kabbout\Assistant\Infrastructure\Ai\SymfonyAiCoachModel;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\Json;
+use Kabbout\Game\Infrastructure\Bridge\Transport\BridgeResponse;
 use Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport;
 use Kabbout\Tests\Support\AnthropicMock;
 use Kabbout\Tests\Support\RecordedDeal;
@@ -90,6 +92,43 @@ final class SymfonyAiCoachModelTest extends KernelTestCase
         self::assertStringContainsString('as de carreau', $sent[1]);
         self::assertTrue($facts->hasTrick(4) && $facts->hasTrick(1) && $facts->hasCard('TC') && $facts->hasCard('AD'));
         self::assertTrue($facts->hasNumber(Json::int(Json::object(RecordedDeal::call('/analysis/summary')['response']['us'] ?? null, 'side')['gained'] ?? null, 'score')));
+    }
+
+    public function testTheExpertsBidsAreThoseOfTheCardThePairAgreedOn(): void
+    {
+        $bold = ConventionCard::ready('bold');
+        /** @var \ArrayObject<int, array<string, mixed>> $asked */
+        $asked = new \ArrayObject();
+        foreach ([null, $bold] as $card) {
+            AnthropicMock::willAnswer(AnthropicMock::toolUse(['expert_bids', []]), AnthropicMock::text('Vu.'));
+            self::bootKernel();
+            $recorded = RecordedDeal::transport();
+            self::getContainer()->set(BridgeTransport::class, new class($recorded, $asked) implements BridgeTransport {
+                /** @param \ArrayObject<int, array<string, mixed>> $asked */
+                public function __construct(private BridgeTransport $recorded, private \ArrayObject $asked)
+                {
+                }
+
+                public function post(string $path, array $body): BridgeResponse
+                {
+                    if ('/analysis/bids' === $path) {
+                        $this->asked[] = $body;
+                    }
+
+                    return $this->recorded->post($path, $body);
+                }
+            });
+            $model = self::getContainer()->get(CoachModel::class);
+            self::assertInstanceOf(CoachModel::class, $model);
+            $model->answer(new CoachBrief(RecordedDeal::record(), Seat::First, Lang::Fr, 'Et mes annonces ?', [], $card), new Facts());
+            self::ensureKernelShutdown();
+        }
+
+        // with nothing agreed the bridge is asked as before; with a card, the card goes with the question
+        [$without, $with] = $asked->getArrayCopy() + [[], []];
+        self::assertCount(2, $asked);
+        self::assertArrayNotHasKey('conventions', $without);
+        self::assertSame(ConventionCard::READY['bold'], $with['conventions'] ?? null);
     }
 
     public function testAToolSaysWhatItsArgumentsAre(): void

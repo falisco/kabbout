@@ -1,6 +1,6 @@
 // The flow of a game on screen: the session decides, this module passes its events on,
 // paces the robots and the table's pauses, and handles undo and advice.
-import { READY_CONVENTIONS, isReadyConventions } from '../../../engine/src/index.ts';
+import { CLASSIC, READY_CONVENTIONS, isReadyConventions, sameConventions } from '../../../engine/src/index.ts';
 import { snd } from './audio.js';
 import { FAST, FAST_PACE, ME, PACE, TOAST_MS, UNDO_MS, nameOf, sideOf } from './config.js';
 import { onGameEvent } from './feedback.js';
@@ -69,7 +69,9 @@ export async function askDebrief() {
   say(t('debriefAsking'));
   render();
   showLastTurn();
-  const reply = await askCoach({ record, seat: ME, lang: lang(), question });
+  // the expert the coach compares the player's bids with bids by the card of this game, when it is not the classic one
+  const conventions = sameConventions(partnership.playing, CLASSIC) ? {} : { conventions: partnership.playing };
+  const reply = await askCoach({ record, seat: ME, lang: lang(), question, ...conventions });
   // the table moved on while the coach was thinking: this answer is about another deal
   if (asked !== debrief.asked) return;
   debrief.pending = '';
@@ -94,6 +96,7 @@ export function showDebriefTrick(number) {
 }
 
 export function newGame() {
+  partnership.playing = partnership.card;
   resetDebrief();
   const events = session.start();
   overlay.modal = null;

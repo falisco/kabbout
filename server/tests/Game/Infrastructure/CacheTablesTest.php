@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Game\Infrastructure;
 
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\GameState;
 use Kabbout\Game\Domain\Level;
@@ -39,6 +40,29 @@ final class CacheTablesTest extends TestCase
         $tables->save($bare = self::table(null));
         self::assertEquals($bare, $tables->find($bare->id));
         self::assertNull($tables->find($bare->id)?->lastDeal);
+        self::assertNull($tables->find($bare->id)?->card);
+    }
+
+    public function testTheCardThePairBidsByIsKeptWithTheTable(): void
+    {
+        $pool = new ArrayAdapter();
+        $tables = new CacheTables($pool, self::locks());
+        $bold = ConventionCard::ready('bold');
+        $table = self::table(self::deal());
+        $withCard = new Table($table->id, $table->owner, $table->seat, $table->level, $table->secret, $table->moves, $table->state, $table->lastDeal, $table->playedAt, $bold);
+
+        $tables->save($withCard);
+
+        self::assertEquals($withCard, $tables->find($table->id));
+        // and it stays the table's when something is played at it
+        self::assertSame($bold, $withCard->after($table->state, 18, null, 1_795_000_001)->card);
+        // a table kept with a card that is none is no table: nothing is played by a card nobody can read
+        $kept = $pool->getItem('table.'.$table->id->toString());
+        $stored = $kept->get();
+        self::assertIsArray($stored);
+        $stored[8] = ['jack' => 500];
+        $pool->save($kept->set($stored));
+        self::assertNull($tables->find($table->id));
     }
 
     public function testWhatThePoolHoldsThatIsNoTableIsNoTable(): void

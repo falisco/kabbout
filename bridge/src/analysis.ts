@@ -40,7 +40,7 @@ import {
 } from '../../engine/src/index.ts';
 import { BadRequest } from './errors.ts';
 import type { Body, Handler } from './handlers.ts';
-import { sorted } from './handlers.ts';
+import { readCard, sorted } from './handlers.ts';
 import type { DealRecord, Decision, Replay } from './replay.ts';
 import type { Reading } from './reading.ts';
 import { readingOf } from './reading.ts';
@@ -358,20 +358,22 @@ const REASONS_JOINED = ' · ';
 
 /**
  * The auction looked at again: at each of the player's turns, what the expert would have said with the
- * same cards, having heard the same bids. The expert bids by conventions, the same for every robot, so
- * this compares the player with a partner's expectations; it does not measure what a bid was worth.
+ * same cards, having heard the same bids. The expert bids by conventions, the classic card's or those
+ * of the card the call carries (the one the player and their partner agreed on), so this compares the
+ * player with a partner's expectations; it does not measure what a bid was worth.
  */
 export const bidsHandler: Handler = (body): BidReview => {
   const { replay, seat } = read(body);
   if (!isLang(body.lang)) throw new BadRequest('lang: fr, en or ar expected');
   const lang = body.lang;
+  const card = readCard(body.conventions);
   const hand = sorted(replay.start.hands[seat]);
   const turns = replay.auction
     .filter((call) => call.seat === seat)
     .map((call, index): BidTurn => {
       const view = seatView(call.before, seat);
       const { seat: _seat, ...bid } = call.bid;
-      const expert = aiBid(view, lang);
+      const expert = aiBid(view, lang, card);
       return {
         turn: index + 1,
         heard: view.bids,

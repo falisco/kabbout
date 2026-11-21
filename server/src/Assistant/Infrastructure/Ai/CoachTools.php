@@ -111,7 +111,7 @@ final readonly class CoachTools
             return self::NO_MORE;
         }
 
-        return $this->established(($this->reviewBids)($this->conversation->record(), $this->conversation->seat(), $this->conversation->lang())->toArray());
+        return $this->established(($this->reviewBids)($this->conversation->record(), $this->conversation->seat(), $this->conversation->lang(), $this->conversation->card())->toArray());
     }
 
     public function biggestSwings(): string

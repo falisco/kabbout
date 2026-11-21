@@ -6,6 +6,7 @@ namespace Kabbout\Tests\Game\UserInterface\Mcp;
 
 use Kabbout\Game\Domain\Action;
 use Kabbout\Game\Domain\BidType;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Domain\Level;
 use Kabbout\Game\Domain\Seat;
@@ -60,12 +61,32 @@ final class TableToolsTest extends KernelTestCase
         self::assertSame([], array_intersect($seeds, array_column($this->engine->drawn, 3)));
     }
 
+    public function testTheConventionsTheClientNamedAreTheOnesThePartnerBidsBy(): void
+    {
+        $this->tools->newGame(Level::Easy, Seat::Fourth, conventions: 'cautious');
+
+        // seats 1 and 2 speak before seat 3: seat 1 faces the player and bids by the card, seat 2 does not
+        self::assertSame([[1, ConventionCard::READY['cautious']], [2, null]], $this->engine->cards);
+    }
+
+    public function testConventionsNoReadyCardHasAreRefusedInWordsAndNoTableIsOpened(): void
+    {
+        try {
+            $this->tools->newGame(conventions: 'reckless');
+            self::fail('A table was opened.');
+        } catch (ToolCallException $refused) {
+            self::assertSame('The ready conventions cards are classic, cautious, bold.', $refused->getMessage());
+        }
+        self::assertSame([], $this->engine->drawn);
+    }
+
     public function testLeftToItselfATableIsSeatZeroAgainstNormalRobots(): void
     {
         $opened = self::answer($this->tools->newGame());
 
         self::assertSame(0, self::at($opened, 'view', 'seat'));
         self::assertSame('normal fr', $this->engine->drawn[1][2]);
+        self::assertSame([null], array_values(array_unique(array_column($this->engine->cards, 1), \SORT_REGULAR)));
     }
 
     public function testABidACardAndTheNextDealReachTheEngineAsTheyWereGiven(): void

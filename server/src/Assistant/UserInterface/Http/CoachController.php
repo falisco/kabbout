@@ -13,9 +13,11 @@ use Kabbout\Assistant\Application\Coach\DealSpent;
 use Kabbout\Assistant\Domain\AiConfiguration;
 use Kabbout\Assistant\Domain\InvalidAiSettings;
 use Kabbout\Assistant\Infrastructure\EnvAiConfiguration;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\Exception\EngineUnavailable;
+use Kabbout\Game\Domain\Exception\InvalidConventionCard;
 use Kabbout\Game\Domain\Exception\InvalidDealRecord;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
@@ -30,7 +32,8 @@ use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
 
 /**
  * POST /api/coach: a question about a deal just played. The body holds the record of the deal (as the
- * table saw it), the seat of the player, the language and the question. The record is not taken at its
+ * table saw it), the seat of the player, the language and the question, and the conventions card the
+ * player and their partner agreed on, when they did: the expert's bids are then those of that card. The record is not taken at its
  * word: the engine plays it again and a deal the rules do not allow is answered 422, with the place
  * where it goes wrong. The answer names the tricks and the cards it speaks of, for the screen to show
  * them, and says how many questions about this deal are left (`left`).
@@ -57,12 +60,12 @@ final readonly class CoachController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            [$record, $seat, $lang, $question] = self::asked($request);
+            [$record, $seat, $lang, $question, $card] = self::asked($request);
             if (null === $this->configuration->settings()) {
                 return self::error(Response::HTTP_SERVICE_UNAVAILABLE, 'ai_off', \sprintf('The coach is off: set %s in .env and start again.', EnvAiConfiguration::VARIABLE));
             }
-            $answered = ($this->answerVisitor)(NetworkAddress::of($request->getClientIp()), $this->current->player()?->id, $record, $seat, $lang, $question);
-        } catch (InvalidDealRecord|\InvalidArgumentException $e) {
+            $answered = ($this->answerVisitor)(NetworkAddress::of($request->getClientIp()), $this->current->player()?->id, $record, $seat, $lang, $question, $card);
+        } catch (InvalidDealRecord|InvalidConventionCard|\InvalidArgumentException $e) {
             return self::error(Response::HTTP_BAD_REQUEST, 'bad_request', $e->getMessage());
         } catch (InvalidAiSettings $e) {
             return self::error(Response::HTTP_SERVICE_UNAVAILABLE, 'invalid_ai_settings', $e->getMessage());
@@ -86,10 +89,11 @@ final readonly class CoachController
     }
 
     /**
-     * @return array{DealRecord, Seat, Lang, string} the deal, the seat, the language and the question
+     * @return array{DealRecord, Seat, Lang, string, ?ConventionCard} the deal, the seat, the language, the question and the pair's conventions, if they agreed on any
      *
      * @throws \InvalidArgumentException a body that is not the expected one, said in words for whoever writes a client
      * @throws InvalidDealRecord
+     * @throws InvalidConventionCard
      */
     private static function asked(Request $request): array
     {
@@ -111,7 +115,12 @@ final readonly class CoachController
             throw new \InvalidArgumentException('The seat is 0 to 3 and the language is fr, en or ar.');
         }
 
-        return [DealRecord::fromArray($body['record']), $seat, $lang, \is_string($body['question'] ?? null) ? $body['question'] : ''];
+        $conventions = $body['conventions'] ?? null;
+        if (null !== $conventions && !\is_array($conventions)) {
+            throw new \InvalidArgumentException('The conventions, when there are any, are a conventions card.');
+        }
+
+        return [DealRecord::fromArray($body['record']), $seat, $lang, \is_string($body['question'] ?? null) ? $body['question'] : '', null === $conventions ? null : ConventionCard::fromArray($conventions)];
     }
 
     /** @param array<string, mixed> $more */

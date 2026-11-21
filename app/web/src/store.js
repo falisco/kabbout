@@ -28,8 +28,13 @@ export const prefs = {
 /**
  * What the player and their partner agreed their bids mean. `card` is the classic one until they agree
  * on another; `agreed` says they did agree, on whichever card: the partner then gives its reasons.
+ * A game is played to its end by the card it started with (`playing`), whatever is agreed meanwhile.
  */
-export const partnership = { card: CLASSIC, agreed: false };
+export const partnership = {
+  card: CLASSIC,
+  agreed: false,
+  /** the card of the game being played: the one agreed on when it started */ playing: CLASSIC,
+};
 export function saveConventions() {
   saveJSON(KEYS.conventions, partnership.card);
 }

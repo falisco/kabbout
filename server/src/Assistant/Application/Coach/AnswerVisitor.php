@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kabbout\Assistant\Application\Coach;
 
 use Kabbout\Game\Application\SummariseDeal;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\Exception\EngineUnavailable;
@@ -39,7 +40,7 @@ final readonly class AnswerVisitor
      * @throws EngineRefused                        for a record the engine cannot play again
      * @throws EngineUnavailable                    when the engine cannot be asked
      */
-    public function __invoke(NetworkAddress $from, ?PlayerId $player, DealRecord $record, Seat $seat, Lang $lang, string $question): Answered
+    public function __invoke(NetworkAddress $from, ?PlayerId $player, DealRecord $record, Seat $seat, Lang $lang, string $question, ?ConventionCard $card = null): Answered
     {
         $brief = new CoachBrief($record, $seat, $lang, $question);
         $this->allowance->pace($from);
@@ -59,7 +60,7 @@ final readonly class AnswerVisitor
         try {
             // what was already said about this deal is the server's own memory of it, never the caller's word
             $earlier = null === $player ? [] : $this->memory->earlier($player, $deal);
-            $answer = ($this->askCoach)(new CoachBrief($record, $seat, $lang, $brief->question, $earlier));
+            $answer = ($this->askCoach)(new CoachBrief($record, $seat, $lang, $brief->question, $earlier, $card));
         } catch (EngineRefused|EngineUnavailable $e) {
             $this->allowance->giveBack($from, $deal);
             throw $e;

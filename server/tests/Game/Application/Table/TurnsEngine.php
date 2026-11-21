@@ -7,6 +7,7 @@ namespace Kabbout\Tests\Game\Application\Table;
 use Kabbout\Game\Domain\Action;
 use Kabbout\Game\Domain\ActionKind;
 use Kabbout\Game\Domain\Bid;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Domain\Exception\EngineRefused;
@@ -28,6 +29,9 @@ use Kabbout\Game\Domain\Step;
  */
 final class TurnsEngine implements Engine
 {
+    /** @var list<array{int, array<string, int|string>|null}> the seat each robot move was asked for, with the card it was to bid by */
+    public array $cards = [];
+
     /** @var list<array{string, int, string, string}> what was applied: who asked ("robot" or "apply"), the seat, the kind of action, the seed */
     public array $drawn = [];
     /** @var list<string|null> the reason each applied action carried */
@@ -94,9 +98,10 @@ final class TurnsEngine implements Engine
         return new LegalMoves($state->turn() === $seat ? [['type' => 'pass']] : [], [], 'roundEnd' === $state->phase()->value);
     }
 
-    public function robotMove(GameState $state, Level $level, Seed $seed, Lang $lang = Lang::Fr): RobotMove
+    public function robotMove(GameState $state, Level $level, Seed $seed, Lang $lang = Lang::Fr, ?ConventionCard $card = null): RobotMove
     {
         $this->drawn[] = ['robot', $state->turn()->value, $level->value.' '.$lang->value, $seed->toHex()];
+        $this->cards[] = [$state->turn()->value, $card?->toArray()];
 
         return new RobotMove($state->turn(), Action::bid(Bid::pass(), 'I hold the jack of spades'));
     }

@@ -11,6 +11,7 @@ use Kabbout\Game\Application\Table\TableRefusal;
 use Kabbout\Game\Domain\Exception\EngineRefused;
 use Kabbout\Game\Domain\Exception\EngineUnavailable;
 use Kabbout\Game\Domain\Exception\InvalidBid;
+use Kabbout\Game\Domain\Exception\InvalidConventionCard;
 use Kabbout\Game\Domain\Table\TablesUnavailable;
 use Kabbout\Identity\Application\CurrentPlayer;
 use Kabbout\Identity\Application\EnteredTooOften;
@@ -60,7 +61,7 @@ final readonly class Door
             throw new ToolCallException(\sprintf('Refused: %s. Nothing has changed. What you may do now: %s', rtrim($refused->getMessage(), '.'), self::written($refused->legal->toArray())), previous: $refused);
         } catch (NoSuchTable|TableExpired $gone) {
             throw new ToolCallException($gone->getMessage().self::OPEN_ONE, previous: $gone);
-        } catch (TableRefusal|InvalidBid $refusal) {
+        } catch (TableRefusal|InvalidBid|InvalidConventionCard $refusal) {
             throw new ToolCallException($refusal->getMessage(), previous: $refusal);
         } catch (EngineRefused $refused) {
             throw new ToolCallException(\sprintf('Refused: %s.', rtrim($refused->getMessage(), '.')), previous: $refused);

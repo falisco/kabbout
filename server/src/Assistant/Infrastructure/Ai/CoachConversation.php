@@ -6,6 +6,7 @@ namespace Kabbout\Assistant\Infrastructure\Ai;
 
 use Kabbout\Assistant\Application\Coach\CoachBrief;
 use Kabbout\Assistant\Domain\Grounding\Facts;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Lang;
 use Kabbout\Game\Domain\Seat;
@@ -73,6 +74,12 @@ final class CoachConversation implements ResetInterface
     public function lang(): Lang
     {
         return $this->brief()->lang;
+    }
+
+    /** the conventions the player and their partner bid by in the deal; none, the classic ones */
+    public function card(): ?ConventionCard
+    {
+        return $this->brief()->card;
     }
 
     /** One more tool result, as the data it returned: what the answer will be checked against. */

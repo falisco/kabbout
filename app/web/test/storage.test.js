@@ -158,15 +158,18 @@ test('the tutorial remembers the steps seen, as plain yes or no, and can be skip
   assert.deepEqual(loadJSON(KEYS.tutorial), { done: { round: true }, off: false });
 });
 
+/** what the two agreed on, without the card of the game being played */
+const pair = () => ({ card: partnership.card, agreed: partnership.agreed });
+
 test('the card agreed with the partner is kept; what is stored and is not a card is no agreement', () => {
   loadConventions();
-  assert.deepEqual(partnership, { card: CLASSIC, agreed: false });
+  assert.deepEqual(pair(), { card: CLASSIC, agreed: false });
 
   Object.assign(partnership, { card: BOLD, agreed: true });
   saveConventions();
   Object.assign(partnership, { card: CLASSIC, agreed: false });
   loadConventions();
-  assert.deepEqual(partnership, { card: BOLD, agreed: true });
+  assert.deepEqual(pair(), { card: BOLD, agreed: true });
 
   // agreeing on the classic card is an agreement too
   Object.assign(partnership, { card: CLASSIC, agreed: true });
@@ -179,7 +182,7 @@ test('the card agreed with the partner is kept; what is stored and is not a card
     useStorage(fakeStorage({ [KEYS.conventions]: stored }));
     Object.assign(partnership, { card: CLASSIC, agreed: false });
     loadConventions();
-    assert.deepEqual(partnership, { card: CLASSIC, agreed: false }, stored);
+    assert.deepEqual(pair(), { card: CLASSIC, agreed: false }, stored);
   }
   useStorage({ getItem: refusing, setItem: refusing, removeItem: refusing });
   saveConventions();

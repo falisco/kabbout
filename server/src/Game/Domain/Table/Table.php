@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Game\Domain\Table;
 
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\GameState;
 use Kabbout\Game\Domain\Level;
@@ -23,10 +24,11 @@ final readonly class Table
     public const int SECONDS_OPEN = 3 * 3600;
 
     /**
-     * @param Seed            $secret   what every draw of this game comes from: a new seed is derived for each call
-     * @param int             $moves    the actions applied so far, robots' included: what the next derived seed is named after
-     * @param DealRecord|null $lastDeal the last deal played to its end at this table: the only deal a review is about
-     * @param int             $playedAt when something last happened here, in seconds
+     * @param Seed                $secret   what every draw of this game comes from: a new seed is derived for each call
+     * @param int                 $moves    the actions applied so far, robots' included: what the next derived seed is named after
+     * @param DealRecord|null     $lastDeal the last deal played to its end at this table: the only deal a review is about
+     * @param int                 $playedAt when something last happened here, in seconds
+     * @param ConventionCard|null $card     the conventions the player and their partner bid by, for the whole game; none, the classic ones
      */
     public function __construct(
         public TableId $id,
@@ -38,6 +40,7 @@ final readonly class Table
         public GameState $state,
         public ?DealRecord $lastDeal,
         public int $playedAt,
+        public ?ConventionCard $card = null,
     ) {
     }
 
@@ -54,6 +57,6 @@ final readonly class Table
     /** The same table once something has been played. */
     public function after(GameState $state, int $moves, ?DealRecord $finished, int $now): self
     {
-        return new self($this->id, $this->owner, $this->seat, $this->level, $this->secret, $moves, $state, $finished ?? $this->lastDeal, $now);
+        return new self($this->id, $this->owner, $this->seat, $this->level, $this->secret, $moves, $state, $finished ?? $this->lastDeal, $now, $this->card);
     }
 }

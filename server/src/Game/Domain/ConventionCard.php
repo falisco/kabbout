@@ -74,6 +74,16 @@ final readonly class ConventionCard
         return isset(self::READY[$name]) ? new self(self::READY[$name]) : null;
     }
 
+    /**
+     * The ready card somebody asked for by its name; none asked for, none given.
+     *
+     * @throws InvalidConventionCard for a name no ready card has
+     */
+    public static function named(?string $name): ?self
+    {
+        return null === $name ? null : self::ready($name) ?? throw new InvalidConventionCard(\sprintf('The ready conventions cards are %s.', implode(', ', array_keys(self::READY))));
+    }
+
     public function equals(self $other): bool
     {
         return $this->settings === $other->settings;

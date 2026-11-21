@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kabbout\Game\Infrastructure\Bridge;
 
 use Kabbout\Game\Domain\Action;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Engine;
 use Kabbout\Game\Domain\GameState;
@@ -65,13 +66,14 @@ final readonly class BridgeEngine implements Engine
         return AnswerMapper::legalMoves($this->ask('/games/legal', ['state' => $state->toEngineArray(), 'seat' => $seat->value]));
     }
 
-    public function robotMove(GameState $state, Level $level, Seed $seed, Lang $lang = Lang::Fr): RobotMove
+    public function robotMove(GameState $state, Level $level, Seed $seed, Lang $lang = Lang::Fr, ?ConventionCard $card = null): RobotMove
     {
         return AnswerMapper::robotMove($this->ask('/games/robot', [
             'state' => $state->toEngineArray(),
             'level' => $level->value,
             'lang' => $lang->value,
             'seed' => $seed->toHex(),
+            ...(null === $card ? [] : ['conventions' => $card->toArray()]),
         ]));
     }
 

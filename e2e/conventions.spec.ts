@@ -4,7 +4,7 @@
 // is checked here is the screen, not the model.
 
 import { expect, type Page } from '@playwright/test';
-import { audit, newGame, nextMoment, openGame, test } from './helpers.ts';
+import { audit, newGame, nextMoment, openGame, playUntil, test } from './helpers.ts';
 
 const BOLD = { open: 70, jack: 30, nine: 20, threeTrumps: 10, belote: 20, ace: 10, aces: 'whenOverbid' };
 const WORDS = {
@@ -185,3 +185,33 @@ test('with nothing agreed, no robot gives a reason unless the player asked for t
   await nextMoment(page);
   await expect(page.locator('#bid .hist .why')).toHaveCount(0);
 });
+
+for (const [agreed, card] of [
+  ['a card of their own', BOLD],
+  ['the classic card', { ...BOLD, jack: 20, nine: 10, aces: 'atOnce' }],
+  ['nothing', null],
+] as const) {
+  test(`the coach is asked with the card of the game, and with none when that is the classic one (the two agreed on ${agreed})`, async ({ page }) => {
+    const asked: { conventions?: unknown }[] = [];
+    await page.route('**/api/coach', async (route) => {
+      asked.push(route.request().postDataJSON() as { conventions?: unknown });
+      await route.fulfill({ json: { version: 1, answer: { text: 'Rien à redire.', source: 'model', tricks: [], cards: [] }, left: 1 } });
+    });
+    const features = { coach: { state: 'on', hint: null }, conventions: { state: 'on', hint: null } };
+    await page.route('**/api/capabilities', (route) => route.fulfill({ json: { version: 1, ai: { variable: 'ANTHROPIC_API_KEY' }, features } }));
+    const answered = page.waitForResponse('**/api/capabilities');
+    await openGame(page, { storage: card ? { 'kabbout.conventions': JSON.stringify(card) } : {} });
+    await (await answered).finished();
+
+    await newGame(page);
+    await playUntil(page, 'round');
+    await page.locator('#sheet [data-action="debrief"]').click();
+    await page.locator('#debriefQ').press('Enter');
+    await expect(page.locator('#debriefAnswer')).toHaveText('Rien à redire.');
+
+    expect(asked).toHaveLength(1);
+    // the expert the coach compares the bids with bids by the pair's card; the classic one is the server's own default
+    if (card === BOLD) expect(asked[0].conventions).toEqual(BOLD);
+    else expect(asked[0]).not.toHaveProperty('conventions');
+  });
+}

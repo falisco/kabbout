@@ -6,6 +6,7 @@ namespace Kabbout\Tests\Game\Infrastructure\Bridge;
 
 use Kabbout\Game\Domain\Analysis\TrickNumber;
 use Kabbout\Game\Domain\Card;
+use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\DealAnalysis;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Domain\Engine;
@@ -88,6 +89,8 @@ abstract class EngineContractTestCase extends TestCase
         $seed = static fn (): Seed => Seed::fromHex($string('seed'));
         $record = static fn (): DealRecord => DealRecord::fromArray(Json::object($r['record'], 'record'));
         $trick = static fn (): TrickNumber => TrickNumber::of(Json::int($r['trick'], 'trick'));
+        // the conventions card a call carries, when it carries one
+        $card = isset($r['conventions']) ? ConventionCard::fromArray(Json::object($r['conventions'], 'conventions')) : null;
         if (str_starts_with($path, '/analysis/')) {
             $analysis = $this->analysis();
 
@@ -97,7 +100,7 @@ abstract class EngineContractTestCase extends TestCase
                 '/analysis/expert-choice' => $analysis->expertChoice($record(), $seat('seat'), $trick())->toArray(),
                 '/analysis/what-if' => $analysis->whatIf($record(), $seat('seat'), $trick(), Card::fromCode($string('card')))->toArray(),
                 '/analysis/swings' => $analysis->swings($record(), $seat('seat'))->toArray(),
-                '/analysis/bids' => $analysis->bids($record(), $seat('seat'), Lang::from($string('lang')))->toArray(),
+                '/analysis/bids' => $analysis->bids($record(), $seat('seat'), Lang::from($string('lang')), $card)->toArray(),
                 default => self::fail('The contract holds an analysis this test does not know: '.$path),
             };
         }
@@ -107,7 +110,7 @@ abstract class EngineContractTestCase extends TestCase
             '/games/apply' => $engine->apply($state(), $seat('seat'), ActionMapper::fromArray(Json::object($r['action'], 'action')), $seed())->toEngineArray(),
             '/games/view' => ['view' => $engine->view($state(), $seat('seat'))->toArray()],
             '/games/legal' => $engine->legalMoves($state(), $seat('seat'))->toArray(),
-            '/games/robot' => self::robotMove($engine->robotMove($state(), Level::from($string('level')), $seed(), Lang::from($string('lang')))),
+            '/games/robot' => self::robotMove($engine->robotMove($state(), Level::from($string('level')), $seed(), Lang::from($string('lang')), $card)),
             '/deals/replay' => $engine->replay($record())->toArray(),
             default => self::fail('The contract holds a call this test does not know: '.$path),
         };
