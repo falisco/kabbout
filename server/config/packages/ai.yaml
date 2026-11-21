@@ -1,4 +1,4 @@
-# The Symfony AI bundle: one platform, one agent.
+# The Symfony AI bundle: one platform, two agents (the coach and the conventions).
 ai:
   platform:
     anthropic:
