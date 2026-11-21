@@ -51,7 +51,7 @@ final readonly class TableTools
      * @param Seat        $seat  the seat you take, 0 to 3
      * @param string|null $seed  leave out for a game nobody can predict. For tests and benches only: the same seed and the same play give the same first deal.
      */
-    #[McpTool(name: 'new_game', description: 'Sit down at a new table of belote contrée against three robots. The cards are dealt and the robots play until it is your turn. "table" in the answer is the name to give to every other tool.'.self::TURN.' Read the resource kabbout://rules first if you do not know the game.', annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false))]
+    #[McpTool(name: 'new_game', description: 'Sit down at a new table of belote contrée against three robots. The cards are dealt and the robots play until it is your turn. "table" in the answer is the name to give to every other tool. A table expires three hours after the last bid or card played at it: looking at it does not keep it open.'.self::TURN.' Read the resource kabbout://rules first if you do not know the game.', annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false))]
     public function newGame(Level $level = Level::Normal, Seat $seat = Seat::First, #[Schema(pattern: Seed::FORMAT)] ?string $seed = null): CallToolResult
     {
         return ($this->door)(fn (PlayerId $player, NetworkAddress $from): array => ($this->open)($player, $from, $level, $seat, Seed::fromHexOrNone($seed))->toArray());

@@ -28,6 +28,10 @@ abstract class McpServerTestCase extends WebTestCase
         'deal_summary', 'trick', 'expert_choice', 'what_if', 'expert_bids', 'biggest_swings',
     ];
     private const string SEED = '5eed5eed5eed5eed5eed5eed5eed5eed';
+    /** seeds found by trying them: what each one deals is said where it is used, and checked there */
+    private const string NOBODY_BIDS = '0000000000000000000000000000000a';
+    private const string THEY_BID_FIRST = '00000000000000000000000000000002';
+    private const string A_WHOLE_GAME = '00000000000000000000000000000007';
 
     /**
      * A client of the server, who is a guest of their own: each call of this is another player.
@@ -124,6 +128,81 @@ abstract class McpServerTestCase extends WebTestCase
 
         self::assertContains([...$raise, 'seat' => 1], self::arr($after, 'view', 'bids'));
         self::assertSeesOnlyItsOwn($after, 1);
+    }
+
+    public function testFourPassesDealTheCardsAgainAndThePlayerHoldsANewHand(): void
+    {
+        $call = $this->player();
+        // with these cards nobody bids: the player, at seat 1, passes like the three robots
+        $turn = self::answer($call('new_game', ['level' => 'easy', 'seat' => 1, 'seed' => self::NOBODY_BIDS]));
+        $first = self::arr($turn, 'view', 'hand');
+        $dealer = self::at($turn, 'view', 'dealer');
+
+        $after = self::answer($call('bid', ['table' => $turn['table'], 'type' => 'pass']));
+
+        self::assertContains('redeal', array_column([...self::arr($turn, 'events'), ...self::arr($after, 'events')], 'type'));
+        self::assertSame(['bidding', 1], [self::at($after, 'view', 'phase'), self::at($after, 'view', 'turn')]);
+        self::assertCount(8, self::arr($after, 'view', 'hand'));
+        self::assertNotSame($first, self::arr($after, 'view', 'hand'));
+        self::assertNotSame($dealer, self::at($after, 'view', 'dealer'));
+        self::assertSame([], self::arr($after, 'view', 'tricks'));
+        self::assertSeesOnlyItsOwn($after, 1);
+        // no deal was played: there is still nothing to review
+        self::refused($call('deal_summary', ['table' => $turn['table']]), 'No deal has been played to its end');
+    }
+
+    public function testAContreDoublesTheContractOfTheDealThatFollows(): void
+    {
+        $call = $this->player();
+        // with these cards a robot of the other team has bid before the player, at seat 1, first speaks
+        $turn = self::answer($call('new_game', ['level' => 'easy', 'seat' => 1, 'seed' => self::THEY_BID_FIRST]));
+        self::assertContains(['type' => 'contre'], self::arr($turn, 'legal', 'bids'));
+
+        $turn = self::answer($call('bid', ['table' => $turn['table'], 'type' => 'contre']));
+        self::assertContains(['type' => 'contre', 'seat' => 1], self::arr($turn, 'view', 'bids'));
+        // a contre fixes the contract: nobody may bid over it, and the player may not contre twice
+        self::assertNotContains(['type' => 'contre'], self::arr($turn, 'legal', 'bids'));
+
+        $turn = self::playTheDeal($call, $turn, 1);
+        // 2 after the contre, 4 if the takers answered with a surcontre
+        self::assertContains(self::at($turn, 'view', 'coinche'), [1, 2]);
+        self::assertSame(1 === self::at($turn, 'view', 'coinche') ? 2 : 4, self::at($turn, 'view', 'result', 'contract', 'mult'));
+        // after a contre only one side scores
+        self::assertContains(0, self::arr($turn, 'view', 'result', 'gained'));
+    }
+
+    public function testAGameIsPlayedToItsEndAndThenNothingMoreIsPlayed(): void
+    {
+        $call = $this->player();
+        $turn = self::answer($call('new_game', ['level' => 'easy', 'seed' => self::A_WHOLE_GAME]));
+        $table = self::str($turn, 'table');
+
+        for ($calls = 0; 'gameEnd' !== self::at($turn, 'view', 'phase'); ++$calls) {
+            self::assertLessThan(400, $calls, 'The game never ends.');
+            $turn = match (true) {
+                true === self::at($turn, 'legal', 'next') => self::answer($call('next_deal', ['table' => $table])),
+                [] !== self::at($turn, 'legal', 'bids') => self::answer($call('bid', ['table' => $table, 'type' => 'pass'])),
+                default => self::answer($call('play_card', ['table' => $table, 'card' => self::at($turn, 'legal', 'cards', 0)])),
+            };
+        }
+
+        // somebody has won, with the scores the deals add up to
+        $score = self::answer($call('score', ['table' => $table]));
+        $scores = self::arr($score, 'scores');
+        self::assertContains($score['winner'], [0, 1]);
+        self::assertGreaterThanOrEqual($score['target'], $scores[$score['winner']]);
+        self::assertGreaterThan($scores[1 - $score['winner']], $scores[$score['winner']]);
+        $gained = array_column(self::arr($score, 'history'), 'gained');
+        self::assertSame($scores, [array_sum(array_column($gained, 0)), array_sum(array_column($gained, 1))]);
+        self::assertGreaterThan(1, \count($gained));
+
+        // nothing is left to do, and nothing is done
+        self::assertSame(['bids' => [], 'cards' => [], 'next' => false], self::answer($call('legal_moves', ['table' => $table])));
+        self::refused($call('next_deal', ['table' => $table]), 'Nothing has changed.');
+        self::refused($call('bid', ['table' => $table, 'type' => 'pass']), 'Nothing has changed.');
+        self::assertSame($score, self::answer($call('score', ['table' => $table])));
+        // the last deal of the game is still there to review
+        self::assertArrayHasKey('made', self::answer($call('deal_summary', ['table' => $table])));
     }
 
     public function testAMoveThatIsNotAllowedChangesNothingAndSaysWhatIs(): void

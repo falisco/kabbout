@@ -20,6 +20,8 @@ security:
       # `bin/console kabbout:guest` makes the guest and prints the secret.
       access_token:
         token_handler: Kabbout\Identity\Infrastructure\Security\GuestTokenHandler
+        # Symfony's header extractor, but for the scheme written in any case
+        token_extractors: Kabbout\Identity\Infrastructure\Security\BearerSecret
 
   access_control:
     - { path: ^/mcp, roles: ROLE_PLAYER }

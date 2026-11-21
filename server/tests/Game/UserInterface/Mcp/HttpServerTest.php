@@ -70,6 +70,51 @@ final class HttpServerTest extends McpServerTestCase
         self::assertResponseStatusCodeSame(401);
     }
 
+    public function testASessionOfTheOlderRevisionIsItsGuestsAndNobodyElseUsesOrClosesIt(): void
+    {
+        $client = $this->browser = self::createClient();
+        $owner = self::guest();
+        $other = self::guest();
+
+        // the handshake, as a client of revision 2025-11-25 makes it: the server hands out a session
+        self::session($client, $owner, null, 'POST', ['id' => 1, 'method' => 'initialize', 'params' => ['protocolVersion' => '2025-11-25', 'capabilities' => new \stdClass(), 'clientInfo' => ['name' => 'kabbout-tests', 'version' => '1']]]);
+        self::assertResponseIsSuccessful();
+        $session = $client->getResponse()->headers->get('Mcp-Session-Id');
+        self::assertNotNull($session);
+        self::session($client, $owner, $session, 'POST', ['method' => 'notifications/initialized']);
+        self::assertResponseIsSuccessful();
+
+        // with it, the tools: the guest is who the secret says, session or not
+        $opened = self::session($client, $owner, $session, 'POST', ['id' => 2, 'method' => 'tools/call', 'params' => ['name' => 'new_game', 'arguments' => new \stdClass()]]);
+        self::assertResponseIsSuccessful();
+        self::assertStringContainsString('"handSizes":[8,8,8,8]', $opened);
+
+        // another guest who learnt the id is told what anybody is told of a session that does not exist
+        self::session($client, $other, $session, 'POST', ['id' => 3, 'method' => 'tools/list']);
+        self::assertResponseStatusCodeSame(404);
+        self::session($client, $other, $session, 'DELETE', null);
+        self::assertResponseStatusCodeSame(404);
+
+        // it is still its guest's, who closes it
+        self::session($client, $owner, $session, 'POST', ['id' => 4, 'method' => 'tools/list']);
+        self::assertResponseIsSuccessful();
+        self::session($client, $owner, $session, 'DELETE', null);
+        self::assertResponseIsSuccessful();
+    }
+
+    public function testTheSchemeOfTheHeaderIsReadInAnyCase(): void
+    {
+        $client = $this->browser = self::createClient();
+        $secret = self::guest();
+
+        foreach (['bearer', 'BEARER', 'Bearer'] as $scheme) {
+            $client->request('POST', '/mcp', server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json, text/event-stream', 'HTTP_AUTHORIZATION' => $scheme.' '.$secret], content: '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}');
+            self::assertResponseIsSuccessful($scheme);
+        }
+        $client->request('POST', '/mcp', server: ['CONTENT_TYPE' => 'application/json', 'HTTP_AUTHORIZATION' => 'Basic '.$secret], content: '{}');
+        self::assertResponseStatusCodeSame(401);
+    }
+
     public function testASecretIsWrittenInNoLineOfTheLog(): void
     {
         $this->browser = self::createClient();
@@ -88,6 +133,24 @@ final class HttpServerTest extends McpServerTestCase
         self::assertInstanceOf(ListedLog::class, $log);
         self::assertNotSame([], $log->lines);
         self::assertStringNotContainsString($secret, implode("\n", $log->lines));
+    }
+
+    /**
+     * One request of a client of the older revision, which names its session in a header.
+     *
+     * @param array<string, mixed>|null $message
+     */
+    private static function session(KernelBrowser $client, string $secret, ?string $session, string $method, ?array $message): string
+    {
+        $client->request($method, '/mcp', server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_ACCEPT' => 'application/json, text/event-stream',
+            'HTTP_AUTHORIZATION' => 'Bearer '.$secret,
+            ...(null === $session ? [] : ['HTTP_MCP_SESSION_ID' => $session, 'HTTP_MCP_PROTOCOL_VERSION' => '2025-11-25']),
+            'REMOTE_ADDR' => '2001:db8:'.bin2hex(random_bytes(2)).'::1',
+        ], content: null === $message ? null : json_encode(['jsonrpc' => '2.0', ...$message], \JSON_THROW_ON_ERROR));
+
+        return $client->getInternalResponse()->getContent();
     }
 
     /** @return string the secret of a new guest, as `bin/console kabbout:guest` prints it */
