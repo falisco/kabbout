@@ -1,4 +1,4 @@
-# The server is cut by bounded context (src/Game, src/Assistant, src/Identity, src/Api), then by layer, then by feature: see server/README.md.
+# The server is cut by bounded context (src/Game, src/Assistant, src/Identity, src/Api), then by layer, then by feature where there is more than one: see server/README.md.
 # Domain code holds no service: it is built by the layers around it.
 parameters:
   # Nothing written: the AI is off and the bridge is where the compose file puts it.

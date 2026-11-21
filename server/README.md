@@ -1,6 +1,6 @@
 # The server: where to find what
 
-`server/` is the Symfony application. `src/` is cut by bounded context first (`Game`, `Assistant`, `Identity`, `Api`), then by layer (`Domain`, `Application`, `Infrastructure`, `UserInterface`), then by feature. `tests/` follows the same contexts and layers, with `tests/Architecture/` and `tests/Support/` beside them.
+`server/` is the Symfony application. `src/` is cut by bounded context first (`Game`, `Assistant`, `Identity`, `Api`), then by layer (`Domain`, `Application`, `Infrastructure`, `UserInterface`), then by feature where a layer holds more than one (`Assistant`, `Game/Application`). `tests/` follows the same contexts and layers, with `tests/Architecture/` and `tests/Support/` beside them.
 
 The AI of this entry is in two places: the context `Assistant` holds what a model does (the coach, the conventions), and the MCP server is a door of `Game`, because an MCP client plays a seat like anyone else and no model runs on our side there.
 
@@ -26,7 +26,7 @@ The AI of this entry is in two places: the context `Assistant` holds what a mode
 | Guests, their secret, Symfony Security                   | `src/Identity/`                                                                                                                                                                                                                       |
 | The shape of every answer and error under `/api`         | `src/Api/`                                                                                                                                                                                                                            |
 | The rules of this layout, as tests                       | `tests/Architecture/` (`LayersTest`, `DoorsTest`)                                                                                                                                                                                     |
-| Which adapter is behind which port                       | `config/services.yaml`, for the ports with a choice to make; a port with one adapter is autowired to it                                                                                                                               |
+| Which adapter is behind which port                       | `config/services.yaml` names it for nearly every port; `CoachAllowance`, `CoachMemory` and `ModelAllowance` are autowired to their one adapter in `src/Assistant/Infrastructure/Limits/`                                              |
 
 ## One question, followed through the code
 
@@ -36,8 +36,8 @@ The AI of this entry is in two places: the context `Assistant` holds what a mode
 2. `src/Assistant/Application/Coach/AnswerVisitor.php` counts the question against the visitor's allowance, then `AskCoach.php` asks the port `CoachModel`.
 3. `src/Assistant/Infrastructure/SymfonyAi/Coach/SymfonyAiCoachModel.php` calls the bundle's agent `coach`.
 4. The agent calls methods of `CoachTools.php`; each one calls a capability of `src/Game/Application/Analysis/`, which asks the engine.
-5. Back in `AskCoach.php`, the answer is read by `src/Assistant/Domain/Grounding/GroundingGuard.php`, which lists every number, card or trick that no tool returned. `AskCoach` then decides: the answer goes back to the model once, with what it invented, if the first one came quickly enough; otherwise, and when the answer is empty, too long or used no tool, the player gets the plain summary made from the engine's numbers.
+5. Back in `AskCoach.php`, the answer is read by `src/Assistant/Domain/Grounding/GroundingGuard.php`, which lists every number, card or trick that no tool returned. `AskCoach` then decides: the answer goes back to the model once, with what it invented, if the first one came quickly enough. The player gets the plain summary made from the engine's numbers instead when that second answer is refused too, when there was no time for it, when the answer is empty or too long, when no tool returned a result, or when the model failed.
 
-## Known limit of this layout
+## Known limits of this layout
 
-`src/Game/Domain/` still has its 20 value objects and enums and its two ports in one folder, beside `Analysis/`, `Table/` and `Exception/`.
+`src/Game/Domain/` still has its 20 value objects and enums and its two ports in one folder, beside `Analysis/`, `Table/` and `Exception/`. `Identity` and `Api` are small and have no feature folders, and `src/Game/Infrastructure/` keeps three adapters beside `Bridge/` and `Mcp/`.
