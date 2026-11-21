@@ -152,16 +152,12 @@ test('level: the robots play at the level asked for at each card, so it can chan
   );
 });
 
-test('reasons: one entry per bid, the robots’ only (solo), kept out of the view', () => {
+test('the session has no way to ask for a robot’s reason: what a robot holds is never the screen’s to show', () => {
   const s = make();
   s.start();
-  const v = playUntil(s, (x) => x.bids.length >= 4);
-  const reasons = s.reasons();
-  assert.equal(reasons.length, v.bids.length);
-  v.bids.forEach((b, i) => {
-    if (b.seat === 0) assert.equal(reasons[i], undefined);
-    else assert.equal(typeof reasons[i], 'string');
-  });
+  playUntil(s, (x) => x.bids.length >= 4);
+  assert.equal('reasons' in s, false);
+  assert.equal(JSON.stringify(s.view()).includes('"why"'), false);
 });
 
 test('advice never changes the game: same deals and same robot moves whether asked or not', () => {

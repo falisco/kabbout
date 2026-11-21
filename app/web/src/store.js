@@ -10,8 +10,6 @@ export const prefs = {
   music: false,
   /** playable cards stand out, the others are dimmed */
   highlight: true,
-  /** the robots' reasons are shown beside their bids */
-  showReasons: false,
   /** a card the rules leave no choice about is played without waiting for a tap */
   autoPlayForced: true,
   undo: true,
@@ -27,7 +25,7 @@ export const prefs = {
 
 /**
  * What the player and their partner agreed their bids mean. `card` is the classic one until they agree
- * on another; `agreed` says they did agree, on whichever card: the partner then gives its reasons.
+ * on another; `agreed` says they did agree, on whichever card.
  * A game is played to its end by the card it started with, whatever is agreed meanwhile: the session
  * holds that one.
  */
@@ -143,7 +141,6 @@ const STORED_SWITCHES = {
   music: 'music',
   sound: 'sound',
   highlight: 'hl',
-  showReasons: 'why',
   autoPlayForced: 'autoForced',
   undo: 'undo',
   learn: 'learn',

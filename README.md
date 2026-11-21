@@ -76,7 +76,7 @@ French, English and Tunisian Arabic (derja, in Arabic letters). The game follows
 - The three regulars are named in each language: Tonton Salah and Tata Mongia, Uncle Salah and Auntie Mongia, عم صالح and خالتي منجية.
 - The words of the game stay as the table says them in both languages: belote, rebelote, contre, surcontre, kabbout.
 - Court cards carry the index letters of the language: V D R in French and in Arabic, J Q K in English (`cards/en/`).
-- The robots give their bidding reasons in the language of the screen (`engine/src/ai/phrases.ts`). A reason is written when the bid is made, so those already shown keep their language until the next deal.
+- A robot's reason for a bid is written in the language of the screen (`engine/src/ai/phrases.ts`). It names cards of the robot's hand, so the table never shows it: it is read where the hand is the player's own (the advice button), and after the deal (the coach's review of the auction).
 
 ## Rules
 
@@ -252,7 +252,7 @@ One run each, and a model does not answer twice the same way: read these as "all
 
 ## Conventions with your partner
 
-Before a game you tell your partner how the two of you bid, as at the table: "monte de 20 si t'as le valet, sinon passe", "keep your aces for when they bid over us". The menu's **Agree with Selim** opens the dialog. What you agree on is a **conventions card**. In the games you start after agreeing, your partner bids by it and its reason is shown beside each of its bids; on a card that is not the classic one, the reason of a raise says what each thing it holds added.
+Before a game you tell your partner how the two of you bid, as at the table: "monte de 20 si t'as le valet, sinon passe", "keep your aces for when they bid over us". The menu's **Agree with Selim** opens the dialog. What you agree on is a **conventions card**. In the games you start after agreeing, your partner bids by it. What the card means is said by the bid itself, as at the table: a raise of 30 on a card where the jack adds 30 tells you of the jack. The reason a robot gives for a bid names cards of its hand, and nobody tells their partner what they hold: no robot's reason is shown at the table, the partner's no more than the others'. (An earlier version had a setting to show them; it is gone.) The reasons are read after the deal, in the coach's review of the auction, where on a card that is not the classic one the reason of a raise says what each thing held added.
 
 The AI does not play and does not chat here. It does one thing: it turns your sentence into the card. The engine alone bids, and no model is called during a game.
 

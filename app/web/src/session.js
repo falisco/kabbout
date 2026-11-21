@@ -108,8 +108,6 @@ export function createLocalSession({
       if (!robotToAct()) throw new Error('no robot to act');
       return run(state.turn, robotAction(state, seat, card ?? CLASSIC, { lang, level, rng, thinkMs }));
     },
-    /** Solo only: the robots' reasons, one per bid of the auction (undefined for the human's). */
-    reasons: () => (state ? state.bids.map((b) => (b.seat === seat ? undefined : b.why)) : []),
     ...advice({ humanTurnIn, lang, adviceRng, thinkMs, pairCard: () => card }),
     /** The deal just played, as the table saw it; null until a deal is over. */
     record: () => recordOf(state),

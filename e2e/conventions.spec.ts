@@ -1,11 +1,12 @@
 // Agreeing with the partner before a game: the ready cards, the player's own sentence when the server
-// reads one, the card read back, and the partner's reasons once the two have agreed. The static server
+// reads one, the card read back, and what is not shown: a robot's reasons, the partner's included. The static server
 // of these tests has no API: the page's own origin is made to answer as the Kabbout server does, so what
 // is checked here is the screen, not the model.
 
 import { expect, type Page } from '@playwright/test';
 import { audit, newGame, nextMoment, openGame, playUntil, test } from './helpers.ts';
 
+const SERVED = !!process.env.E2E_BASE_URL;
 const BOLD = { open: 70, jack: 30, nine: 20, threeTrumps: 10, belote: 20, ace: 10, aces: 'whenOverbid' };
 const WORDS = {
   fr: {
@@ -55,7 +56,7 @@ async function reach(page: Page, target: string, key: 'Tab' | 'Shift+Tab' = 'Tab
 }
 
 for (const lang of ['fr', 'en', 'ar'] as const) {
-  test(`with no server and the keyboard alone, the two agree on a ready card, which is read back and kept (${lang})`, async ({ page }) => {
+  test(`with the keyboard alone and no model, the two agree on a ready card, which is read back and kept (${lang})`, async ({ page }) => {
     const words = WORDS[lang];
     const errors = await openGame(page, { lang });
     expect(await stored(page)).toBeNull();
@@ -66,9 +67,12 @@ for (const lang of ['fr', 'en', 'ar'] as const) {
     await expect(page.locator(ready('classic'))).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator(CARD)).toHaveCount(1);
     await expect(page.locator(CARD)).toContainText(words.classic);
-    // nothing reads a sentence here: no field, and no word about a key
-    await expect(page.locator(FIELD)).toHaveCount(0);
-    await expect(page.locator('#agreeOff')).toHaveCount(0);
+    // played from plain files nothing reads a sentence: no field, and no word about a key. From the Kabbout
+    // server there is one or the other, which the tests below look at with a server of their own
+    if (!SERVED) {
+      await expect(page.locator(FIELD)).toHaveCount(0);
+      await expect(page.locator('#agreeOff')).toHaveCount(0);
+    }
     expect(await audit(page)).toEqual([]);
 
     await reach(page, ready('bold'), 'Shift+Tab');
@@ -163,28 +167,29 @@ test('Escape leaves the dialog for the menu, and nothing is agreed', async ({ pa
   expect(await stored(page)).toBeNull();
 });
 
-test('once the two have agreed, the partner gives its reasons beside its bids, and the opponents do not', async ({ page }) => {
-  const partner = 'Selim';
-  await openGame(page, { storage: { 'kabbout.conventions': JSON.stringify(BOLD) } });
-  await expect(page.locator('#agreeNow')).toContainText('Audacieuse');
-  await newGame(page);
-  const reasons = page.locator('#bid .hist li:has(.why)');
-  for (let turns = 0; turns < 8 && (await reasons.count()) === 0; turns++) {
-    expect(await nextMoment(page)).toBe('bid');
-    if ((await reasons.count()) === 0) await page.locator('#bid [data-action="pass"]').click();
-  }
-  expect(await reasons.count()).toBeGreaterThan(0);
-  for (const line of await reasons.allTextContents()) expect(line).toContain(partner);
-});
-
-test('with nothing agreed, no robot gives a reason unless the player asked for them', async ({ page }) => {
-  await openGame(page);
-  await newGame(page);
-  expect(await nextMoment(page)).toBe('bid');
-  await page.locator('#bid [data-action="pass"]').click();
-  await nextMoment(page);
-  await expect(page.locator('#bid .hist .why')).toHaveCount(0);
-});
+for (const [agreed, storage] of [
+  ['a card', { 'kabbout.conventions': JSON.stringify(BOLD) }],
+  ['nothing', {}],
+  // what an earlier version stored when its setting "robots' reasoning" was on: there is no such setting any more
+  [
+    'a card, in a browser that had the reasons switched on',
+    { 'kabbout.conventions': JSON.stringify(BOLD), 'kabbout.prefs': JSON.stringify({ why: true }) },
+  ],
+] as const) {
+  test(`no robot ever says what it holds, the partner no more than the others (the two agreed on ${agreed})`, async ({ page }) => {
+    await openGame(page, { storage });
+    await newGame(page);
+    let heard = 0;
+    for (let turns = 0; turns < 4 && (await nextMoment(page)) === 'bid'; turns++) {
+      // the bids are there, and nothing beside them: a reason names cards, and nobody tells their partner their cards
+      heard += await page.locator('#bid .hist li').count();
+      await expect(page.locator('#bid .hist small')).toHaveCount(0);
+      expect(await page.locator('#bid .hist li').allTextContents()).not.toContainEqual(expect.stringMatching(/soutien|atout| [♠♥♦♣] ·|\+\d0/));
+      await page.locator('#bid [data-action="pass"]').click();
+    }
+    expect(heard).toBeGreaterThan(0);
+  });
+}
 
 for (const [agreed, card] of [
   ['a card of their own', BOLD],

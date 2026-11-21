@@ -27,16 +27,17 @@ test.describe('in a browser that speaks English', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the robots give their reasons in English', async ({ page }) => {
-    await openGame(page, { storage: prefs({ why: true }) });
+  test('the advice on the player’s own hand gives its reason in English', async ({ page }) => {
+    await openGame(page, { storage: prefs({ learn: true }) });
     await newGame(page);
     await playUntil(page, 'bid');
-    const reasons = await page.locator('#bid .hist .why').allTextContents();
-    expect(reasons.length).toBeGreaterThan(0);
-    for (const r of reasons) {
-      expect(r).toMatch(/trump|support|\b[AJ] [♠♥♦♣]|J-9|10 [♠♥♦♣]|9 [♠♥♦♣]|belote|ruffs|margin|contract|raise|tricks|worth/);
-      expect(r).not.toMatch(/atout|soutien|\bAs\b|\bV\b|pas /);
-    }
+    await page.locator('#bid [data-action="tip"]').click();
+    await expect(page.locator('#toast')).toBeVisible();
+    const advice = (await page.locator('#toast').textContent()) ?? '';
+    expect(advice).toMatch(/trump|support|\b[AJ] [♠♥♦♣]|J-9|10 [♠♥♦♣]|9 [♠♥♦♣]|belote|ruffs|margin|contract|raise|tricks|worth/);
+    expect(advice).not.toMatch(/atout|soutien|\bAs\b|\bV\b|pas /);
+    // and no reason of a robot is beside its bid
+    await expect(page.locator('#bid .hist small')).toHaveCount(0);
   });
 });
 

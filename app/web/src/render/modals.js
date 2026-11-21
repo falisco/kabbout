@@ -198,7 +198,6 @@ function settingsDialog() {
     ['music', 'setMusic'],
     ['sound', 'setSound'],
     ['highlight', 'setHl'],
-    ['showReasons', 'setWhy'],
     ['autoPlayForced', 'setAutoForced'],
     ['undo', 'setUndo'],
     ['learn', 'setLearn'],

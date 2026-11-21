@@ -104,13 +104,15 @@ test('what was stored under the game’s former name is brought over once, witho
 });
 
 test('settings keep the names they were first stored under, so that an update loses none', () => {
-  Object.assign(prefs, { highlight: false, showReasons: true, autoPlayForced: false });
+  Object.assign(prefs, { highlight: false, learn: true, autoPlayForced: false });
   savePrefs();
   const stored = loadJSON(KEYS.prefs);
-  assert.deepEqual([stored.hl, stored.why, stored.autoForced], [false, true, false]);
+  assert.deepEqual([stored.hl, stored.learn, stored.autoForced], [false, true, false]);
+  // the switch that showed the robots' reasons is gone: nothing is stored under its name
+  assert.equal('why' in stored, false);
   resetSettings();
   loadPrefs();
-  assert.deepEqual([prefs.highlight, prefs.showReasons, prefs.autoPlayForced], [false, true, false]);
+  assert.deepEqual([prefs.highlight, prefs.learn, prefs.autoPlayForced], [false, true, false]);
 });
 
 test('settings survive a visit; unknown values keep the defaults', () => {
@@ -120,11 +122,13 @@ test('settings survive a visit; unknown values keep the defaults', () => {
   loadPrefs();
   assert.deepEqual([prefs.music, prefs.sound, prefs.level, prefs.scoring, prefs.lang], [true, false, 'expert', 'tunisian', 'ar']);
 
-  saveJSON(KEYS.prefs, { level: 'godlike', scoring: 7, lang: '<script>', sound: 'yes', undo: false, why: 1 });
+  saveJSON(KEYS.prefs, { level: 'godlike', scoring: 7, lang: '<script>', sound: 'yes', undo: false, learn: 1, why: true });
   resetSettings();
   loadPrefs();
   assert.deepEqual([prefs.level, prefs.scoring, prefs.lang], ['normal', 'ffb', null]);
-  assert.deepEqual([prefs.sound, prefs.undo, prefs.showReasons], [true, false, true], 'switches are read as on or off, nothing else');
+  assert.deepEqual([prefs.sound, prefs.undo, prefs.learn], [true, false, true], 'switches are read as on or off, nothing else');
+  // what an earlier version stored to show the robots' reasons switches nothing on
+  assert.equal('showReasons' in prefs, false);
 });
 
 test('with no settings saved, the sound switch of the former version is still honoured', () => {

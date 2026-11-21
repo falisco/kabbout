@@ -169,7 +169,7 @@ export default {
   agreeNow: (card) => `Vos annonces à deux : ${card}.`,
   agreeTitle: (partner) => `S’entendre avec ${partner}`,
   agreeIntro: (partner) =>
-    `Comme à table, avant de jouer : dites à ${partner} ce que vos annonces veulent dire. ${partner} annoncera selon la carte, et vous dira pourquoi.`,
+    `Comme à table, avant de jouer : dites à ${partner} ce que vos annonces veulent dire. ${partner} annoncera selon la carte.`,
   agreeReady: 'Cartes toutes prêtes',
   agreeNames: { classic: 'Classique', cautious: 'Prudente', bold: 'Audacieuse' },
   agreeOwn: 'La vôtre',
@@ -266,7 +266,6 @@ export default {
   setMusic: 'Musique',
   setSound: 'Effets sonores',
   setHl: 'Surbrillance du joueur actif',
-  setWhy: 'Raisonnement des robots (dévoile leurs cartes)',
   setAutoForced: 'Jouer seul les cartes forcées',
   setUndo: 'Annuler un mauvais clic',
   setLearn: 'Mode apprentissage (conseils)',

@@ -1,8 +1,8 @@
 // The auction: the bidding panel, the history of bids and the card values table.
 import { ORDER_TRUMP, SUITS, cardPoints } from '../../../../engine/src/index.ts';
-import { ME, PARTNER, nameOf, who } from '../config.js';
+import { ME, nameOf, who } from '../config.js';
 import { $ } from '../dom.js';
-import { coachStep, myBidTurn, session, view } from '../game.js';
+import { coachStep, myBidTurn, view } from '../game.js';
 import { esc } from '../html.js';
 import { t } from '../i18n/index.js';
 import { SUIT_SYMBOL, bidHTML, bidValueLabel, isRed, rankName, suitName } from '../labels.js';
@@ -13,18 +13,13 @@ import { keepFocus } from './transient.js';
 
 const bidLine = (bid) => t('bidLine', bid.type, nameOf(bid.seat), bid.seat === ME, bid.type === 'bid' ? bidHTML(bid.value, bid.suit) : '');
 /**
- * A bid, followed by the robot's reason: every robot's when the player asked to see them, and the
- * partner's in a game the two started on a card they had agreed on, since a reason then says what the
- * card made of the hand.
+ * The auction so far: the bids, and nothing of why a robot made one. A robot's reason names cards of
+ * its hand, and at the table nobody says what they hold, to their partner least of all: what a pair
+ * agreed on is said by the bid itself. The list scrolls once it is long, so the keyboard can reach it.
  */
-const reasonShown = (bid) => prefs.showReasons || (bid.seat === PARTNER && session.conventions() !== null);
-const bidLineWithReason = (bid, reason) => bidLine(bid) + (reason && reasonShown(bid) ? `<small class="why">${esc(reason)}</small>` : '');
-
-/** The auction so far. The list scrolls once it is long, so the keyboard can reach it. */
 export function historyHTML() {
   if (!view || !view.bids.length) return '';
-  const reasons = session.reasons();
-  const lines = view.bids.map((bid, index) => `<li>${bidLineWithReason(bid, reasons[index])}</li>`).join('');
+  const lines = view.bids.map((bid) => `<li>${bidLine(bid)}</li>`).join('');
   return `<ol class="hist" tabindex="0" aria-label="${esc(t('histAria'))}">${lines}</ol>`;
 }
 /** shows the latest bids of a history that has grown longer than its box */
