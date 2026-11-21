@@ -29,6 +29,7 @@
     "contract:record": "node bridge/scripts/record-contract.ts",
     "eval:coach:build": "node eval/build-coach-deals.ts",
     "eval:coach": "node scripts/eval-coach.mjs",
+    "eval:conventions": "node scripts/eval-conventions.mjs",
     "check:php": "node scripts/check-php.mjs"
   },
   "devDependencies": {

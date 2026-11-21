@@ -14,6 +14,8 @@ app/web/app.js
 app/web/sounds.js
 # written by `npm run eval:coach:build`
 eval/coach/
+# the sentences of the conventions evaluation, written by `json.dumps` so that Arabic stays readable
+eval/conventions/
 # recorded by `npm run contract:record`
 bridge/contract/cases.json
 bridge/contract/conventions.json

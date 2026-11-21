@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\Application\Conventions;
 
-use Kabbout\Assistant\Application\Coach\AskedTooOften;
-use Kabbout\Assistant\Application\Coach\CoachAllowance;
-use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\Exception\InvalidConventionCard;
 use Kabbout\Game\Domain\Lang;
-use Kabbout\Identity\Domain\NetworkAddress;
 
 /**
  * A player says how they and their partner bid; this turns the sentence into a conventions card.
@@ -20,33 +16,25 @@ use Kabbout\Identity\Domain\NetworkAddress;
  * Of what it says it could not place, only pieces found in the player's own sentence are kept: no
  * sentence of the model's ever reaches the player. The card is read back to them by code, from the card.
  *
- * It is a call to a model that is paid for: it goes through the coach's pace and the coach's day.
+ * It counts nothing: a door that lets visitors in goes through InterpretForVisitor.
  */
 final readonly class InterpretConventions
 {
     public const int MAX_SENTENCE_LENGTH = 300;
     private const int MOST_UNPLACED = 6;
 
-    public function __construct(private ConventionsModel $model, private CoachAllowance $allowance)
+    public function __construct(private ConventionsModel $model)
     {
     }
 
     /**
      * @throws InvalidSentence        a sentence that is empty or too long
-     * @throws AskedTooOften
-     * @throws CoachResting
      * @throws NotUnderstood
      * @throws ConventionsModelFailed
      */
-    public function __invoke(NetworkAddress $from, string $sentence, Lang $lang): Interpreted
+    public function __invoke(string $sentence, Lang $lang): Interpreted
     {
-        $sentence = trim($sentence);
-        if ('' === $sentence || mb_strlen($sentence) > self::MAX_SENTENCE_LENGTH) {
-            throw new InvalidSentence(\sprintf('The sentence is 1 to %d characters.', self::MAX_SENTENCE_LENGTH));
-        }
-        $this->allowance->pace($from);
-        $this->allowance->day();
-
+        $sentence = self::sentence($sentence);
         $reading = $this->model->read($sentence, $lang);
         if (!$reading->understood) {
             throw new NotUnderstood('The sentence describes no convention.');
@@ -58,6 +46,21 @@ final readonly class InterpretConventions
         }
 
         return new Interpreted($card, self::saidByThePlayer($reading->unplaced, $sentence));
+    }
+
+    /**
+     * @return string the sentence as it is read, without the blanks around it
+     *
+     * @throws InvalidSentence
+     */
+    public static function sentence(string $said): string
+    {
+        $sentence = trim($said);
+        if ('' === $sentence || mb_strlen($sentence) > self::MAX_SENTENCE_LENGTH) {
+            throw new InvalidSentence(\sprintf('The sentence is 1 to %d characters.', self::MAX_SENTENCE_LENGTH));
+        }
+
+        return $sentence;
     }
 
     /**

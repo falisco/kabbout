@@ -7,6 +7,7 @@ namespace Kabbout\Tests\Assistant\Application\Conventions;
 use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Conventions\ConventionsModelFailed;
 use Kabbout\Assistant\Application\Conventions\InterpretConventions;
+use Kabbout\Assistant\Application\Conventions\InterpretForVisitor;
 use Kabbout\Assistant\Application\Conventions\InvalidSentence;
 use Kabbout\Assistant\Application\Conventions\NotUnderstood;
 use Kabbout\Assistant\Application\Conventions\Reading;
@@ -27,7 +28,7 @@ final class InterpretConventionsTest extends TestCase
         $model = new ScriptedConventionsModel([new Reading(true, self::JACK_30, [])]);
         $allowance = new CountingAllowance();
 
-        $interpreted = (new InterpretConventions($model, $allowance))(NetworkAddress::of('192.0.2.1'), '  '.self::SENTENCE.' ', Lang::Fr);
+        $interpreted = (new InterpretForVisitor(new InterpretConventions($model), $allowance))(NetworkAddress::of('192.0.2.1'), '  '.self::SENTENCE.' ', Lang::Fr);
 
         self::assertSame(30, $interpreted->card->toArray()['jack']);
         self::assertSame([], $interpreted->unplaced);
@@ -42,10 +43,10 @@ final class InterpretConventionsTest extends TestCase
     #[DataProvider('readingsThatAreNoCard')]
     public function testWhatTheModelReadIsNeverACardUnlessTheDomainSaysSo(bool $understood, array $settings): void
     {
-        $interpret = new InterpretConventions(new ScriptedConventionsModel([new Reading($understood, $settings, [])]), new CountingAllowance());
+        $interpret = new InterpretConventions(new ScriptedConventionsModel([new Reading($understood, $settings, [])]));
 
         $this->expectException(NotUnderstood::class);
-        $interpret(NetworkAddress::of('192.0.2.1'), self::SENTENCE, Lang::Fr);
+        $interpret(self::SENTENCE, Lang::Fr);
     }
 
     /** @return iterable<string, array{bool, array<mixed>}> */
@@ -73,9 +74,9 @@ final class InterpretConventionsTest extends TestCase
             '   ',
             'entame toujours atout',
         ];
-        $interpret = new InterpretConventions(new ScriptedConventionsModel([new Reading(true, self::JACK_30, $said)]), new CountingAllowance());
+        $interpret = new InterpretConventions(new ScriptedConventionsModel([new Reading(true, self::JACK_30, $said)]));
 
-        $interpreted = $interpret(NetworkAddress::of('192.0.2.1'), self::SENTENCE, Lang::Fr);
+        $interpreted = $interpret(self::SENTENCE, Lang::Fr);
 
         self::assertSame(['entame toujours atout', 'Monte de 30'], $interpreted->unplaced);
     }
@@ -83,9 +84,9 @@ final class InterpretConventionsTest extends TestCase
     public function testNoMoreThanAFewPiecesAreKept(): void
     {
         $sentence = 'a b c d e f g h i j';
-        $interpret = new InterpretConventions(new ScriptedConventionsModel([new Reading(true, self::JACK_30, explode(' ', $sentence))]), new CountingAllowance());
+        $interpret = new InterpretConventions(new ScriptedConventionsModel([new Reading(true, self::JACK_30, explode(' ', $sentence))]));
 
-        self::assertSame(['a', 'b', 'c', 'd', 'e', 'f'], $interpret(NetworkAddress::of('192.0.2.1'), $sentence, Lang::En)->unplaced);
+        self::assertSame(['a', 'b', 'c', 'd', 'e', 'f'], $interpret($sentence, Lang::En)->unplaced);
     }
 
     #[DataProvider('sentencesThatAreNotOne')]
@@ -95,7 +96,7 @@ final class InterpretConventionsTest extends TestCase
         $allowance = new CountingAllowance();
 
         try {
-            (new InterpretConventions($model, $allowance))(NetworkAddress::of('192.0.2.1'), $sentence, Lang::Fr);
+            (new InterpretForVisitor(new InterpretConventions($model), $allowance))(NetworkAddress::of('192.0.2.1'), $sentence, Lang::Fr);
             self::fail('accepted');
         } catch (InvalidSentence $e) {
             self::assertSame('The sentence is 1 to 300 characters.', $e->getMessage());
@@ -114,9 +115,9 @@ final class InterpretConventionsTest extends TestCase
 
     public function testASentenceOfThreeHundredLettersIsOneWhateverTheirBytes(): void
     {
-        $interpret = new InterpretConventions(new ScriptedConventionsModel([new Reading(true, self::JACK_30, [])]), new CountingAllowance());
+        $interpret = new InterpretConventions(new ScriptedConventionsModel([new Reading(true, self::JACK_30, [])]));
 
-        self::assertSame(30, $interpret(NetworkAddress::of('192.0.2.1'), str_repeat('ع', 300), Lang::Ar)->card->toArray()['jack']);
+        self::assertSame(30, $interpret(str_repeat('ع', 300), Lang::Ar)->card->toArray()['jack']);
     }
 
     public function testWhenTheDaysQuestionsAreSpentTheModelIsNotAsked(): void
@@ -126,7 +127,7 @@ final class InterpretConventionsTest extends TestCase
         $allowance->resting = true;
 
         try {
-            (new InterpretConventions($model, $allowance))(NetworkAddress::of('192.0.2.1'), self::SENTENCE, Lang::Fr);
+            (new InterpretForVisitor(new InterpretConventions($model), $allowance))(NetworkAddress::of('192.0.2.1'), self::SENTENCE, Lang::Fr);
             self::fail('asked');
         } catch (CoachResting) {
             self::assertSame([], $model->asked);
@@ -136,6 +137,6 @@ final class InterpretConventionsTest extends TestCase
     public function testAModelThatGivesNoReadingIsSaidSo(): void
     {
         $this->expectException(ConventionsModelFailed::class);
-        (new InterpretConventions(new ScriptedConventionsModel([]), new CountingAllowance()))(NetworkAddress::of('192.0.2.1'), self::SENTENCE, Lang::Fr);
+        (new InterpretConventions(new ScriptedConventionsModel([])))(self::SENTENCE, Lang::Fr);
     }
 }

@@ -9,7 +9,7 @@ use Kabbout\Api\Domain\FromThePage;
 use Kabbout\Assistant\Application\Coach\AskedTooOften;
 use Kabbout\Assistant\Application\Coach\CoachResting;
 use Kabbout\Assistant\Application\Conventions\ConventionsModelFailed;
-use Kabbout\Assistant\Application\Conventions\InterpretConventions;
+use Kabbout\Assistant\Application\Conventions\InterpretForVisitor;
 use Kabbout\Assistant\Application\Conventions\InvalidSentence;
 use Kabbout\Assistant\Application\Conventions\NotUnderstood;
 use Kabbout\Assistant\Domain\AiConfiguration;
@@ -33,7 +33,7 @@ use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
  * Only the game's own page may ask (FromThePage), as for the coach, and for the same reason: each
  * sentence is a call to a model, counted against the visitor's pace and the day's questions.
  *
- * This is only the HTTP door: what a sentence becomes is InterpretConventions' business.
+ * This is only the HTTP door: what a sentence becomes, and what it costs, is InterpretForVisitor's business.
  */
 final readonly class ConventionsController
 {
@@ -41,7 +41,7 @@ final readonly class ConventionsController
     private const int MAX_BODY_BYTES = 4 * 1024;
     private const int JSON_DEPTH = 2;
 
-    public function __construct(private InterpretConventions $interpret, private AiConfiguration $configuration)
+    public function __construct(private InterpretForVisitor $interpret, private AiConfiguration $configuration)
     {
     }
 

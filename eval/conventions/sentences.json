@@ -1,0 +1,446 @@
+[
+ {
+  "writing": "fr",
+  "lang": "fr",
+  "sentence": "Monte de 30 si tu as le valet d'atout.",
+  "expected": {
+   "open": 70,
+   "jack": 30,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "fr",
+  "lang": "fr",
+  "sentence": "Si t'as le neuf, monte de 20.",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 20,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "fr",
+  "lang": "fr",
+  "sentence": "On n'ouvre qu'avec une belle main, 80 minimum.",
+  "expected": {
+   "open": 80,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "fr",
+  "lang": "fr",
+  "sentence": "Garde tes as, tu les annonces seulement si les autres surenchérissent.",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "whenOverbid"
+  }
+ },
+ {
+  "writing": "fr",
+  "lang": "fr",
+  "sentence": "Monte de 20 si t'as le valet, sinon passe.",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 0,
+   "threeTrumps": 0,
+   "belote": 0,
+   "ace": 0,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "fr",
+  "lang": "fr",
+  "sentence": "Trois atouts ça ne compte pas, ne monte pas pour ça.",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 0,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "fr",
+  "lang": "fr",
+  "sentence": "La belote vaut 30 et chaque as 20.",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 30,
+   "ace": 20,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "fr",
+  "lang": "fr",
+  "sentence": "Ouvre à 90 seulement, et montre tes as au deuxième tour.",
+  "expected": {
+   "open": 90,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "whenOverbid"
+  }
+ },
+ {
+  "writing": "fr",
+  "lang": "fr",
+  "sentence": "Monte de 30 avec le valet, et entame toujours atout.",
+  "expected": {
+   "open": 70,
+   "jack": 30,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "fr",
+  "lang": "fr",
+  "sentence": "Tu préfères le thé ou le café ?",
+  "expected": null
+ },
+ {
+  "writing": "en",
+  "lang": "en",
+  "sentence": "Raise by 30 when you hold the jack of trumps.",
+  "expected": {
+   "open": 70,
+   "jack": 30,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "en",
+  "lang": "en",
+  "sentence": "Don't raise just for having three trumps.",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 0,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "en",
+  "lang": "en",
+  "sentence": "We only open with 80 in hand.",
+  "expected": {
+   "open": 80,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "en",
+  "lang": "en",
+  "sentence": "Keep your aces back; show them only if they bid over us.",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "whenOverbid"
+  }
+ },
+ {
+  "writing": "en",
+  "lang": "en",
+  "sentence": "Raise 10 for the jack and 10 for the nine, nothing else counts.",
+  "expected": {
+   "open": 70,
+   "jack": 10,
+   "nine": 10,
+   "threeTrumps": 0,
+   "belote": 0,
+   "ace": 0,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "en",
+  "lang": "en",
+  "sentence": "Each outside ace is worth 20.",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 20,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "en",
+  "lang": "en",
+  "sentence": "The nine doesn't count, and the belote adds 10.",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 0,
+   "threeTrumps": 10,
+   "belote": 10,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "en",
+  "lang": "en",
+  "sentence": "What's the weather like today?",
+  "expected": null
+ },
+ {
+  "writing": "ar",
+  "lang": "ar",
+  "sentence": "زيد 30 كان عندك الفالي متاع الأتو",
+  "expected": {
+   "open": 70,
+   "jack": 30,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "ar",
+  "lang": "ar",
+  "sentence": "ما نفتحوش كان بـ 80",
+  "expected": {
+   "open": 80,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "ar",
+  "lang": "ar",
+  "sentence": "خلي الأسات عندك، وما تعلن عليهم كان كي يزيدو علينا",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "whenOverbid"
+  }
+ },
+ {
+  "writing": "ar",
+  "lang": "ar",
+  "sentence": "التسعة تسوى 20",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 20,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "ar",
+  "lang": "ar",
+  "sentence": "ثلاثة أتو ما يتحسبوش",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 0,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "ar",
+  "lang": "ar",
+  "sentence": "البلوط يسوى 30",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 30,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "ar",
+  "lang": "ar",
+  "sentence": "كل آس يسوى 20 والفالي 30",
+  "expected": {
+   "open": 70,
+   "jack": 30,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 20,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "ar",
+  "lang": "ar",
+  "sentence": "شنوة أحوالك اليوم؟",
+  "expected": null
+ },
+ {
+  "writing": "derja",
+  "lang": "ar",
+  "sentence": "zid 30 ken 3andek el valet",
+  "expected": {
+   "open": 70,
+   "jack": 30,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "derja",
+  "lang": "ar",
+  "sentence": "ma n7ellouch ken b 80",
+  "expected": {
+   "open": 80,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "derja",
+  "lang": "ar",
+  "sentence": "khalli les as 3andek, ma t3lenhom ken ki yzidou 3lina",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "whenOverbid"
+  }
+ },
+ {
+  "writing": "derja",
+  "lang": "ar",
+  "sentence": "el neuf yeswa 20",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 20,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "derja",
+  "lang": "ar",
+  "sentence": "tletha atout ma yet7asbouch",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 0,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "derja",
+  "lang": "ar",
+  "sentence": "zid 20 ken 3andek el valet, sinon passe",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 0,
+   "threeTrumps": 0,
+   "belote": 0,
+   "ace": 0,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "derja",
+  "lang": "ar",
+  "sentence": "el belote teswa 30 w kol as 20",
+  "expected": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 30,
+   "ace": 20,
+   "aces": "atOnce"
+  }
+ },
+ {
+  "writing": "derja",
+  "lang": "ar",
+  "sentence": "chnowa a7walek lyoum?",
+  "expected": null
+ }
+]
