@@ -1,0 +1,17 @@
+# Only what the images copy needs to travel; the rest stays out of the build context.
+.git
+.github
+.claude
+node_modules
+coverage
+test-results
+playwright-report
+docs
+e2e
+tools
+app/web/app.js
+server/vendor
+server/var
+server/tests
+.env
+.env.*

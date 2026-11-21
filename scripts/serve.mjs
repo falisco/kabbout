@@ -38,6 +38,11 @@ createServer(async (req, res) => {
     res.writeHead(405, { allow: 'GET, HEAD' }).end();
     return;
   }
+  // No server side here: the page asks api/capabilities and takes this for "the game alone".
+  if (req.url?.startsWith('/api/')) {
+    res.writeHead(204, HEADERS).end();
+    return;
+  }
   const file = fileFor(req.url);
   if (!file) {
     res.writeHead(400, HEADERS).end('bad request');

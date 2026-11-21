@@ -4,6 +4,7 @@ dist/
 .DS_Store
 .env
 .env.*
+!.env.example
 # Capacitor native builds (added later)
 android/app/build/
 ios/App/Pods/
@@ -19,3 +20,12 @@ coverage/
 
 # the game bundled for the web page (npm run build:web)
 app/web/app.js
+
+# PHP dependencies and tool caches
+server/vendor/
+server/var/
+.phpunit.cache/
+.php-cs-fixer.cache
+
+# written by Symfony when the container is built in debug
+server/config/reference.php

@@ -27,6 +27,20 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm run conformity
+
+  # On its own, and nothing waits for it: an advisory is news from outside, published on a day of its own,
+  # and may have no fixed version to move to. It must be seen (this job goes red) without keeping the
+  # tests of the code from running.
+  audit:
+    name: Advisories against the npm packages
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
       - run: npm audit --audit-level=moderate
 
   unit:
@@ -40,6 +54,27 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+
+  php:
+    name: PHP side (coding standard, PHPStan, PHPUnit with the bridge, coverage)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Node runs the bridge the PHP tests ask; it has no dependency to install
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          coverage: pcov
+          tools: composer:v2
+      # the Symfony AI packages are betas, pinned to one exact version on purpose: that warning is not asked for
+      - run: composer validate --strict --no-check-all --working-dir=server
+      - run: composer install --no-interaction --no-progress --working-dir=server
+      - run: composer audit --working-dir=server
+      # coding standard, static analysis, tests against the running bridge; fails under 80% of lines run
+      - run: npm run check:php
 
   e2e:
     name: Browser tests (Playwright) and coverage
@@ -65,6 +100,93 @@ jobs:
         if: failure()
         with:
           name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+  compose:
+    name: One command (docker compose up)
+    needs: [quality, unit]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: docker compose build
+      # settings that cannot work stop the start, and the line that says why repeats nothing of them
+      - run: |
+          if out=$(ANTHROPIC_API_KEY='sk-ant-canary' KABBOUT_AI_MODEL=' ' docker compose run --rm --no-deps app true 2>&1); then echo 'a key with no model did not stop the start'; exit 1; fi
+          echo "$out"
+          if echo "$out" | grep -q 'sk-ant-canary'; then echo 'the line that stops the start repeats the key'; exit 1; fi
+      # with a key, neither the answer nor the logs hold it
+      - run: |
+          ANTHROPIC_API_KEY='sk-ant-canary' docker compose up --detach --wait
+          curl --fail --silent --show-error http://localhost:8080/api/capabilities | tee /tmp/capabilities.json
+          grep -q '"configured":true' /tmp/capabilities.json
+          # written as tests that stop the script: a command negated with ! never does
+          if grep -q sk-ant-canary /tmp/capabilities.json; then echo 'the key is in the answer'; exit 1; fi
+          if docker compose logs 2>&1 | grep -q sk-ant-canary; then echo 'the key is in the logs'; exit 1; fi
+          docker compose down
+      # what a juror runs after a clone, with no .env: both services must come up healthy
+      - run: docker compose up --detach --wait
+      - run: curl --fail --silent --show-error http://localhost:8080/api/capabilities
+      # an address the API does not know is answered in JSON, not with a page
+      - run: test "$(curl --silent --output /dev/null --write-out '%{http_code} %{content_type}' http://localhost:8080/api/nothing-here)" = "404 application/json"
+      # A guest is given a name and keeps it when the server is replaced by a new one. Their secret is in no
+      # log: looked for before the container that handed it out is removed, and again in the one that reads it.
+      # A client that is no browser says what a browser says by itself: where it asks from, and the page's header.
+      - run: |
+          page=(--header 'Origin: http://localhost:8080' --header 'csrf-token: csrf-token')
+          curl --fail --silent --show-error --cookie-jar /tmp/guest.txt --request POST "${page[@]}" http://localhost:8080/api/session | tee /tmp/entered.json
+          grep -Eq '"name":"C[0-9]{7}"' /tmp/entered.json
+          secret=$(awk '$6 == "kabbout_guest" { print $7 }' /tmp/guest.txt)
+          test -n "$secret"
+          if docker compose logs 2>&1 | grep -q "$secret"; then echo 'the secret is in the logs of the server that made it'; exit 1; fi
+          docker compose up --detach --wait --force-recreate app
+          curl --fail --silent --show-error --cookie /tmp/guest.txt http://localhost:8080/api/session | tee /tmp/recognised.json
+          cmp /tmp/entered.json /tmp/recognised.json
+          if docker compose logs 2>&1 | grep -q "$secret"; then echo 'the secret is in the logs of the server that read it'; exit 1; fi
+      # The MCP server over stdio, as a client starts it: it offers its tools, and nothing but the protocol is on its output.
+      - run: |
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"ci","version":"1"}}}' \
+            '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+            '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+            '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"new_game","arguments":{}}}' \
+            | docker compose exec -T app php -d display_errors=stderr bin/console mcp:server > /tmp/mcp.jsonl
+          grep -q '"name":"play_card"' /tmp/mcp.jsonl
+          grep -q '"handSizes"' /tmp/mcp.jsonl
+          if grep -qv '^{"jsonrpc":"2.0"' /tmp/mcp.jsonl; then echo 'something that is not the protocol is on the output'; exit 1; fi
+      # Over HTTP: nobody comes in without a guest's secret; with one the server answers, and the secret is in no log.
+      - run: |
+          mcp=(--silent --request POST --header 'Content-Type: application/json' --header 'Accept: application/json, text/event-stream')
+          hello='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"ci","version":"1"}}}'
+          test "$(curl "${mcp[@]}" --output /dev/null --write-out '%{http_code}' --data "$hello" http://localhost:8080/mcp)" = "401"
+          secret=$(docker compose exec -T app php bin/console kabbout:guest | awk '$1 == "secret:" { print $2 }')
+          test -n "$secret"
+          curl "${mcp[@]}" --fail --header "Authorization: Bearer $secret" --data "$hello" http://localhost:8080/mcp | grep -q '"name":"kabbout"'
+          if docker compose logs 2>&1 | grep -q "$secret"; then echo 'the secret is in the logs'; exit 1; fi
+          # what a client says of itself is kept in a file: megabytes of it are refused before they get that far
+          python3 -c "import json; print(json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': 'initialize', 'params': {'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'a' * 3000000, 'version': '1'}}}))" > /tmp/large.json
+          test "$(curl "${mcp[@]}" --output /dev/null --write-out '%{http_code}' --header "Authorization: Bearer $secret" --data-binary @/tmp/large.json http://localhost:8080/mcp)" = "413"
+      # a request that does not show it comes from the game's own page changes nothing
+      - run: |
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --request POST --header 'Origin: https://elsewhere.example' --header 'csrf-token: csrf-token' http://localhost:8080/api/session)" = "401"
+      # the browser tests, against the game as Symfony serves it
+      - run: npx playwright test --project=desktop
+        env:
+          E2E_BASE_URL: http://localhost:8080
+      - run: docker compose logs
+        if: failure()
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: compose-playwright-report
           path: |
             playwright-report/
             test-results/

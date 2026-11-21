@@ -1,0 +1,16 @@
+assistant:
+  resource:
+    path: ../src/Assistant/UserInterface/Http/
+    namespace: Kabbout\Assistant\UserInterface\Http
+  type: attribute
+
+identity:
+  resource:
+    path: ../src/Identity/UserInterface/Http/
+    namespace: Kabbout\Identity\UserInterface\Http
+  type: attribute
+
+# the MCP server over HTTP: the bundle makes the route from config/packages/mcp.yaml
+mcp:
+  resource: .
+  type: mcp

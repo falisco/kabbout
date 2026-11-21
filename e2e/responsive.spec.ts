@@ -18,8 +18,13 @@ async function inViewport(page: Page, loc: Locator, what: string) {
   }
 }
 
+/**
+ * Nothing is wider than the screen once what moves has come to rest. A card played by a robot flies in
+ * to the trick from beyond the edge: for a frame the page measures wider than the screen, though nothing
+ * can be scrolled. So the width is asked until it holds, and a page that stays too wide still fails.
+ */
 async function noHorizontalScroll(page: Page) {
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), { timeout: 3000 }).toBe(true);
 }
 
 /** The elements are really what is drawn at a point of theirs (their centre by default): nothing lies on top of them. */
@@ -59,10 +64,27 @@ for (const [name, opts, names] of [
   });
 }
 
-test('the font files are served by the app itself', async ({ page }) => {
+for (const lang of ['fr', 'ar'] as const) {
+  test(`a guest's name at their seat leaves room for what they announce (${lang})`, async ({ page }) => {
+    // a name is wider than "Vous": the seat, and the bubble beside it, must still fit the narrowest phone
+    await page.route('**/api/session', (route) => route.fulfill({ json: { version: 1, player: { name: 'C4821973' } } }));
+    await openGame(page, { seed: 7, lang });
+    await newGame(page);
+    await playUntil(page, 'bid');
+    await expect(page.locator('#seat0 .name')).toHaveText('C4821973');
+    await page.locator('#bid [data-suit="S"]').click();
+    await page.locator('#bid [data-action="bid"]').click();
+    await expect(page.locator('#seat0 .bubble')).toBeVisible();
+    await inViewport(page, page.locator('#seat0 .name, #seat0 .bubble'), 'the player’s name and announcement');
+    await uncovered(page, '#seat0 .name', 'the player’s name');
+    await noHorizontalScroll(page);
+  });
+}
+
+test('the font files are served by the app itself', async ({ page, baseURL }) => {
   const foreign: string[] = [];
   page.on('request', (r) => {
-    if (!r.url().startsWith('http://127.0.0.1') && !r.url().startsWith('data:')) foreign.push(r.url());
+    if (!r.url().startsWith(String(baseURL)) && !r.url().startsWith('data:')) foreign.push(r.url());
   });
   await openGame(page);
   await newGame(page);
@@ -189,3 +211,26 @@ test('the tutorial bubble stays inside the screen', async ({ page }) => {
   await inViewport(page, page.locator('#coach'), 'tutorial');
   await inViewport(page, page.locator('#coach button'), 'tutorial answers');
 });
+
+for (const lang of ['fr', 'ar'] as const) {
+  test(`agreeing with the partner fits on screen, the longest card read back and the sentence field shown (${lang})`, async ({ page }) => {
+    const features = { conventions: { state: 'on', hint: null } };
+    await page.route('**/api/capabilities', (route) => route.fulfill({ json: { version: 1, ai: { variable: 'ANTHROPIC_API_KEY' }, features } }));
+    // a card with every setting changed: the read-back is as long as it gets
+    const longest = { open: 90, jack: 30, nine: 20, threeTrumps: 0, belote: 30, ace: 20, aces: 'whenOverbid' };
+    const answered = page.waitForResponse('**/api/capabilities');
+    await openGame(page, { lang, storage: { 'kabbout.conventions': JSON.stringify(longest) } });
+    await (await answered).finished();
+    await inViewport(page, page.locator('#sheet'), 'menu');
+    await page.locator('#sheet [data-action="agreeOpen"]').scrollIntoViewIfNeeded();
+    await page.locator('#sheet [data-action="agreeOpen"]').click();
+    await expect(page.locator('#agreeCard li')).toHaveCount(7);
+    await inViewport(page, page.locator('#sheet'), 'agreement');
+    await noHorizontalScroll(page);
+    expect(await page.locator('#sheet').evaluate((sheet) => sheet.scrollWidth <= sheet.clientWidth + 1)).toBe(true);
+    // only the card scrolls: the way out, the sentence and the way to agree never leave the screen
+    for (const control of ['[data-action="menu"]', '#agreeQ', '[data-action="interpret"]', '[data-action="agree"]']) {
+      await inViewport(page, page.locator(`#sheet ${control}`), control);
+    }
+  });
+}

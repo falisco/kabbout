@@ -15,7 +15,7 @@ const DICTIONARIES = /\/i18n\/(fr|en|ar)\.js$/;
  */
 function reportPath(path) {
   const fromBundle = /^src\//.test(path) ? `app/web/${path}` : path;
-  const found = /(engine\/src|app\/web\/src)\/.*$/.exec(fromBundle.replaceAll('\\', '/'));
+  const found = /(engine\/src|bridge\/src|app\/web\/src)\/.*$/.exec(fromBundle.replaceAll('\\', '/'));
   return found && !DICTIONARIES.test(found[0]) ? found[0] : null;
 }
 export const isMeasured = (path) => reportPath(path) !== null;
@@ -30,5 +30,5 @@ export const coverageOptions = {
   sourceFilter: isMeasured,
   // both kinds of test must name a file the same way for their results to add up
   sourcePath: (path) => reportPath(path) ?? path,
-  all: { dir: ['engine/src', 'app/web/src'], filter: (path) => isMeasured(path) && path.endsWith('.js') },
+  all: { dir: ['engine/src', 'bridge/src', 'app/web/src'], filter: (path) => isMeasured(path) && path.endsWith('.js') },
 };

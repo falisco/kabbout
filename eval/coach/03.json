@@ -1,0 +1,196 @@
+{
+ "name": "deal 8, ffb: JS for AS in trick 3",
+ "lang": "ar",
+ "seat": 0,
+ "question": "شنوّة لعبت غالط؟",
+ "expected": {
+  "trick": 3,
+  "played": "JS",
+  "choice": "AS",
+  "loss": 73
+ },
+ "record": {
+  "scoring": "ffb",
+  "dealer": 0,
+  "bids": [
+   {
+    "type": "pass",
+    "seat": 1
+   },
+   {
+    "type": "bid",
+    "value": 110,
+    "suit": "C",
+    "seat": 2
+   },
+   {
+    "type": "pass",
+    "seat": 3
+   },
+   {
+    "type": "bid",
+    "value": 120,
+    "suit": "C",
+    "seat": 0
+   },
+   {
+    "type": "pass",
+    "seat": 1
+   },
+   {
+    "type": "pass",
+    "seat": 2
+   },
+   {
+    "type": "pass",
+    "seat": 3
+   }
+  ],
+  "tricks": [
+   [
+    {
+     "seat": 1,
+     "card": "KH"
+    },
+    {
+     "seat": 2,
+     "card": "QH"
+    },
+    {
+     "seat": 3,
+     "card": "AH"
+    },
+    {
+     "seat": 0,
+     "card": "8H"
+    }
+   ],
+   [
+    {
+     "seat": 3,
+     "card": "JH"
+    },
+    {
+     "seat": 0,
+     "card": "8C"
+    },
+    {
+     "seat": 1,
+     "card": "7H"
+    },
+    {
+     "seat": 2,
+     "card": "QD"
+    }
+   ],
+   [
+    {
+     "seat": 0,
+     "card": "JS"
+    },
+    {
+     "seat": 1,
+     "card": "7S"
+    },
+    {
+     "seat": 2,
+     "card": "8D"
+    },
+    {
+     "seat": 3,
+     "card": "TS"
+    }
+   ],
+   [
+    {
+     "seat": 3,
+     "card": "AD"
+    },
+    {
+     "seat": 0,
+     "card": "9D"
+    },
+    {
+     "seat": 1,
+     "card": "KD"
+    },
+    {
+     "seat": 2,
+     "card": "7C"
+    }
+   ],
+   [
+    {
+     "seat": 2,
+     "card": "JC"
+    },
+    {
+     "seat": 3,
+     "card": "TC"
+    },
+    {
+     "seat": 0,
+     "card": "TD"
+    },
+    {
+     "seat": 1,
+     "card": "QC"
+    }
+   ],
+   [
+    {
+     "seat": 2,
+     "card": "KC"
+    },
+    {
+     "seat": 3,
+     "card": "9S"
+    },
+    {
+     "seat": 0,
+     "card": "QS"
+    },
+    {
+     "seat": 1,
+     "card": "8S"
+    }
+   ],
+   [
+    {
+     "seat": 2,
+     "card": "AC"
+    },
+    {
+     "seat": 3,
+     "card": "7D"
+    },
+    {
+     "seat": 0,
+     "card": "KS"
+    },
+    {
+     "seat": 1,
+     "card": "9H"
+    }
+   ],
+   [
+    {
+     "seat": 2,
+     "card": "9C"
+    },
+    {
+     "seat": 3,
+     "card": "JD"
+    },
+    {
+     "seat": 0,
+     "card": "AS"
+    },
+    {
+     "seat": 1,
+     "card": "TH"
+    }
+   ]
+  ]
+ }
+}

@@ -1,0 +1,47 @@
+# `docker compose up`: the game and its API on one port, the rules engine beside them.
+# Written for old versions of Compose too (2.15): no include, no watch, no optional env file.
+name: kabbout
+
+services:
+  # The rules, written once in TypeScript. Reachable from the app only: no port is published.
+  bridge:
+    build:
+      context: .
+      dockerfile: bridge/Dockerfile
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:8787/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # Symfony: the built game as files, and /api.
+  app:
+    build:
+      context: .
+      dockerfile: server/docker/app.Dockerfile
+    depends_on:
+      bridge:
+        condition: service_healthy
+    environment:
+      # Both come from a .env file next to this one, if there is one: see .env.example.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      KABBOUT_AI_MODEL: ${KABBOUT_AI_MODEL:-claude-sonnet-5-5}
+      KABBOUT_PORT: ${KABBOUT_PORT:-8080}
+      KABBOUT_COACH_LIMIT: ${KABBOUT_COACH_LIMIT:-6}
+      KABBOUT_COACH_PER_DEAL: ${KABBOUT_COACH_PER_DEAL:-2}
+      KABBOUT_COACH_DAILY: ${KABBOUT_COACH_DAILY:-500}
+      KABBOUT_GUESTS_LIMIT: ${KABBOUT_GUESTS_LIMIT:-120}
+      KABBOUT_TABLES_LIMIT: ${KABBOUT_TABLES_LIMIT:-300}
+      KABBOUT_TABLES_OPENED: ${KABBOUT_TABLES_OPENED:-120}
+      KABBOUT_TRUSTED_PROXIES: ${KABBOUT_TRUSTED_PROXIES:-}
+      BRIDGE_URL: http://bridge:8787
+    # for this machine only; write '${KABBOUT_PORT:-8080}:8080' to open it to others
+    ports:
+      - '127.0.0.1:${KABBOUT_PORT:-8080}:8080'
+    # what the server keeps: a guest finds their name again after the image is built anew
+    volumes:
+      - kept:/app/var/share
+
+# `docker compose down --volumes` forgets everybody.
+volumes:
+  kept:

@@ -1,0 +1,94 @@
+framework:
+  http_method_override: false
+  # this server only answers under /api: its errors are JSON, like its answers
+  error_controller: Kabbout\Api\UserInterface\Http\ErrorController
+  handle_all_throwables: true
+  php_errors:
+    log: true
+
+  http_client:
+    scoped_clients:
+      # a player is waiting: seconds without a byte from the platform, then seconds for a whole call.
+      # With the coach's own time limits (AskCoach, CoachConversation) a question ends before the page gives up.
+      anthropic.client:
+        scope: 'https://api\.anthropic\.com'
+        timeout: 15
+        max_duration: 25
+
+  # Whose address a request comes from. Behind a reverse proxy every request arrives from the proxy: name
+  # it in KABBOUT_TRUSTED_PROXIES and the address it forwards is the visitor's. Unset, nothing forwarded is believed.
+  trusted_proxies: '%env(KABBOUT_TRUSTED_PROXIES)%'
+  trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port']
+
+  # A request that changes something must come from the game's own page: Symfony's same-origin check,
+  # with no session. Kabbout\Api\Domain\FromThePage says what a client sends; the doors that take a POST
+  # ask for the check with #[IsCsrfTokenValid].
+  csrf_protection:
+    stateless_token_ids: [api]
+
+  # Locks are files, on every machine: left to itself the framework takes semaphores where PHP has them.
+  lock: flock
+
+  cache:
+    pools:
+      # the coach's counts and its memory of a deal, apart from the rest so that they can be cleared of what has expired
+      cache.coach:
+        adapter: cache.adapter.filesystem
+        default_lifetime: 86400
+      # the players the server knows; CachePlayers says how long each one is kept
+      cache.players:
+        adapter: cache.adapter.filesystem
+      # the games played at the server's tables, and the pace of the calls to them; CacheTables says how long a table is kept
+      cache.tables:
+        adapter: cache.adapter.filesystem
+
+  # Every count is changed under a lock, so two questions at the same instant are two questions. The locks
+  # come from StripedLockFactory (config/services.yaml): a fixed number of files, however many visitors.
+  # Questions to the coach: a visitor's pace, and what all visitors together may ask in a day. The
+  # questions of one deal are counted in LimiterCoachAllowance.
+  rate_limiter:
+    coach:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_COACH_LIMIT)%'
+      interval: '1 minute'
+      cache_pool: cache.coach
+      lock_factory: Kabbout\Assistant\Infrastructure\Limits\StripedLockFactory
+    # New guests from one address. Counted under a lock of LimiterEntryAllowance's own, so none is asked for here.
+    guests:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_GUESTS_LIMIT)%'
+      interval: '1 minute'
+      cache_pool: cache.players
+      lock_factory: null
+    coach_day:
+      policy: fixed_window
+      limit: '%env(int:KABBOUT_COACH_DAILY)%'
+      interval: '1 day'
+      cache_pool: cache.coach
+      lock_factory: Kabbout\Assistant\Infrastructure\Limits\StripedLockFactory
+    # The MCP server. Calls to the tables from one address, each of them work for the engine; tables
+    # opened from one address, each of them kept a day; and requests to the HTTP endpoint, whatever
+    # they ask (Game\Infrastructure\Mcp\EndpointGuard). None is counted under a lock: these are paces,
+    # and two requests at the same instant counted as one do no harm.
+    tables:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_TABLES_LIMIT)%'
+      interval: '1 minute'
+      cache_pool: cache.tables
+      lock_factory: null
+    tables_opened:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_TABLES_OPENED)%'
+      interval: '1 hour'
+      cache_pool: cache.tables
+      lock_factory: null
+    mcp:
+      policy: sliding_window
+      limit: '%env(int:KABBOUT_TABLES_LIMIT)%'
+      interval: '1 minute'
+      cache_pool: cache.tables
+      lock_factory: null
+
+when@test:
+  framework:
+    test: true

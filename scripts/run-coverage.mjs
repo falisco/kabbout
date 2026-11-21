@@ -10,7 +10,7 @@ function run(command, args, env = {}) {
 }
 
 rmSync(coverageOptions.outputDir, { recursive: true, force: true });
-run('node', ['--test', 'engine/test/*.test.ts', 'app/web/test/*.test.js'], { NODE_V8_COVERAGE: UNIT_DIR });
+run('node', ['--test', 'engine/test/*.test.ts', 'bridge/test/*.test.ts', 'app/web/test/*.test.js'], { NODE_V8_COVERAGE: UNIT_DIR });
 // the bundle carries its source map, so that what the browser ran is counted against the source files
 run('npm', ['run', 'build:web', '--', '--sourcemap=inline']);
 run('npx', ['playwright', 'test'], { COVERAGE: '1' });

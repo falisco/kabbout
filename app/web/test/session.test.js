@@ -3,7 +3,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fullDeck, legalCards, seededRng } from '../../../engine/src/index.ts';
+import { BOLD, CLASSIC, aiBid, fullDeck, legalCards, readConventions, seededRng, viewFor } from '../../../engine/src/index.ts';
 import { createLocalSession } from '../src/session.js';
 
 const make = (seed = 7, extra = {}) => createLocalSession({ seat: 0, target: 1000, rng: seededRng(seed), adviceRng: seededRng(seed + 1), ...extra });
@@ -152,16 +152,12 @@ test('level: the robots play at the level asked for at each card, so it can chan
   );
 });
 
-test('reasons: one entry per bid, the robots’ only (solo), kept out of the view', () => {
+test('the session has no way to ask for a robot’s reason: what a robot holds is never the screen’s to show', () => {
   const s = make();
   s.start();
-  const v = playUntil(s, (x) => x.bids.length >= 4);
-  const reasons = s.reasons();
-  assert.equal(reasons.length, v.bids.length);
-  v.bids.forEach((b, i) => {
-    if (b.seat === 0) assert.equal(reasons[i], undefined);
-    else assert.equal(typeof reasons[i], 'string');
-  });
+  playUntil(s, (x) => x.bids.length >= 4);
+  assert.equal('reasons' in s, false);
+  assert.equal(JSON.stringify(s.view()).includes('"why"'), false);
 });
 
 test('advice never changes the game: same deals and same robot moves whether asked or not', () => {
@@ -215,4 +211,114 @@ test('snapshot and restore: an action can be taken back exactly', () => {
   s.send({ kind: 'play', card: s.legalPlays()[0] });
   s.restore(snap);
   assert.deepEqual(s.view(), before);
+});
+
+test('record: nothing until a deal is over, then the deal as the table saw it, and nothing else', () => {
+  const s = make();
+  assert.equal(s.record(), null);
+  s.start();
+  assert.equal(s.record(), null);
+  playUntil(s, myCardTurn);
+  assert.equal(s.record(), null);
+  const over = playUntil(s, (v) => v.phase === 'roundEnd');
+  const record = s.record();
+  assert.deepEqual(Object.keys(record), ['scoring', 'dealer', 'bids', 'tricks']);
+  assert.deepEqual([record.scoring, record.dealer], [over.scoring, over.dealer]);
+  // the auction as heard: who said what, never why
+  assert.deepEqual(record.bids, over.bids);
+  assert.ok(record.bids.length >= 4 && record.bids.every((bid) => !('why' in bid)));
+  // eight tricks of four plays, the thirty-two cards once each, in the order they fell
+  assert.deepEqual(
+    record.tricks,
+    over.tricks.map((trick) => trick.plays),
+  );
+  assert.deepEqual(
+    record.tricks.flat().map((p) => Object.keys(p)),
+    Array(32).fill(['seat', 'card']),
+  );
+  assert.deepEqual(record.tricks.flatMap((plays) => plays.map((p) => p.card)).sort(), [...fullDeck()].sort());
+  // a copy: what is done to it does not reach the game
+  record.tricks[0][0].card = 'XX';
+  assert.notEqual(s.record().tricks[0][0].card, 'XX');
+  // the next deal has no record yet
+  s.send({ kind: 'next' });
+  assert.equal(s.record(), null);
+});
+
+test('conventions: the partner bids by the pair’s card and the opponents by the classic one, for the whole game', () => {
+  // a card on which nobody opens short of 90 and no raise is worth anything: a pair that bids by it is seen at once
+  const quiet = readConventions({ open: 90, jack: 0, nine: 0, threeTrumps: 0, belote: 0, ace: 0, aces: 'atOnce' });
+  const said = { partner: 0, opponents: 0 };
+  // a game is a few deals: several are played, until each seat has held a hand the two cards bid differently
+  for (let seed = 7; seed < 27 && !(said.partner && said.opponents); seed++) {
+    let agreed = quiet;
+    const s = make(seed, { conventions: () => agreed });
+    s.start();
+    // the card is asked for when the game starts: agreeing on another during the game changes nothing of it
+    agreed = BOLD;
+    for (;;) {
+      while (s.robotToAct()) {
+        const before = s.snapshot();
+        const who = before.turn;
+        s.playRobot();
+        if (before.phase !== 'bidding') continue;
+        const after = s.snapshot();
+        // four passes deal again and the auction starts empty: that bid is no longer there to be read
+        if (after.bids.length !== before.bids.length + 1) continue;
+        const made = after.bids.at(-1);
+        const by = (card) => aiBid(viewFor(before, who), 'fr', card);
+        const expected = by(who === 2 ? quiet : CLASSIC);
+        assert.deepEqual(
+          { type: made.type, value: made.value, suit: made.suit, why: made.why },
+          { value: undefined, suit: undefined, ...expected.bid, why: expected.why },
+        );
+        if (JSON.stringify(by(quiet).bid) !== JSON.stringify(by(CLASSIC).bid)) said[who === 2 ? 'partner' : 'opponents']++;
+      }
+      const v = s.view();
+      if (v.phase === 'gameEnd') break;
+      if (v.phase === 'bidding') assert.ok(s.send({ kind: 'bid', bid: { type: 'pass' } }));
+      else if (v.phase === 'playing') assert.ok(s.send({ kind: 'play', card: s.legalPlays()[0] }));
+      else assert.ok(s.send({ kind: 'next' }));
+    }
+  }
+  // the two cards did part ways, at the partner's seat and at the opponents'
+  assert.ok(said.partner > 0 && said.opponents > 0, JSON.stringify(said));
+});
+
+test('conventions: the advice given to the human is by the pair’s card', () => {
+  const never = readConventions({ open: 90, jack: 0, nine: 0, threeTrumps: 0, belote: 0, ace: 0, aces: 'atOnce' });
+  for (let seed = 1; seed < 40; seed++) {
+    const classic = make(seed);
+    const agreed = make(seed, { conventions: () => never });
+    classic.start();
+    agreed.start();
+    robots(classic);
+    robots(agreed);
+    const [a, b] = [classic.adviseBid(), agreed.adviseBid()];
+    if (!a || !b || JSON.stringify(a.bid) === JSON.stringify(b.bid)) continue;
+    assert.deepEqual(b, aiBid(agreed.view(), 'fr', never));
+    return;
+  }
+  assert.fail('no deal where the two cards advise differently');
+});
+
+test('conventions: a game knows the card it started on, and that it started on none when the two had agreed on none', () => {
+  const none = make();
+  assert.equal(none.conventions(), null);
+  none.start();
+  assert.equal(none.conventions(), null);
+
+  let agreed = null;
+  const s = make(7, { conventions: () => agreed });
+  s.start();
+  assert.equal(s.conventions(), null);
+  // agreeing during a game changes nothing of it; the next game starts on the card
+  agreed = BOLD;
+  assert.equal(s.conventions(), null);
+  s.start();
+  assert.equal(s.conventions(), BOLD);
+  // agreeing on the classic card is an agreement, on that card
+  agreed = CLASSIC;
+  s.start();
+  assert.equal(s.conventions(), CLASSIC);
 });

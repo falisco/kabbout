@@ -1,0 +1,39 @@
+# The Symfony AI bundle: one platform, two agents (the coach and the conventions).
+ai:
+  platform:
+    anthropic:
+      # empty: the AI is off, and nothing here is ever asked (see Assistant\Infrastructure\Settings\EnvAiConfiguration)
+      api_key: '%env(ANTHROPIC_API_KEY)%'
+      http_client: 'anthropic.client'
+
+  agent:
+    # The coach: asked about a deal just played, it looks at it through the engine's analysis and explains.
+    # Its system prompt is written for each question (the player's seat and language): Infrastructure\SymfonyAi\Coach\CoachPrompt.
+    coach:
+      platform: 'ai.platform.anthropic'
+      model:
+        name: '%env(KABBOUT_AI_MODEL)%'
+        # the models think before they answer: the bridge's default of 1000 tokens can leave no room for the answer
+        options:
+          max_tokens: 4096
+      tools:
+        - 'Kabbout\Assistant\Infrastructure\SymfonyAi\Coach\CoachTools'
+      # rounds of tool calls in one answer: the six tools, and a few closer looks
+      max_tool_calls: 8
+
+    # The conventions: a player's sentence about how the pair bids, turned into the settings of a card.
+    # No tool: one question, one answer in the schema of Infrastructure\SymfonyAi\Conventions\CardDraft (structured output,
+    # asked for at each call with the `response_format` option). Its system prompt: Infrastructure\SymfonyAi\Conventions\ConventionsPrompt.
+    conventions:
+      platform: 'ai.platform.anthropic'
+      model:
+        name: '%env(KABBOUT_AI_MODEL)%'
+        options:
+          max_tokens: 4096
+
+when@test:
+  ai:
+    platform:
+      anthropic:
+        # no request leaves the tests: Kabbout\Tests\Support\AnthropicMock answers in Anthropic's place
+        http_client: 'test.anthropic_client'

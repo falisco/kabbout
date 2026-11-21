@@ -1,0 +1,118 @@
+# The server is cut by bounded context (src/Game, src/Assistant, src/Identity, src/Api), then by layer, then by feature where there is more than one: see server/README.md.
+# Domain code holds no service: it is built by the layers around it.
+parameters:
+  # Nothing written: the AI is off and the bridge is where the compose file puts it.
+  env(ANTHROPIC_API_KEY): ''
+  env(KABBOUT_AI_MODEL): 'claude-sonnet-5-5'
+  env(BRIDGE_URL): 'http://bridge:8787'
+  # questions to the coach one visitor may ask in a minute
+  env(KABBOUT_COACH_LIMIT): '6'
+  # questions to the coach one visitor may ask about one deal
+  env(KABBOUT_COACH_PER_DEAL): '2'
+  # questions to the coach all visitors together may ask in a day
+  env(KABBOUT_COACH_DAILY): '500'
+  # new guests that may come in from one address in a minute
+  env(KABBOUT_GUESTS_LIMIT): '120'
+  # calls to the tables (the MCP server) one address may make in a minute
+  env(KABBOUT_TABLES_LIMIT): '300'
+  # tables one address may open on the MCP server in an hour
+  env(KABBOUT_TABLES_OPENED): '120'
+  # the reverse proxies in front of the server, if any: addresses or ranges, comma separated
+  env(KABBOUT_TRUSTED_PROXIES): ''
+
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  Kabbout\:
+    resource: '../src/'
+    exclude:
+      - '../src/Kernel.php'
+      - '../src/*/Domain/'
+      # Values and exceptions of the application layer, which knows nothing of Symfony. An adapter that is
+      # no service says so itself, with #[Exclude].
+      - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary,Exchange,Answered,DealSpent}.php'
+      - '../src/Assistant/Application/Allowance/{AskedTooOften,DaySpent}.php'
+      - '../src/Assistant/Application/Conventions/{Reading,Interpreted,NotUnderstood,ConventionsModelFailed,InvalidSentence}.php'
+      - '../src/Assistant/Infrastructure/SymfonyAi/Conventions/{CardDraft,ConventionsPrompt}.php'
+      - '../src/Identity/Application/{Entered,NoNameFree,EnteredTooOften}.php'
+      - '../src/Game/Application/Table/{Turn,Score,PlayedDeal,PlayedTooFast,NoSuchTable,TableExpired,MoveRefused,NoFinishedDeal}.php'
+
+  # the coach's locks: files in the system's temporary directory, a fixed number of them
+  Kabbout\Assistant\Infrastructure\Limits\StripedLockFactory:
+    arguments:
+      $store: !service { class: Symfony\Component\Lock\Store\FlockStore }
+
+  # Ports of the domains, and the adapter each one gets here.
+  Kabbout\Game\Domain\Engine: '@Kabbout\Game\Infrastructure\Bridge\BridgeEngine'
+  Kabbout\Game\Domain\DealAnalysis: '@Kabbout\Game\Infrastructure\Bridge\BridgeDealAnalysis'
+  Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport: '@Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport'
+  Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport:
+    arguments:
+      $baseUrl: '%env(BRIDGE_URL)%'
+
+  Kabbout\Game\Domain\Table\Tables: '@Kabbout\Game\Infrastructure\CacheTables'
+  Kabbout\Game\Application\Table\TableAllowance: '@Kabbout\Game\Infrastructure\LimiterTableAllowance'
+  Kabbout\Game\Application\Table\Now: '@Kabbout\Game\Infrastructure\ClockNow'
+
+  # Who is asking an MCP tool: whoever Security recognised over HTTP, the process's own guest over stdio.
+  Kabbout\Game\UserInterface\Mcp\Door:
+    arguments:
+      $current: '@Kabbout\Identity\Infrastructure\ProcessGuest'
+
+  Kabbout\Assistant\Application\Coach\CoachModel: '@Kabbout\Assistant\Infrastructure\SymfonyAi\Coach\SymfonyAiCoachModel'
+  Kabbout\Assistant\Application\Conventions\ConventionsModel: '@Kabbout\Assistant\Infrastructure\SymfonyAi\Conventions\SymfonyAiConventionsModel'
+  Kabbout\Assistant\Domain\Settings\AiConfiguration: '@Kabbout\Assistant\Infrastructure\Settings\EnvAiConfiguration'
+  Kabbout\Assistant\Infrastructure\Settings\EnvAiConfiguration:
+    arguments:
+      $apiKey: '%env(ANTHROPIC_API_KEY)%'
+      $model: '%env(KABBOUT_AI_MODEL)%'
+
+  Kabbout\Identity\Domain\Players: '@Kabbout\Identity\Infrastructure\CachePlayers'
+  Kabbout\Identity\Domain\Chance: '@Kabbout\Identity\Infrastructure\SystemChance'
+  Kabbout\Identity\Application\CurrentPlayer: '@Kabbout\Identity\Infrastructure\Security\SecurityCurrentPlayer'
+  Kabbout\Identity\Application\EntryAllowance: '@Kabbout\Identity\Infrastructure\LimiterEntryAllowance'
+
+when@test:
+  services:
+    # What the tests put something else behind: the engine, its analysis, its transport and the models.
+    Kabbout\Game\Domain\Engine:
+      alias: Kabbout\Game\Infrastructure\Bridge\BridgeEngine
+      public: true
+    Kabbout\Game\Domain\DealAnalysis:
+      alias: Kabbout\Game\Infrastructure\Bridge\BridgeDealAnalysis
+      public: true
+    Kabbout\Game\Infrastructure\Bridge\Transport\BridgeTransport:
+      alias: Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport
+      public: true
+    Kabbout\Assistant\Application\Coach\CoachModel:
+      alias: Kabbout\Assistant\Infrastructure\SymfonyAi\Coach\SymfonyAiCoachModel
+      public: true
+    Kabbout\Assistant\Application\Conventions\ConventionsModel:
+      alias: Kabbout\Assistant\Infrastructure\SymfonyAi\Conventions\SymfonyAiConventionsModel
+      public: true
+    Kabbout\Game\Application\Analysis\RankSwings:
+      autowire: true
+      public: true
+    # Anthropic's API, scripted: the bundle, its platform and its agent are the real ones.
+    Kabbout\Tests\Support\AnthropicMock: ~
+    test.anthropic_client:
+      class: Symfony\Component\HttpClient\MockHttpClient
+      arguments: ['@Kabbout\Tests\Support\AnthropicMock']
+    Kabbout\Assistant\Infrastructure\SymfonyAi\Coach\CoachConversation:
+      autowire: true
+      autoconfigure: true
+      public: true
+    # The players and chance, for a test that moves the clock or leaves no name free.
+    Kabbout\Identity\Domain\Players:
+      alias: Kabbout\Identity\Infrastructure\CachePlayers
+      public: true
+    Kabbout\Identity\Domain\Chance:
+      alias: Kabbout\Identity\Infrastructure\SystemChance
+      public: true
+    # Every line the server would log, kept for the tests to read instead of written to the error output.
+    # Nothing is lost for a failing test: PHPUnit reports PHP's own notices and warnings itself.
+    logger:
+      class: Kabbout\Tests\Support\ListedLog
+      public: true

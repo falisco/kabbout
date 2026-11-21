@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { test as base, errors as playwrightErrors, expect, type Locator, type Page } from '@playwright/test';
 import { CoverageReport } from 'monocart-coverage-reports';
 import { coverageOptions } from '../scripts/coverage-options.mjs';
@@ -17,6 +18,15 @@ export const test = base.extend<{ coverage: void }>({
     { auto: true },
   ],
 });
+
+/**
+ * The accessibility audit of what is on screen (axe-core; WCAG 2.0, 2.1 and 2.2, levels A and AA).
+ * @returns one line per rule broken, none when the screen is clean: what it weighs, its name, how often and where first
+ */
+export async function audit(page: Page): Promise<string[]> {
+  const report = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+  return report.violations.map((v) => `${v.impact} ${v.id}: ${v.nodes.length} × ${v.nodes[0]?.target.join(' ')}`);
+}
 
 export interface OpenOptions {
   seed?: number;

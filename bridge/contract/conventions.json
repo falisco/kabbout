@@ -1,0 +1,213 @@
+{
+ "values": {
+  "open": [
+   70,
+   80,
+   90
+  ],
+  "jack": [
+   0,
+   10,
+   20,
+   30
+  ],
+  "nine": [
+   0,
+   10,
+   20
+  ],
+  "threeTrumps": [
+   0,
+   10,
+   20
+  ],
+  "belote": [
+   0,
+   10,
+   20,
+   30
+  ],
+  "ace": [
+   0,
+   10,
+   20
+  ],
+  "aces": [
+   "atOnce",
+   "whenOverbid"
+  ]
+ },
+ "ready": {
+  "classic": {
+   "open": 70,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  },
+  "cautious": {
+   "open": 80,
+   "jack": 20,
+   "nine": 10,
+   "threeTrumps": 0,
+   "belote": 20,
+   "ace": 10,
+   "aces": "atOnce"
+  },
+  "bold": {
+   "open": 70,
+   "jack": 30,
+   "nine": 20,
+   "threeTrumps": 10,
+   "belote": 20,
+   "ace": 10,
+   "aces": "whenOverbid"
+  }
+ },
+ "refused": [
+  {
+   "why": "a value between two the card allows",
+   "card": {
+    "open": 70,
+    "jack": 15,
+    "nine": 10,
+    "threeTrumps": 10,
+    "belote": 20,
+    "ace": 10,
+    "aces": "atOnce"
+   }
+  },
+  {
+   "why": "a value beyond the last",
+   "card": {
+    "open": 70,
+    "jack": 40,
+    "nine": 10,
+    "threeTrumps": 10,
+    "belote": 20,
+    "ace": 10,
+    "aces": "atOnce"
+   }
+  },
+  {
+   "why": "a negative value",
+   "card": {
+    "open": 70,
+    "jack": 20,
+    "nine": 10,
+    "threeTrumps": 10,
+    "belote": 20,
+    "ace": -10,
+    "aces": "atOnce"
+   }
+  },
+  {
+   "why": "an opening below the first",
+   "card": {
+    "open": 60,
+    "jack": 20,
+    "nine": 10,
+    "threeTrumps": 10,
+    "belote": 20,
+    "ace": 10,
+    "aces": "atOnce"
+   }
+  },
+  {
+   "why": "a number written as text",
+   "card": {
+    "open": 70,
+    "jack": 20,
+    "nine": "10",
+    "threeTrumps": 10,
+    "belote": 20,
+    "ace": 10,
+    "aces": "atOnce"
+   }
+  },
+  {
+   "why": "a number that is not whole",
+   "card": {
+    "open": 70,
+    "jack": 20,
+    "nine": 10.5,
+    "threeTrumps": 10,
+    "belote": 20,
+    "ace": 10,
+    "aces": "atOnce"
+   }
+  },
+  {
+   "why": "a value that is no value",
+   "card": {
+    "open": 70,
+    "jack": 20,
+    "nine": 10,
+    "threeTrumps": 10,
+    "belote": null,
+    "ace": 10,
+    "aces": "atOnce"
+   }
+  },
+  {
+   "why": "a way to show aces the card does not know",
+   "card": {
+    "open": 70,
+    "jack": 20,
+    "nine": 10,
+    "threeTrumps": 10,
+    "belote": 20,
+    "ace": 10,
+    "aces": "never"
+   }
+  },
+  {
+   "why": "a setting missing",
+   "card": {
+    "open": 70,
+    "jack": 20,
+    "nine": 10,
+    "threeTrumps": 10,
+    "belote": 20,
+    "ace": 10
+   }
+  },
+  {
+   "why": "a setting the card does not have",
+   "card": {
+    "open": 70,
+    "jack": 20,
+    "nine": 10,
+    "threeTrumps": 10,
+    "belote": 20,
+    "ace": 10,
+    "aces": "atOnce",
+    "contre": 20
+   }
+  },
+  {
+   "why": "the name of a ready card",
+   "card": "classic"
+  },
+  {
+   "why": "a list",
+   "card": [
+    {
+     "open": 70,
+     "jack": 20,
+     "nine": 10,
+     "threeTrumps": 10,
+     "belote": 20,
+     "ace": 10,
+     "aces": "atOnce"
+    }
+   ]
+  },
+  {
+   "why": "nothing",
+   "card": null
+  }
+ ]
+}
