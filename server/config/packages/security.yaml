@@ -1,5 +1,6 @@
-# Who is asking. Symfony Security carries it for every route under /api, and no route is closed to
-# anybody: there is no access_control, and a request nobody is recognised behind goes on as nobody's.
+# Who is asking. Symfony Security carries it for every route under /api, and no route there is closed
+# to anybody: a request nobody is recognised behind goes on as nobody's. The MCP server under /mcp is
+# the other way round: a table is somebody's, so whoever is not recognised gets a 401.
 security:
   firewalls:
     api:
@@ -10,3 +11,17 @@ security:
       # finds the player itself, so there is no user provider.
       custom_authenticators:
         - Kabbout\Identity\Infrastructure\Security\GuestAuthenticator
+
+    mcp:
+      pattern: ^/mcp
+      stateless: true
+      # An MCP client is a guest like any visitor of the page; it has no cookie jar, so it sends the
+      # guest's secret itself: `Authorization: Bearer <secret>`, read by Symfony's own authenticator.
+      # `bin/console kabbout:guest` makes the guest and prints the secret.
+      access_token:
+        token_handler: Kabbout\Identity\Infrastructure\Security\GuestTokenHandler
+        # Symfony's header extractor, but for the scheme written in any case
+        token_extractors: Kabbout\Identity\Infrastructure\Security\BearerSecret
+
+  access_control:
+    - { path: ^/mcp, roles: ROLE_PLAYER }

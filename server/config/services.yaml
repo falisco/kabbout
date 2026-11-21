@@ -13,6 +13,10 @@ parameters:
   env(KABBOUT_COACH_DAILY): '500'
   # new guests that may come in from one address in a minute
   env(KABBOUT_GUESTS_LIMIT): '120'
+  # calls to the tables (the MCP server) one address may make in a minute
+  env(KABBOUT_TABLES_LIMIT): '300'
+  # tables one address may open on the MCP server in an hour
+  env(KABBOUT_TABLES_OPENED): '120'
   # the reverse proxies in front of the server, if any: addresses or ranges, comma separated
   env(KABBOUT_TRUSTED_PROXIES): ''
 
@@ -30,6 +34,7 @@ services:
       # no service says so itself, with #[Exclude].
       - '../src/Assistant/Application/Coach/{CoachBrief,CoachAnswer,Rejected,CoachModelFailed,AnswerSource,PlainSummary,Exchange,Answered,AskedTooOften,CoachResting,DealSpent}.php'
       - '../src/Identity/Application/{Entered,NoNameFree,EnteredTooOften}.php'
+      - '../src/Game/Application/Table/{Turn,Score,PlayedDeal,PlayedTooFast,NoSuchTable,TableExpired,MoveRefused,NoFinishedDeal}.php'
 
   # the coach's locks: files in the system's temporary directory, a fixed number of them
   Kabbout\Assistant\Infrastructure\StripedLockFactory:
@@ -43,6 +48,15 @@ services:
   Kabbout\Game\Infrastructure\Bridge\Transport\HttpBridgeTransport:
     arguments:
       $baseUrl: '%env(BRIDGE_URL)%'
+
+  Kabbout\Game\Domain\Table\Tables: '@Kabbout\Game\Infrastructure\CacheTables'
+  Kabbout\Game\Application\Table\TableAllowance: '@Kabbout\Game\Infrastructure\LimiterTableAllowance'
+  Kabbout\Game\Application\Table\Now: '@Kabbout\Game\Infrastructure\ClockNow'
+
+  # Who is asking an MCP tool: whoever Security recognised over HTTP, the process's own guest over stdio.
+  Kabbout\Game\UserInterface\Mcp\Door:
+    arguments:
+      $current: '@Kabbout\Identity\Infrastructure\ProcessGuest'
 
   Kabbout\Assistant\Application\Coach\CoachModel: '@Kabbout\Assistant\Infrastructure\Ai\SymfonyAiCoachModel'
   Kabbout\Assistant\Domain\AiConfiguration: '@Kabbout\Assistant\Infrastructure\EnvAiConfiguration'

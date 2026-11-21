@@ -23,12 +23,12 @@ use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
  * checked against. A question the model asked wrongly (a ninth trick, a card the player did not hold)
  * is answered in words, and adds no fact.
  */
-#[AsTool('deal_summary', 'The deal in short: the auction, the contract, whether it was made, and what each team made (tricks, card points, score-sheet points).', 'dealSummary')]
-#[AsTool('trick', 'One trick as it was played: the four cards in order, who led, who won, the card points in it, and the card the player put in it.', 'trick')]
-#[AsTool('expert_choice', 'What the expert would have played at the player\'s turn in one trick, knowing only what the player could know then: the player\'s hand, the cards on the table, every legal card with its average result, the loss of the card played against the expert\'s, and the table reading that explains it: cards fallen, cards and trumps still out, master cards, seats void in a suit, who held the trick, the points made so far.', 'expertChoice')]
-#[AsTool('what_if', 'How the deal ends if the player plays another card in one trick, next to how it ends from the card really played; both finished by the same four experts.', 'whatIf')]
-#[AsTool('expert_bids', 'The auction at each of the player\'s turns to speak: the bids heard so far, what the player said, what the expert would have said with the same cards and why, and what the player\'s hand is worth with each suit as trumps. The expert bids by conventions: this says what it would have done, not what a bid cost.', 'expertBids')]
-#[AsTool('biggest_swings', 'The player\'s decisions the expert would have made otherwise, the costliest first, each with its trick, the card played, the expert\'s card and the loss on average. A decision that is not in this list is not a mistake.', 'biggestSwings')]
+#[AsTool('deal_summary', SummariseDeal::ABOUT, 'dealSummary')]
+#[AsTool('trick', ReviewTrick::ABOUT, 'trick')]
+#[AsTool('expert_choice', AskExpertChoice::ABOUT, 'expertChoice')]
+#[AsTool('what_if', TryWhatIf::ABOUT, 'whatIf')]
+#[AsTool('expert_bids', ReviewBids::ABOUT, 'expertBids')]
+#[AsTool('biggest_swings', RankSwings::ABOUT, 'biggestSwings')]
 final readonly class CoachTools
 {
     /** what a tool answers once the question has had its looks or its time: it adds no fact */

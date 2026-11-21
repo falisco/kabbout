@@ -17,6 +17,9 @@ use Kabbout\Game\Domain\Seat;
  */
 final readonly class ReviewBids
 {
+    /** what this tells, in the words every door that offers it to a model uses */
+    public const string ABOUT = 'The auction at each of the player\'s turns to speak: the bids heard so far, what the player said, what the expert would have said with the same cards and why, and what the player\'s hand is worth with each suit as trumps. The expert bids by conventions: this says what it would have done, not what a bid cost.';
+
     public function __construct(private DealAnalysis $analysis)
     {
     }
