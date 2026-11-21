@@ -3,7 +3,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fullDeck, legalCards, seededRng } from '../../../engine/src/index.ts';
+import { BOLD, CLASSIC, aiBid, fullDeck, legalCards, readConventions, seededRng, viewFor } from '../../../engine/src/index.ts';
 import { createLocalSession } from '../src/session.js';
 
 const make = (seed = 7, extra = {}) => createLocalSession({ seat: 0, target: 1000, rng: seededRng(seed), adviceRng: seededRng(seed + 1), ...extra });
@@ -247,4 +247,61 @@ test('record: nothing until a deal is over, then the deal as the table saw it, a
   // the next deal has no record yet
   s.send({ kind: 'next' });
   assert.equal(s.record(), null);
+});
+
+test('conventions: the partner bids by the pair’s card and the opponents by the classic one, for the whole game', () => {
+  // a card on which nobody opens short of 90 and no raise is worth anything: a pair that bids by it is seen at once
+  const quiet = readConventions({ open: 90, jack: 0, nine: 0, threeTrumps: 0, belote: 0, ace: 0, aces: 'atOnce' });
+  const said = { partner: 0, opponents: 0 };
+  // a game is a few deals: several are played, until each seat has held a hand the two cards bid differently
+  for (let seed = 7; seed < 27 && !(said.partner && said.opponents); seed++) {
+    let agreed = quiet;
+    const s = make(seed, { conventions: () => agreed });
+    s.start();
+    // the card is asked for when the game starts: agreeing on another during the game changes nothing of it
+    agreed = BOLD;
+    for (;;) {
+      while (s.robotToAct()) {
+        const before = s.snapshot();
+        const who = before.turn;
+        s.playRobot();
+        if (before.phase !== 'bidding') continue;
+        const after = s.snapshot();
+        // four passes deal again and the auction starts empty: that bid is no longer there to be read
+        if (after.bids.length !== before.bids.length + 1) continue;
+        const made = after.bids.at(-1);
+        const by = (card) => aiBid(viewFor(before, who), 'fr', card);
+        const expected = by(who === 2 ? quiet : CLASSIC);
+        assert.deepEqual(
+          { type: made.type, value: made.value, suit: made.suit, why: made.why },
+          { value: undefined, suit: undefined, ...expected.bid, why: expected.why },
+        );
+        if (JSON.stringify(by(quiet).bid) !== JSON.stringify(by(CLASSIC).bid)) said[who === 2 ? 'partner' : 'opponents']++;
+      }
+      const v = s.view();
+      if (v.phase === 'gameEnd') break;
+      if (v.phase === 'bidding') assert.ok(s.send({ kind: 'bid', bid: { type: 'pass' } }));
+      else if (v.phase === 'playing') assert.ok(s.send({ kind: 'play', card: s.legalPlays()[0] }));
+      else assert.ok(s.send({ kind: 'next' }));
+    }
+  }
+  // the two cards did part ways, at the partner's seat and at the opponents'
+  assert.ok(said.partner > 0 && said.opponents > 0, JSON.stringify(said));
+});
+
+test('conventions: the advice given to the human is by the pair’s card', () => {
+  const never = readConventions({ open: 90, jack: 0, nine: 0, threeTrumps: 0, belote: 0, ace: 0, aces: 'atOnce' });
+  for (let seed = 1; seed < 40; seed++) {
+    const classic = make(seed);
+    const agreed = make(seed, { conventions: () => never });
+    classic.start();
+    agreed.start();
+    robots(classic);
+    robots(agreed);
+    const [a, b] = [classic.adviseBid(), agreed.adviseBid()];
+    if (!a || !b || JSON.stringify(a.bid) === JSON.stringify(b.bid)) continue;
+    assert.deepEqual(b, aiBid(agreed.view(), 'fr', never));
+    return;
+  }
+  assert.fail('no deal where the two cards advise differently');
 });

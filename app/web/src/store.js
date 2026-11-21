@@ -1,6 +1,6 @@
 // Presentation state: what is on screen besides the game itself, and the player's settings.
 // Only flow.js, input.js and speech.js change it; the render modules read it.
-import { isLang, isLevel, isScoring } from '../../../engine/src/index.ts';
+import { CLASSIC, isLang, isLevel, isScoring, readConventions } from '../../../engine/src/index.ts';
 import { NO_SERVER } from './server.js';
 import { KEYS, OLD_KEYS, isObj, loadJSON, loadObj, saveJSON } from './storage.js';
 
@@ -23,6 +23,36 @@ export const prefs = {
   scoring: 'ffb',
   /** @type {'fr' | 'en' | 'ar' | null} the language the player chose; null follows the browser */
   lang: null,
+};
+
+/**
+ * What the player and their partner agreed their bids mean. `card` is the classic one until they agree
+ * on another; `agreed` says they did agree, on whichever card: the partner then gives its reasons.
+ */
+export const partnership = { card: CLASSIC, agreed: false };
+export function saveConventions() {
+  saveJSON(KEYS.conventions, partnership.card);
+}
+/** A card that is not one (a setting the game no longer has, a value it does not allow) is no agreement. */
+export function loadConventions() {
+  const card = readConventions(loadJSON(KEYS.conventions));
+  if (card) Object.assign(partnership, { card, agreed: true });
+}
+
+/**
+ * The dialog where the two agree: the card being looked at, the sentence being typed, and what became of
+ * the last sentence sent. `asked` counts the sentences, so that a late answer is told from the current one.
+ */
+export const agreement = {
+  card: CLASSIC,
+  sentence: '',
+  /** @type {'idle' | 'asking' | 'understood' | 'failed'} */
+  status: 'idle',
+  /** why there is no card, when status is 'failed' */
+  reason: '',
+  /** the parts of the sentence the card has no place for */
+  unplaced: [],
+  asked: 0,
 };
 
 /** The tutorial: the steps already seen, and whether the player switched it off. */

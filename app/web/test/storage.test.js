@@ -2,7 +2,19 @@
 import { beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { KEYS, loadJSON, loadObj, loadStats, migrateStorage, recordGame, removeKey, saveJSON } from '../src/storage.js';
-import { coachAnswer, loadPrefs, markTutorialStep, prefs, resetTutorial, savePrefs, tutorial } from '../src/store.js';
+import { BOLD, CLASSIC } from '../../../engine/src/index.ts';
+import {
+  coachAnswer,
+  loadConventions,
+  loadPrefs,
+  markTutorialStep,
+  partnership,
+  prefs,
+  resetTutorial,
+  saveConventions,
+  savePrefs,
+  tutorial,
+} from '../src/store.js';
 
 /** a browser's localStorage, reduced to what the game uses */
 function fakeStorage(entries = {}) {
@@ -28,6 +40,7 @@ const DEFAULTS = structuredClone(prefs);
 function resetSettings() {
   Object.assign(prefs, DEFAULTS);
   Object.assign(tutorial, { done: {}, off: false });
+  Object.assign(partnership, { card: CLASSIC, agreed: false });
 }
 
 beforeEach(() => {
@@ -143,4 +156,33 @@ test('the tutorial remembers the steps seen, as plain yes or no, and can be skip
   assert.deepEqual(loadJSON(KEYS.tutorial), { done: {}, off: false });
   markTutorialStep('round');
   assert.deepEqual(loadJSON(KEYS.tutorial), { done: { round: true }, off: false });
+});
+
+test('the card agreed with the partner is kept; what is stored and is not a card is no agreement', () => {
+  loadConventions();
+  assert.deepEqual(partnership, { card: CLASSIC, agreed: false });
+
+  Object.assign(partnership, { card: BOLD, agreed: true });
+  saveConventions();
+  Object.assign(partnership, { card: CLASSIC, agreed: false });
+  loadConventions();
+  assert.deepEqual(partnership, { card: BOLD, agreed: true });
+
+  // agreeing on the classic card is an agreement too
+  Object.assign(partnership, { card: CLASSIC, agreed: true });
+  saveConventions();
+  Object.assign(partnership, { card: CLASSIC, agreed: false });
+  loadConventions();
+  assert.equal(partnership.agreed, true);
+
+  for (const stored of ['"bold"', '{"open":70}', JSON.stringify({ ...BOLD, jack: 500 }), JSON.stringify({ ...BOLD, more: 1 }), '[', 'null']) {
+    useStorage(fakeStorage({ [KEYS.conventions]: stored }));
+    Object.assign(partnership, { card: CLASSIC, agreed: false });
+    loadConventions();
+    assert.deepEqual(partnership, { card: CLASSIC, agreed: false }, stored);
+  }
+  useStorage({ getItem: refusing, setItem: refusing, removeItem: refusing });
+  saveConventions();
+  loadConventions();
+  assert.equal(partnership.agreed, false);
 });

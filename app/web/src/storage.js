@@ -25,7 +25,7 @@ export function loadObj(key) {
   return isObj(value) ? value : null;
 }
 
-export const KEYS = { stats: 'kabbout.stats', prefs: 'kabbout.prefs', tutorial: 'kabbout.tuto' };
+export const KEYS = { stats: 'kabbout.stats', prefs: 'kabbout.prefs', tutorial: 'kabbout.tuto', conventions: 'kabbout.conventions' };
 /** what the game stored under its former name */
 const OLD = { stats: 'contree.stats', prefs: 'contree.prefs', tutorial: 'contree.tuto' };
 export const OLD_KEYS = { save: 'contree.save', sound: 'contree.sound' };

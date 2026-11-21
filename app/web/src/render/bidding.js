@@ -1,19 +1,23 @@
 // The auction: the bidding panel, the history of bids and the card values table.
 import { ORDER_TRUMP, SUITS, cardPoints } from '../../../../engine/src/index.ts';
-import { ME, nameOf, who } from '../config.js';
+import { ME, PARTNER, nameOf, who } from '../config.js';
 import { $ } from '../dom.js';
 import { coachStep, myBidTurn, session, view } from '../game.js';
 import { esc } from '../html.js';
 import { t } from '../i18n/index.js';
 import { SUIT_SYMBOL, bidHTML, bidValueLabel, isRed, rankName, suitName } from '../labels.js';
 import { availableBids, bidValueToShow, canContre, lastContre } from '../selectors.js';
-import { overlay, prefs, selection } from '../store.js';
+import { overlay, partnership, prefs, selection } from '../store.js';
 import { coachButtons } from './table.js';
 import { keepFocus } from './transient.js';
 
 const bidLine = (bid) => t('bidLine', bid.type, nameOf(bid.seat), bid.seat === ME, bid.type === 'bid' ? bidHTML(bid.value, bid.suit) : '');
-/** a bid, followed by the robot's reason when the player asked to see them */
-const bidLineWithReason = (bid, reason) => bidLine(bid) + (prefs.showReasons && reason ? `<small class="why">${esc(reason)}</small>` : '');
+/**
+ * A bid, followed by the robot's reason: every robot's when the player asked to see them, and the
+ * partner's as soon as the two have agreed on a card, since a reason then says what the card made of the hand.
+ */
+const reasonShown = (bid) => prefs.showReasons || (bid.seat === PARTNER && partnership.agreed);
+const bidLineWithReason = (bid, reason) => bidLine(bid) + (reason && reasonShown(bid) ? `<small class="why">${esc(reason)}</small>` : '');
 
 /** The auction so far. The list scrolls once it is long, so the keyboard can reach it. */
 export function historyHTML() {

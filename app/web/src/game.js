@@ -3,7 +3,7 @@ import { ME, TARGET, THINK_MS, adviceRng, gameRng } from './config.js';
 import { lang } from './i18n/index.js';
 import { tutorialStep } from './selectors.js';
 import { createLocalSession } from './session.js';
-import { overlay, prefs, tableState, tutorial } from './store.js';
+import { overlay, partnership, prefs, tableState, tutorial } from './store.js';
 
 /**
  * The table as this screen's player may see it (a PlayerView), or null before a game starts.
@@ -19,6 +19,7 @@ export const session = createLocalSession({
   level: () => prefs.level,
   lang,
   scoring: () => prefs.scoring,
+  conventions: () => partnership.card,
   thinkMs: THINK_MS,
   onChange: (latest) => {
     view = latest;

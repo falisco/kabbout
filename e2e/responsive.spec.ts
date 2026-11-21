@@ -211,3 +211,26 @@ test('the tutorial bubble stays inside the screen', async ({ page }) => {
   await inViewport(page, page.locator('#coach'), 'tutorial');
   await inViewport(page, page.locator('#coach button'), 'tutorial answers');
 });
+
+for (const lang of ['fr', 'ar'] as const) {
+  test(`agreeing with the partner fits on screen, the longest card read back and the sentence field shown (${lang})`, async ({ page }) => {
+    const features = { conventions: { state: 'on', hint: null } };
+    await page.route('**/api/capabilities', (route) => route.fulfill({ json: { version: 1, ai: { variable: 'ANTHROPIC_API_KEY' }, features } }));
+    // a card with every setting changed: the read-back is as long as it gets
+    const longest = { open: 90, jack: 30, nine: 20, threeTrumps: 0, belote: 30, ace: 20, aces: 'whenOverbid' };
+    const answered = page.waitForResponse('**/api/capabilities');
+    await openGame(page, { lang, storage: { 'kabbout.conventions': JSON.stringify(longest) } });
+    await (await answered).finished();
+    await inViewport(page, page.locator('#sheet'), 'menu');
+    await page.locator('#sheet [data-action="agreeOpen"]').scrollIntoViewIfNeeded();
+    await page.locator('#sheet [data-action="agreeOpen"]').click();
+    await expect(page.locator('#agreeCard li')).toHaveCount(7);
+    await inViewport(page, page.locator('#sheet'), 'agreement');
+    await noHorizontalScroll(page);
+    expect(await page.locator('#sheet').evaluate((sheet) => sheet.scrollWidth <= sheet.clientWidth + 1)).toBe(true);
+    // only the card scrolls: the way out, the sentence and the way to agree never leave the screen
+    for (const control of ['[data-action="menu"]', '#agreeQ', '[data-action="interpret"]', '[data-action="agree"]']) {
+      await inViewport(page, page.locator(`#sheet ${control}`), control);
+    }
+  });
+}
