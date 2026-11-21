@@ -7,7 +7,10 @@ namespace Kabbout\Tests\Game\UserInterface\Mcp;
 use Kabbout\Identity\Application\EnterAsGuest;
 use Kabbout\Identity\Domain\NetworkAddress;
 use Kabbout\Tests\Support\ListedLog;
+use Mcp\Schema\JsonRpc\Error;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * The MCP server over HTTP, under /mcp: who may come in and whose a table is. A client is a guest who
@@ -89,10 +92,38 @@ final class HttpServerTest extends McpServerTestCase
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('"handSizes":[8,8,8,8]', $opened);
 
-        // another guest who learnt the id is told what anybody is told of a session that does not exist
-        self::session($client, $other, $session, 'POST', ['id' => 3, 'method' => 'tools/list']);
+        // what anybody is told of a session that does not exist
+        $unknown = self::session($client, $other, '11111111-2222-4333-8444-555555555555', 'POST', ['id' => 3, 'method' => 'tools/list']);
         self::assertResponseStatusCodeSame(404);
-        self::session($client, $other, $session, 'DELETE', null);
+        // the SDK's own words for it (Mcp\Server\Protocol), as its transport writes them
+        self::assertSame(json_encode(Error::forInvalidRequest('Session not found or has expired.'), \JSON_THROW_ON_ERROR), $unknown);
+
+        // another guest who learnt the id is told the same, word for word, however the id is spelt
+        foreach ([$session, strtoupper($session), Uuid::fromString($session)->toBase58(), Uuid::fromString($session)->toBase32()] as $spelt) {
+            self::assertSame($unknown, self::session($client, $other, $spelt, 'POST', ['id' => 3, 'method' => 'tools/list']), $spelt);
+            self::assertResponseStatusCodeSame(404);
+            self::session($client, $other, $spelt, 'DELETE', null);
+            self::assertResponseStatusCodeSame(404);
+        }
+
+        // and a session whose owner was forgotten is nobody's to take: not the other guest's, not again its own
+        $kept = self::getContainer()->get('cache.tables');
+        self::assertInstanceOf(CacheItemPoolInterface::class, $kept);
+        $kept->clear();
+        self::assertSame($unknown, self::session($client, $other, $session, 'POST', ['id' => 3, 'method' => 'tools/list']));
+        self::assertSame($unknown, self::session($client, $owner, $session, 'POST', ['id' => 3, 'method' => 'tools/list']));
+    }
+
+    public function testASessionStaysItsGuestsWhoClosesIt(): void
+    {
+        $client = $this->browser = self::createClient();
+        $owner = self::guest();
+        $other = self::guest();
+        self::session($client, $owner, null, 'POST', ['id' => 1, 'method' => 'initialize', 'params' => ['protocolVersion' => '2025-11-25', 'capabilities' => new \stdClass(), 'clientInfo' => ['name' => 'kabbout-tests', 'version' => '1']]]);
+        $session = $client->getResponse()->headers->get('Mcp-Session-Id');
+        self::assertNotNull($session);
+        self::session($client, $owner, $session, 'POST', ['method' => 'notifications/initialized']);
+        self::session($client, $other, strtoupper($session), 'DELETE', null);
         self::assertResponseStatusCodeSame(404);
 
         // it is still its guest's, who closes it
