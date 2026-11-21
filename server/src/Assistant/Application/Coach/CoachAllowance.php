@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\Application\Coach;
 
-use Kabbout\Assistant\Application\ModelAllowance;
+use Kabbout\Assistant\Application\Allowance\ModelAllowance;
 use Kabbout\Identity\Domain\NetworkAddress;
 
 /**

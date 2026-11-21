@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Kabbout\Assistant\UserInterface\Console;
 
-use Kabbout\Assistant\Domain\AiConfiguration;
-use Kabbout\Assistant\Domain\InvalidAiSettings;
+use Kabbout\Assistant\Domain\Settings\AiConfiguration;
+use Kabbout\Assistant\Domain\Settings\InvalidAiSettings;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;

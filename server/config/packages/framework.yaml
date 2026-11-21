@@ -52,7 +52,7 @@ framework:
       limit: '%env(int:KABBOUT_COACH_LIMIT)%'
       interval: '1 minute'
       cache_pool: cache.coach
-      lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
+      lock_factory: Kabbout\Assistant\Infrastructure\Limits\StripedLockFactory
     # New guests from one address. Counted under a lock of LimiterEntryAllowance's own, so none is asked for here.
     guests:
       policy: sliding_window
@@ -65,7 +65,7 @@ framework:
       limit: '%env(int:KABBOUT_COACH_DAILY)%'
       interval: '1 day'
       cache_pool: cache.coach
-      lock_factory: Kabbout\Assistant\Infrastructure\StripedLockFactory
+      lock_factory: Kabbout\Assistant\Infrastructure\Limits\StripedLockFactory
     # The MCP server. Calls to the tables from one address, each of them work for the engine; tables
     # opened from one address, each of them kept a day; and requests to the HTTP endpoint, whatever
     # they ask (Game\Infrastructure\Mcp\EndpointGuard). None is counted under a lock: these are paces,

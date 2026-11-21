@@ -7,7 +7,7 @@ namespace Kabbout\Assistant\UserInterface\Console;
 use Kabbout\Assistant\Application\Conventions\ConventionsModelFailed;
 use Kabbout\Assistant\Application\Conventions\InterpretConventions;
 use Kabbout\Assistant\Application\Conventions\NotUnderstood;
-use Kabbout\Assistant\Domain\AiConfiguration;
+use Kabbout\Assistant\Domain\Settings\AiConfiguration;
 use Kabbout\Game\Domain\ConventionCard;
 use Kabbout\Game\Domain\Lang;
 use Symfony\Component\Console\Attribute\Argument;

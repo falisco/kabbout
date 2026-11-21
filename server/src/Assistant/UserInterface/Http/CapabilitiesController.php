@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Kabbout\Assistant\UserInterface\Http;
 
 use Kabbout\Api\Domain\Envelope;
-use Kabbout\Assistant\Application\GetCapabilities;
-use Kabbout\Assistant\Domain\FeatureState;
-use Kabbout\Assistant\Domain\InvalidAiSettings;
-use Kabbout\Assistant\Infrastructure\EnvAiConfiguration;
+use Kabbout\Assistant\Application\Capabilities\GetCapabilities;
+use Kabbout\Assistant\Domain\Settings\FeatureState;
+use Kabbout\Assistant\Domain\Settings\InvalidAiSettings;
+use Kabbout\Assistant\Infrastructure\Settings\EnvAiConfiguration;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 

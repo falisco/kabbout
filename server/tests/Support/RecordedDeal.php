@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Kabbout\Tests\Support;
 
-use Kabbout\Game\Application\RankSwings;
-use Kabbout\Game\Application\SummariseDeal;
+use Kabbout\Game\Application\Analysis\RankSwings;
+use Kabbout\Game\Application\Analysis\SummariseDeal;
 use Kabbout\Game\Domain\DealRecord;
 use Kabbout\Game\Infrastructure\Bridge\BridgeDealAnalysis;
 use Kabbout\Game\Infrastructure\Bridge\Mapping\Json;
