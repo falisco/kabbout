@@ -23,7 +23,7 @@ COPY server/src src
 RUN composer dump-autoload --no-dev --classmap-authoritative
 
 # 3. what runs: FrankenPHP in classic mode (a fresh PHP for each request), as an unprivileged user
-FROM dunglas/frankenphp:1.13.5-php8.5
+FROM dunglas/frankenphp:1.14.0-php8.5
 # What the server keeps (the players, the coach's counts) goes to var/share, apart from what is built
 # here: the compose file puts a volume there. Read when the container is compiled, so it is set before.
 ENV APP_ENV=prod APP_DEBUG=0 APP_SHARE_DIR=var/share
