@@ -13,7 +13,7 @@
         "symfony/ai-bundle": "1.0.0-BETA1",
         "symfony/ai-generic-platform": "1.0.0-BETA1",
         "symfony/ai-platform": "1.0.0-BETA1",
-        "symfony/clock": "8.1.*",
+        "symfony/clock": "8.2.*",
         "symfony/console": "8.1.*",
         "symfony/framework-bundle": "8.1.*",
         "symfony/http-client": "8.1.*",
